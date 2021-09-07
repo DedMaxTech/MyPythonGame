@@ -24,7 +24,7 @@ class Game:
 
     def draw(self):
         if self.playing:
-            self.screen.fill('white')
+            self.screen.blit(pg.image.load('content/bg.png'), (0, 0))
             self.player.draw(self.screen)
             for i in self.level.get_blocks():
                 self.screen.blit(i.img, i.get_pos())
@@ -39,12 +39,12 @@ class Game:
                 self.player.update_control(event)
 
     def loop(self):
-        self.draw()
+
         self.event_loop()
         if self.playing:
-            self.player.update(self.clock.get_time(), self.level.get_blocks())
+            self.player.update(self.level.get_blocks())
             pg.display.set_caption(str((self.player.rect.topleft, self.player.xvel, self.player.yvel)))
-
+        self.draw()
         pg.display.update()
         self.clock.tick(self.fps)
 

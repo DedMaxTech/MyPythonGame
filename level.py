@@ -1,10 +1,12 @@
 import pygame as pg
 
-img = 'content/block.png'
+img_rock = 'content/block_rock.png'
+img_wood = 'content/block_wood.png'
+img_leaves = 'content/block_leaves.png'
 
 
 class Block(pg.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, img):
         pg.sprite.Sprite.__init__(self)
         self.img = pg.image.load(img)
         self.rect = self.img.get_rect()
@@ -26,9 +28,18 @@ class Level:
         self.blocks = []
         for row in range(len(leveldata)):
             for i in range(len(leveldata[row])):
-                if leveldata[row][i] == '=':
-                    b = Block(i, row)
+                b = leveldata[row][i]
+                if b == '=':
+                    b = Block(i, row, img_rock)
                     self.blocks.append(b)
+                if b == '|':
+                    b = Block(i, row, img_wood)
+                    self.blocks.append(b)
+                if b == '+':
+                    b = Block(i, row, img_leaves)
+                    self.blocks.append(b)
+
+
 
     def get_blocks(self):
         return self.blocks

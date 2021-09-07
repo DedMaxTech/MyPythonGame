@@ -1,24 +1,27 @@
 import pygame as pg
 
-PLAYER_IMG = 'content/player.png'
+PLAYER_IMG = pg.image.load('content/player.png')
+PLAYER_IMG_AIR = pg.image.load('content/player_air.png')
+
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
-JUMP_FORCE = 10
-GRAVITY = 0.3
+JUMP_FORCE = 15
+GRAVITY = 0.5
 
 
 class Player(pg.sprite.Sprite):
     def __init__(self, x, y):
         pg.sprite.Sprite.__init__(self)
         self.xvel, self.yvel = 0, 0
-        self.img = pg.image.load(PLAYER_IMG)
+        self.img = PLAYER_IMG
         self.rect = self.img.get_rect()
 
         self.rect.x = x;
         self.rect.y = y
         self.move_left, self.move_right, self.jump = False, False, False
         self.on_ground = False
-
+        self.look_r = True
+        self.air_log = []
         self.timer = 0
 
     def update_control(self, event: pg.event.Event):
@@ -34,13 +37,13 @@ class Player(pg.sprite.Sprite):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_d: self.move_right = True
             if event.key == pg.K_a: self.move_left = True
-            if event.key == pg.K_w: self.jump = True
+            if event.key == pg.K_SPACE: self.jump = True
         if event.type == pg.KEYUP:
             if event.key == pg.K_d: self.move_right = False
             if event.key == pg.K_a: self.move_left = False
-            if event.key == pg.K_w: self.jump = False
+            if event.key == pg.K_SPACE: self.jump = False
 
-    def update(self, delta, blocks):
+    def update(self, blocks):
         # багованый вариант с инерцией
         # self.timer += delta
         # if self.timer >=250:
@@ -62,21 +65,8 @@ class Player(pg.sprite.Sprite):
 
         self.move(blocks)
 
-        # touch_ground=False
-        # for b in blocks:
-        #     if pg.sprite.collide_rect(self, b):
-        #         if self.yvel > 0:
-        #             self.yvel = 0
-        #             self.rect.bottom = b.rect.top
-        #             touch_ground = True
-        #         if self.yvel < 0:
-        #             self.yvel = 0
-        #             self.rect.top = b.rect.bottom
-        #         if self.xvel > 0:
-        #             self.rect.right = b.rect.left
-        #         if self.xvel < 0:
-        #             self.rect.left = b.rect.right
-        # self.on_ground = touch_ground
+        self.air_log.append(self.on_ground)
+        print(self.air_log.count(True), self.air_log.count(False))
 
 
     def collide_x(self, blocks):
@@ -107,7 +97,14 @@ class Player(pg.sprite.Sprite):
         self.rect.x += self.xvel
         self.collide_x(blocks)
 
+    def rotate(self):
+        self.img = pg.transform.flip(self.img, True, False)
+        self.look_r = not self.look_r
 
     def draw(self, screen: pg.Surface):
+        # self.img = PLAYER_IMG if self.on_ground else PLAYER_IMG_AIR
+        if not self.look_r and self.xvel > 0: self.rotate()
+        if self.look_r and self.xvel < 0: self.rotate()
 
-        screen.blit(self.img if self.xvel > 0 else pg.transform.flip(self.img, True, False), self.rect.topleft)
+
+        screen.blit(self.img, self.rect.topleft)
