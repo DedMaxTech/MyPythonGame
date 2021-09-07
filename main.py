@@ -24,7 +24,7 @@ class Game:
 
     def draw(self):
         if self.playing:
-            self.screen.blit(pg.image.load('content/bg2.png'), (0, 0))
+            self.screen.blit(pg.image.load('content/bg.png'), (0, 0))
             self.player.draw(self.screen)
             for i in self.level.get_blocks():
                 self.screen.blit(i.img, i.get_pos())
