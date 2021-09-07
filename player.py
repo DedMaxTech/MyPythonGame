@@ -66,7 +66,6 @@ class Player(pg.sprite.Sprite):
         self.move(blocks)
 
         self.air_log.append(self.on_ground)
-        print(self.air_log.count(True), self.air_log.count(False))
 
 
     def collide_x(self, blocks):
