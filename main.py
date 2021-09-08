@@ -25,19 +25,19 @@ class Game:
         self.level = level.Level('levels/level2.txt')
 
     def camera(self):
-        if self.player.rect.x < 200 and self.x_loc > 0:
+        if self.player.rect.x <  200 and self.x_loc > 0:
             bs = self.level.blocks
             d = 200 - self.player.rect.x
             for b in bs:
                 b.rect.x += d
-            self.x_loc += d
+            self.x_loc -= d
         if self.player.rect.x > self.res[0] - 200 and self.x_loc < self.level.rect.right:
             bs = self.level.blocks
             d = self.player.rect.x + 200 - self.res[0]
             for b in bs:
                 b.rect.x -= d
-            self.x_loc -= d
-            print('lol')
+            self.x_loc += d
+            print(self.level.get_size())
         pg.display.set_caption(f'{self.x_loc=} {self.player.rect.x=} {self.res[0] - 200=}')
 
     def draw(self):
