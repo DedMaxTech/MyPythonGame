@@ -14,10 +14,12 @@ class Block(pg.sprite.Sprite):
         self.rect.y = y * self.rect.height
 
     def get_pos(self):
-        return (self.rect.x, self.rect.y,)
+        return self.rect.x, self.rect.y,
+
 
 class Level:
     def __init__(self, level: [str, list]):
+        self.h, self.w = 0, 0
         if type(level) == str:
             with open(level, 'r') as file:
                 global leveldata
@@ -26,8 +28,11 @@ class Level:
             leveldata = level
 
         self.blocks = []
-        for row in range(len(leveldata)):
-            for i in range(len(leveldata[row])):
+        self.h = len(leveldata)
+        for row in range(self.h):
+            a = len(leveldata[row])
+            if self.w < a: self.w = a
+            for i in range(a):
                 b = leveldata[row][i]
                 if b == '=':
                     b = Block(i, row, img_rock)
@@ -39,7 +44,13 @@ class Level:
                     b = Block(i, row, img_leaves)
                     self.blocks.append(b)
 
-
+        self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
 
     def get_blocks(self):
         return self.blocks
+
+    def set_blocks(self, blocks):
+        self.blocks = blocks
+
+    def get_size(self):
+        return (self.w - 1) * 40, self.h * 40
