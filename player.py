@@ -12,7 +12,7 @@ GRAVITY = 0.5
 class Player(pg.sprite.Sprite):
     def __init__(self, x, y):
         pg.sprite.Sprite.__init__(self)
-        self.xvel, self.yvel = 0, 0
+        self.xspeed, self.yspeed = 0, 0
         self.img = PLAYER_IMG
         self.rect = self.img.get_rect()
 
@@ -26,14 +26,14 @@ class Player(pg.sprite.Sprite):
 
     def update_control(self, event: pg.event.Event):
 
-        # if key[pg.K_d] and self.xvel < PLAYER_MAX_SPEED:
-        #     self.xvel += PLAYER_ACCELERATION
-        # if key[pg.K_a] and self.xvel > -PLAYER_MAX_SPEED:
-        #     self.xvel -= PLAYER_ACCELERATION
+        # if key[pg.K_d] and self.xspeed < PLAYER_MAX_SPEED:
+        #     self.xspeed += PLAYER_ACCELERATION
+        # if key[pg.K_a] and self.xspeed > -PLAYER_MAX_SPEED:
+        #     self.xspeed -= PLAYER_ACCELERATION
         # if not key[pg.K_a] and not key[pg.K_d]:
         #     print('hjr')
-        #     if self.xvel > 0: self.xvel -= PLAYER_ACCELERATION
-        #     if self.xvel < 0: self.xvel += PLAYER_ACCELERATION
+        #     if self.xspeed > 0: self.xspeed -= PLAYER_ACCELERATION
+        #     if self.xspeed < 0: self.xspeed += PLAYER_ACCELERATION
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_d: self.move_right = True
             if event.key == pg.K_a: self.move_left = True
@@ -48,20 +48,20 @@ class Player(pg.sprite.Sprite):
         # self.timer += delta
         # if self.timer >=250:
         #     self.timer = 0
-        #     if self.move_right and self.xvel < PLAYER_MAX_SPEED: self.xvel += PLAYER_ACCELERATION
-        #     if self.move_left and self.xvel > -PLAYER_MAX_SPEED: self.xvel -= PLAYER_ACCELERATION
+        #     if self.move_right and self.xspeed < PLAYER_MAX_SPEED: self.xspeed += PLAYER_ACCELERATION
+        #     if self.move_left and self.xspeed > -PLAYER_MAX_SPEED: self.xspeed -= PLAYER_ACCELERATION
         #     if not self.move_right and not self.move_left:
-        #         if self.xvel > 0: self.xvel -= PLAYER_ACCELERATION * 2
-        #         if self.xvel < 0: self.xvel += PLAYER_ACCELERATION * 2
-        if self.move_right: self.xvel = PLAYER_ACCELERATION
-        if self.move_left: self.xvel = -PLAYER_ACCELERATION
-        if not self.move_right and not self.move_left: self.xvel = 0
+        #         if self.xspeed > 0: self.xspeed -= PLAYER_ACCELERATION * 2
+        #         if self.xspeed < 0: self.xspeed += PLAYER_ACCELERATION * 2
+        if self.move_right: self.xspeed = PLAYER_ACCELERATION
+        if self.move_left: self.xspeed = -PLAYER_ACCELERATION
+        if not self.move_right and not self.move_left: self.xspeed = 0
 
         if self.jump and self.on_ground:
             self.jump = False
-            self.yvel = -JUMP_FORCE
+            self.yspeed = -JUMP_FORCE
             self.on_ground = False
-        if not self.on_ground: self.yvel += GRAVITY
+        if not self.on_ground: self.yspeed += GRAVITY
 
         self.move(blocks)
 
@@ -81,19 +81,19 @@ class Player(pg.sprite.Sprite):
         touch_ground = False
         for b in blocks:
             if pg.sprite.collide_rect(self, b):
-                if self.yvel > 0:
-                    self.yvel = 0
+                if self.yspeed > 0:
+                    self.yspeed = 0
                     self.rect.bottom = b.rect.top
                     touch_ground = True
-                if self.yvel < 0:
-                    self.yvel = 0
+                if self.yspeed < 0:
+                    self.yspeed = 0
                     self.rect.top = b.rect.bottom
         self.on_ground = touch_ground
 
     def move(self, blocks):
-        self.rect.y += self.yvel
+        self.rect.y += self.yspeed
         self.collide_y(blocks)
-        self.rect.x += self.xvel
+        self.rect.x += self.xspeed
         self.collide_x(blocks)
 
     def rotate(self):
@@ -102,7 +102,7 @@ class Player(pg.sprite.Sprite):
 
     def draw(self, screen: pg.Surface, camera:pg.Rect):
         # self.img = PLAYER_IMG if self.on_ground else PLAYER_IMG_AIR
-        if not self.look_r and self.xvel > 0: self.rotate()
-        if self.look_r and self.xvel < 0: self.rotate()
+        if not self.look_r and self.xspeed > 0: self.rotate()
+        if self.look_r and self.xspeed < 0: self.rotate()
 
         screen.blit(self.img, (self.rect.x-camera.x, self.rect.y))
