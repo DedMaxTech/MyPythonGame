@@ -13,9 +13,6 @@ class Block(pg.sprite.Sprite):
         self.rect.x = x * self.rect.width
         self.rect.y = y * self.rect.height
 
-    def get_pos(self):
-        return self.rect.x, self.rect.y,
-
 
 class Level:
     def __init__(self, level: [str, list]):

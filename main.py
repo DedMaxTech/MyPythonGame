@@ -14,7 +14,7 @@ class Game:
 
         self.playing = False  # TODO: меню
 
-        self.x_loc = 0
+        self.camera = pg.Rect(0,0,self.res[0], self.res[1])
 
     def manage_buttons(self, event):
         b = UI.Button([2, 3], 'black', 'gnjfgdg', self.draw, 'fdf', )
@@ -24,28 +24,36 @@ class Game:
         self.player = player.Player(50, 50)
         self.level = level.Level('levels/level2.txt')
 
-    def camera(self):
-        if self.player.rect.x <  200 and self.x_loc > 0:
-            bs = self.level.blocks
-            d = 200 - self.player.rect.x
-            for b in bs:
-                b.rect.x += d
-            self.x_loc -= d
-        if self.player.rect.x > self.res[0] - 200 and self.x_loc < self.level.rect.right:
-            bs = self.level.blocks
-            d = self.player.rect.x + 200 - self.res[0]
-            for b in bs:
-                b.rect.x -= d
-            self.x_loc += d
-            print(self.level.get_size())
-        pg.display.set_caption(f'{self.x_loc=} {self.player.rect.x=} {self.res[0] - 200=}')
+    def camera_update(self):
+        # if self.player.rect.x < self.camera.x+200 and self.camera.x > 0:
+        #     bs = self.level.blocks
+        #     d = self.camera.x + 200 - self.player.rect.x
+        #     print(d)
+        #     for b in bs:
+        #         b.rect.x += d
+        #     self.camera.x -= d
+        # if self.player.rect.right > self.camera.right - 200 and self.camera.right < self.level.rect.right:
+        #
+        #     bs = self.level.blocks
+        #     d = self.camera.right - 200 - self.player.rect.x
+        #     print(d)
+        #     for b in bs:
+        #         b.rect.x -= d
+        #     self.camera.x += d
+        #
+        pg.display.set_caption(f'{self.camera.x=} {self.camera.right=} {self.player.rect.x=}')
+        if self.player.rect.x < self.camera.x + 200 and self.camera.x > 0:
+
+            self.camera.x -= self.camera.x + 200 - self.player.rect.x
+        if self.player.rect.right > self.camera.right - 200 and self.camera.right < self.level.rect.right:
+            self.camera.x += self.player.rect.right - self.camera.right+200
 
     def draw(self):
         if self.playing:
             self.screen.blit(pg.image.load('content/bg.png'), (0, 0))
-            self.player.draw(self.screen)
+            self.player.draw(self.screen, self.camera)
             for i in self.level.get_blocks():
-                self.screen.blit(i.img, i.get_pos())
+                self.screen.blit(i.img, (i.rect.x-self.camera.x, i.rect.y))
 
     def event_loop(self):
         for event in pg.event.get():
@@ -62,7 +70,7 @@ class Game:
         if self.playing:
             self.player.update(self.level.get_blocks())
 
-            self.camera()
+            self.camera_update()
 
 
         self.draw()

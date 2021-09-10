@@ -100,10 +100,9 @@ class Player(pg.sprite.Sprite):
         self.img = pg.transform.flip(self.img, True, False)
         self.look_r = not self.look_r
 
-    def draw(self, screen: pg.Surface):
+    def draw(self, screen: pg.Surface, camera:pg.Rect):
         # self.img = PLAYER_IMG if self.on_ground else PLAYER_IMG_AIR
         if not self.look_r and self.xvel > 0: self.rotate()
         if self.look_r and self.xvel < 0: self.rotate()
 
-
-        screen.blit(self.img, self.rect.topleft)
+        screen.blit(self.img, (self.rect.x-camera.x, self.rect.y))
