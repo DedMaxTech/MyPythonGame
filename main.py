@@ -1,4 +1,5 @@
 import pygame as pg
+import os
 
 import cfg, player, level
 from UI import Interface, Button
@@ -15,24 +16,30 @@ class Game:
         self.clock = pg.time.Clock()
         self.camera = pg.Rect(0,0,self.res[0], self.res[1])
         self.ui = Interface()
+        self.level = level.Level()
 
         self.playing = False  # TODO: меню
 
-        pg.display.set_caption('MyGoodPythonGame')
+        pg.display.set_caption(cfg.GAMENAME)
         self.ui.set_ui([
-            Button((200,200), 'white', 'Новая игра', 50, self.start_game,'red'),
-            Button((200,260), 'white', 'Редактор', 50, self.editor, 'red'),
-            Button((200,320), 'white', 'Выход', 50,exit,'red')
+            Button((100,100), 'white', 'МЕНЮ', 80, ),
+            Button((150,200), 'white', 'Новая игра', 50, self.start_game,'darkgrey'),
+            Button((150,260), 'white', 'Редактор', 50, self.editor, 'darkgrey'),
+            Button((150,320), 'white', 'Выход', 50,exit,'darkgrey'),
         ])
 
     def editor(self):
-        Editor()
+        pg.display.set_caption('для продолженя игры закройте редактор')
+        os.system('python editor.py')
+        pg.display.set_caption(cfg.GAMENAME)
+        
     
     def start_game(self):
         self.ui.clear()
+        self.level.open_level('levels/level2.txt')
         self.playing = True
         self.player = player.Player(50, 50)
-        self.level = level.Level('levels/level2.txt')
+        
 
     def camera_update(self):
         # if self.player.rect.x < self.camera.x+200 and self.camera.x > 0:
@@ -61,10 +68,9 @@ class Game:
     def draw(self):
         self.ui.draw(self.screen)
         if self.playing:
-            self.screen.blit(pg.image.load('content/bg.png'), (0, 0))
+            self.level.draw(self.screen,self.camera)
             self.player.draw(self.screen, self.camera)
-            for i in self.level.get_blocks():
-                self.screen.blit(i.img, (i.rect.x-self.camera.x, i.rect.y))
+
 
     def event_loop(self):
         for event in pg.event.get():
