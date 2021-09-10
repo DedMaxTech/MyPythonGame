@@ -1,3 +1,5 @@
+from UI import Button
+from typing import Union
 import pygame as pg
 
 img_rock = 'content/block_rock.png'
