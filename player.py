@@ -1,4 +1,5 @@
 import pygame as pg
+import math
 
 import cfg
 
@@ -8,20 +9,48 @@ PLAYER_LEGS_AIR = pg.image.load('content/player/legs/air.png')
 PLAYER_LEGS_L = pg.image.load('content/player/legs/left.png')
 PLAYER_LEGS_R = pg.image.load('content/player/legs/right.png')
 
-
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
 JUMP_FORCE = 12
 GRAVITY = 0.5
 
 GUNS = {
-    'rifle': {'img': pg.image.load('content/gun.png'),
+    'rifle': {'img': pg.image.load('content/rifle.png'),
               'hold_img': 0,
-              'pos':(29,29),
-              'bull_pos':(0,0),
+              'pos': (29, 29),
+              'bull_pos': (0, 0),
               'speed': 50,
-              'auto':True},
+              'mag': 30,
+              'auto': True},
+    'pistol': {'img': pg.image.load('content/pistol.png'),
+               'hold_img': 0,
+               'pos': (29, 29),
+               'bull_pos': (0, 0),
+               'speed': 50,
+               'mag': 10,
+               'auto': True},
 }
+
+
+class Bullet(pg.sprite.Sprite):
+    def __init__(self, x, y, xv, yv, img,):
+        pg.sprite.Sprite.__init__(self)
+        pg.Rect(x,y,3,5)
+        self.xv, self.yv = xv, yv
+        self.img = pg.transform.rotate(img, math.degrees(math.atan(x/y)))
+
+    def update(self, blocks, level):
+        self.rect.x += self.xv
+        self.rect.y += self.yv
+        for b in blocks:
+            if pg.sprite.collide_rect(self, b):
+                level.set_block(self.rect.topleft, '0')
+                del self
+
+    def draw(self, screen:pg.Surface):
+
+        screen.blit(self.img, self.rect.topleft)
+
 
 
 class Player(pg.sprite.Sprite):
@@ -38,7 +67,9 @@ class Player(pg.sprite.Sprite):
         self.r_leg = True
         self.double = True
         self.timer = 0
-        self.gun = 'rifle'
+
+        self.gun = 'pistol'
+        self.ammo = {'rifle': 240, 'pistol': 100}
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
 

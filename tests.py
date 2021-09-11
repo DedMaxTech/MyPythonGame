@@ -1,3 +1,3 @@
-from glob import glob
-for i in glob('levels/level*.txt'):
-    print(i)
+import math
+x = 3; y =3
+print(math.degrees(math.atan(x/y)))
