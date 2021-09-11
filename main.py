@@ -21,12 +21,29 @@ class Game:
         self.playing = False  # TODO: меню
 
         pg.display.set_caption(cfg.GAMENAME)
+        self.main_menu()
+
+    def main_menu(self):
+        self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
+        self.ui.clear()
         self.ui.set_ui([
-            Button((100,100), 'white', 'МЕНЮ', 80, ),
-            Button((150,200), 'white', 'Новая игра', 50, self.start_game,'darkgrey'),
-            Button((150,260), 'white', 'Редактор', 50, self.editor, 'darkgrey'),
-            Button((150,320), 'white', 'Выход', 50,exit,'darkgrey'),
+            Button((100, 100), 'white', 'MENU', 80, ),
+            Button((150, 200), 'white', 'New game', 50, self.start_game, 'darkgrey'),
+            Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
+            Button((150, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
+
+    def pause_menu(self):
+        self.ui.clear()
+        if self.playing:
+            self.playing = False
+            self.ui.set_ui([
+                Button((500, 200), 'white', 'Continue', 50, self.pause_menu, 'darkgrey'),
+                Button((500, 260), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
+                Button((500, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
+            ])
+        else:
+            self.playing = True
 
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
@@ -36,9 +53,9 @@ class Game:
     
     def start_game(self):
         self.ui.clear()
-        self.level.open_level('levels/level2.txt')
+        self.level.open_level('levels/level.txt')
         self.playing = True
-        self.player = player.Player(50, 50)
+        self.player = player.Player(50, 0)
         
 
     def camera_update(self):
@@ -58,7 +75,6 @@ class Game:
         #         b.rect.x -= d
         #     self.camera.x += d
         #
-        pg.display.set_caption(f'{self.camera.x=} {self.camera.right=} {self.player.rect.x=}')
         if self.player.rect.x < self.camera.x + 200 and self.camera.x > 0:
 
             self.camera.x -= self.camera.x + 200 - self.player.rect.x
@@ -83,6 +99,8 @@ class Game:
 
             if event.type in [pg.KEYUP, pg.KEYDOWN] and self.playing:
                 self.player.update_control(event)
+
+            if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
 
     def loop(self):
 
