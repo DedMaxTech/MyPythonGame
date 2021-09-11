@@ -1,8 +1,10 @@
 import pygame as pg
 import os
+import traceback
 
 import cfg, player, level
 from UI import Interface, Button
+
 
 from editor import Editor
 
@@ -10,17 +12,19 @@ from editor import Editor
 class Game:
     def __init__(self):
         self.res, self.fps = [cfg.screen_h, cfg.screen_v], cfg.fps
+        os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
 
-        self.screen = pg.display.set_mode(self.res)
+        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED ,vsync=True)
         self.clock = pg.time.Clock()
-        self.camera = pg.Rect(0, 0, self.res[0], self.res[1])
+        self.camera = pg.Rect(0, 40, self.res[0], self.res[1])
         self.ui = Interface()
         self.level = level.Level()
 
         self.playing = False  # TODO: меню
 
         pg.display.set_caption(cfg.GAMENAME)
+        pg.display.toggle_fullscreen()
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
 
@@ -48,7 +52,9 @@ class Game:
 
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
+        pg.display.toggle_fullscreen()
         os.system('python editor.py')
+        pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
 
     def start_game(self):
@@ -105,7 +111,7 @@ class Game:
 
         self.event_loop()
         if self.playing:
-            self.player.update(self.level.get_blocks())
+            self.player.update(self.level.get_blocks(), self.level)
 
             self.camera_update()
 
@@ -120,4 +126,8 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.run()
+    try:
+        game.run()
+    except Exception as e:
+        print(traceback.format_exc())
+        pg.display.toggle_fullscreen()

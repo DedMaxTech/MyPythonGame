@@ -1,5 +1,7 @@
 import pygame as pg
 import math
+from level import block_s
+from random import randint
 
 import cfg
 
@@ -8,6 +10,7 @@ PLAYER_LEGS_IDLE = pg.image.load('content/player/legs/idle.png')
 PLAYER_LEGS_AIR = pg.image.load('content/player/legs/air.png')
 PLAYER_LEGS_L = pg.image.load('content/player/legs/left.png')
 PLAYER_LEGS_R = pg.image.load('content/player/legs/right.png')
+BULLET_IMG = pg.image.load('content/bullet.png')
 
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
@@ -35,17 +38,9 @@ GUNS = {
 class Bullet(pg.sprite.Sprite):
     def __init__(self, x, y, xv, yv, img,):
         pg.sprite.Sprite.__init__(self)
-        pg.Rect(x,y,3,5)
+        self.rect = pg.Rect(x,y,3,5)
         self.xv, self.yv = xv, yv
-        self.img = pg.transform.rotate(img, math.degrees(math.atan(x/y)))
-
-    def update(self, blocks, level):
-        self.rect.x += self.xv
-        self.rect.y += self.yv
-        for b in blocks:
-            if pg.sprite.collide_rect(self, b):
-                level.set_block(self.rect.topleft, '0')
-                del self
+        self.img = pg.transform.rotate(img, math.degrees(math.atan(yv/xv)))
 
     def draw(self, screen:pg.Surface):
 
@@ -70,6 +65,7 @@ class Player(pg.sprite.Sprite):
 
         self.gun = 'pistol'
         self.ammo = {'rifle': 240, 'pistol': 100}
+        self.bullets = []
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
 
@@ -96,8 +92,10 @@ class Player(pg.sprite.Sprite):
                 self.look_r = False
         if event.type == pg.USEREVENT:
             self.r_leg = not self.r_leg
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
+            self.shoot()
 
-    def update(self, blocks):
+    def update(self, blocks, level):
         self.on_ground = self.check_on_ground(blocks)
         if self.on_ground:
             self.double = True
@@ -124,6 +122,13 @@ class Player(pg.sprite.Sprite):
         if not self.on_ground: self.yspeed += GRAVITY
 
         self.move(blocks)
+        for b in self.bullets:
+            b.rect.x += b.xv
+            b.rect.y += b.yv
+            for i in blocks:
+                if pg.sprite.collide_rect(b, i):
+                    if i.type in [i for i in block_s if block_s[i]['dest']]: level.set_block(b.rect.topleft, '0')
+                    del self.bullets[self.bullets.index(b)]
 
         if self.rect.y > cfg.screen_v: self.game.death()
 
@@ -160,6 +165,14 @@ class Player(pg.sprite.Sprite):
         self.rect.x += self.xspeed
         self.collide_x(blocks)
 
+    def shoot(self):
+        b = Bullet(self.rect.x+GUNS[self.gun]['pos'][0],
+                   self.rect.y+GUNS[self.gun]['pos'][1],
+                   GUNS[self.gun]['speed'] if self.look_r else -GUNS[self.gun]['speed'],
+                   randint(-2, 3),
+                   BULLET_IMG)
+        self.bullets.append(b)
+
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)
 
@@ -177,4 +190,6 @@ class Player(pg.sprite.Sprite):
         # if self.look_r and self.xspeed < 0: self.rotate()
         if not self.look_r: self.rotate()
 
-        screen.blit(self.img, (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y))
+        screen.blit(self.img, (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y+camera.y))
+        for b in self.bullets:
+            screen.blit(b.img,(b.rect.x-camera.x, b.rect.y+camera.y))

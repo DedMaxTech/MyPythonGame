@@ -9,7 +9,7 @@ img_metal = 'content/blocks/block_metal.png'
 img_glass = 'content/blocks/block_glass.png'
 
 block_s = {
-    '0': {'img': img_lastick},
+    '0': {'img': img_lastick, 'dest':False},
     '=': {'img': img_rock, 'dest':False},
     '|': {'img': img_wood, 'dest':False},
     '+': {'img': img_leaves, 'dest': True},

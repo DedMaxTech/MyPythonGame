@@ -47,7 +47,7 @@ class Editor:
         bs.append(Button((0, 0), 'white', 'SAVE', 35, self.save_level, bg='darkgrey', ))
         for i in level.block_s:
             bs.append(Button((130 + a * 45, 0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
-                             img=level.block_s[i], args=(i)))
+                             img=level.block_s[i]['img'], args=(i)))
             a += 1
         self.ui.set_ui(bs)
         # self.camera
