@@ -1,7 +1,6 @@
 import pygame as pg
 from glob import glob
 
-from pygame.rect import Rect
 
 import cfg, level
 from UI import Interface, Button

@@ -3,14 +3,25 @@ import pygame as pg
 import cfg
 
 PLAYER_IMG = pg.image.load('content/player/player.png')
-PLAYER_IMG_AIR = pg.image.load('content/player/player_air.png')
+PLAYER_LEGS_IDLE = pg.image.load('content/player/legs/idle.png')
+PLAYER_LEGS_AIR = pg.image.load('content/player/legs/air.png')
+PLAYER_LEGS_L = pg.image.load('content/player/legs/left.png')
+PLAYER_LEGS_R = pg.image.load('content/player/legs/right.png')
 
-GUN_IMG = pg.image.load('content/gun.png')
 
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
-JUMP_FORCE = 15
+JUMP_FORCE = 12
 GRAVITY = 0.5
+
+GUNS = {
+    'rifle': {'img': pg.image.load('content/gun.png'),
+              'hold_img': 0,
+              'pos':(29,29),
+              'bull_pos':(0,0),
+              'speed': 50,
+              'auto':True},
+}
 
 
 class Player(pg.sprite.Sprite):
@@ -19,14 +30,17 @@ class Player(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.xspeed, self.yspeed = 0, 0
         self.img = PLAYER_IMG
-        self.rect = pg.Rect(x,y,30,60)
+        self.rect = pg.Rect(x, y, 30, 60)
 
         self.move_left, self.move_right, self.jump = False, False, False
         self.on_ground = False
         self.look_r = True
+        self.r_leg = True
+        self.double = True
         self.timer = 0
+        self.gun = 'rifle'
 
-    def update_control(self, event: pg.event.Event, camera:pg.Rect):
+    def update_control(self, event: pg.event.Event, camera: pg.Rect):
 
         # if key[pg.K_d] and self.xspeed < PLAYER_MAX_SPEED:
         #     self.xspeed += PLAYER_ACCELERATION
@@ -45,12 +59,17 @@ class Player(pg.sprite.Sprite):
             if event.key == pg.K_a: self.move_left = False
             if event.key == pg.K_SPACE: self.jump = False
         if event.type == pg.MOUSEMOTION:
-            if self.rect.x <= event.pos[0]+camera.x:
+            if self.rect.x <= event.pos[0] + camera.x:
                 self.look_r = True
-            else: self.look_r = False
+            else:
+                self.look_r = False
+        if event.type == pg.USEREVENT:
+            self.r_leg = not self.r_leg
 
     def update(self, blocks):
         self.on_ground = self.check_on_ground(blocks)
+        if self.on_ground:
+            self.double = True
         # багованый вариант с инерцией
         # self.timer += delta
         # if self.timer >=250:
@@ -64,7 +83,10 @@ class Player(pg.sprite.Sprite):
         if self.move_left: self.xspeed = -PLAYER_ACCELERATION
         if not self.move_right and not self.move_left: self.xspeed = 0
 
-        if self.jump and self.on_ground:
+        if self.jump and (self.on_ground or self.double):
+            if not self.on_ground and self.double:
+                self.double = False
+                self.xspeed = 0
             self.jump = False
             self.yspeed = -JUMP_FORCE
             self.on_ground = False
@@ -75,14 +97,13 @@ class Player(pg.sprite.Sprite):
         if self.rect.y > cfg.screen_v: self.game.death()
 
     def check_on_ground(self, blocks):
-        self.rect.y +=1
+        self.rect.y += 1
         for b in blocks:
             if pg.sprite.collide_rect(self, b):
                 self.rect.y -= 1
                 return True
         self.rect.y -= 1
         return False
-
 
     def collide_x(self, blocks):
         for b in blocks:
@@ -111,12 +132,18 @@ class Player(pg.sprite.Sprite):
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)
 
-
-    def draw(self, screen: pg.Surface, camera:pg.Rect):
-        self.img = PLAYER_IMG if self.on_ground else PLAYER_IMG_AIR
-        self.img.blit(GUN_IMG, (29, 29))
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        self.img = PLAYER_IMG.copy()
+        if self.on_ground:
+            if self.xspeed == 0:
+                self.img.blit(PLAYER_LEGS_IDLE, (0, 53))
+            else:
+                self.img.blit(PLAYER_LEGS_R if self.r_leg else PLAYER_LEGS_L, (0, 53))
+        else:
+            self.img.blit(PLAYER_LEGS_AIR, (0, 53))
+        self.img.blit(GUNS[self.gun]['img'], GUNS[self.gun]['pos'])
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if not self.look_r: self.rotate()
 
-        screen.blit(self.img, (self.rect.x-camera.x if self.look_r else self.rect.x-camera.x-30, self.rect.y))
+        screen.blit(self.img, (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y))

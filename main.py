@@ -14,7 +14,7 @@ class Game:
 
         self.screen = pg.display.set_mode(self.res)
         self.clock = pg.time.Clock()
-        self.camera = pg.Rect(0,0,self.res[0], self.res[1])
+        self.camera = pg.Rect(0, 0, self.res[0], self.res[1])
         self.ui = Interface()
         self.level = level.Level()
 
@@ -22,6 +22,7 @@ class Game:
 
         pg.display.set_caption(cfg.GAMENAME)
         self.main_menu()
+        pg.time.set_timer(pg.USEREVENT, 100)
 
     def main_menu(self):
         self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -49,15 +50,13 @@ class Game:
         pg.display.set_caption('для продолженя игры закройте редактор')
         os.system('python editor.py')
         pg.display.set_caption(cfg.GAMENAME)
-        
-    
+
     def start_game(self):
         self.ui.clear()
         self.level.open_level('levels/level.txt')
         self.playing = True
         self.player = player.Player(50, 0, self)
         self.camera.x = 0
-        
 
     def death(self):
         self.playing = False
@@ -66,7 +65,7 @@ class Game:
             self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
             self.ui.clear()
             self.ui.set_ui([
-                Button((350, 200), (i,0,0), 'GAME OVER', 80, ),
+                Button((350, 200), (i, 0, 0), 'GAME OVER', 80, ),
             ])
             self.draw()
             pg.display.update()
@@ -77,37 +76,17 @@ class Game:
             Button((500, 420), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
 
-
-
     def camera_update(self):
-        # if self.player.rect.x < self.camera.x+200 and self.camera.x > 0:
-        #     bs = self.level.blocks
-        #     d = self.camera.x + 200 - self.player.rect.x
-        #     print(d)
-        #     for b in bs:
-        #         b.rect.x += d
-        #     self.camera.x -= d
-        # if self.player.rect.right > self.camera.right - 200 and self.camera.right < self.level.rect.right:
-        #
-        #     bs = self.level.blocks
-        #     d = self.camera.right - 200 - self.player.rect.x
-        #     print(d)
-        #     for b in bs:
-        #         b.rect.x -= d
-        #     self.camera.x += d
-        #
         if self.player.rect.x < self.camera.x + 200 and self.camera.x > 0:
-
             self.camera.x -= self.camera.x + 200 - self.player.rect.x
         if self.player.rect.right > self.camera.right - 200 and self.camera.right < self.level.rect.right:
-            self.camera.x += self.player.rect.right - self.camera.right+200
+            self.camera.x += self.player.rect.right - self.camera.right + 200
 
     def draw(self):
         self.ui.draw(self.screen)
         if self.playing:
-            self.level.draw(self.screen,self.camera)
+            self.level.draw(self.screen, self.camera)
             self.player.draw(self.screen, self.camera)
-
 
     def event_loop(self):
         for event in pg.event.get():
@@ -117,8 +96,7 @@ class Game:
             if event.type == pg.MOUSEBUTTONDOWN:
                 self.ui.update_buttons(event)
 
-
-            if event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION] and self.playing:
+            if self.playing:
                 self.player.update_control(event, self.camera)
 
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
@@ -131,11 +109,8 @@ class Game:
 
             self.camera_update()
 
-
         self.draw()
         pg.display.update()
-        
-
 
     def run(self):
         while True:

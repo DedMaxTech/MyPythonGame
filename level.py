@@ -9,12 +9,12 @@ img_metal = 'content/blocks/block_metal.png'
 img_glass = 'content/blocks/block_glass.png'
 
 block_s = {
-    '0':img_lastick,
-    '=':img_rock,
-    '|':img_wood,
-    '+':img_leaves,
-    '-':img_metal,
-    '/':img_glass,
+    '0': {'img': img_lastick},
+    '=': {'img': img_rock, 'dest':False},
+    '|': {'img': img_wood, 'dest':False},
+    '+': {'img': img_leaves, 'dest': True},
+    '-': {'img': img_metal, 'dest': False},
+    '/': {'img': img_glass, 'dest': True},
 }
 
 
@@ -29,7 +29,7 @@ class Block(pg.sprite.Sprite):
 
     def set_type(self, t):
         self.type = t
-        self.img = pg.image.load(block_s[t])
+        self.img = pg.image.load(block_s[t]['img'])
 
     def __str__(self):
         return f'{self.type} {self.rect.x} {self.rect.y}'
