@@ -1,7 +1,11 @@
 import pygame as pg
 
-PLAYER_IMG = pg.image.load('content/player.png')
-PLAYER_IMG_AIR = pg.image.load('content/player_air.png')
+import cfg
+
+PLAYER_IMG = pg.image.load('content/player/player.png')
+PLAYER_IMG_AIR = pg.image.load('content/player/player_air.png')
+
+GUN_IMG = pg.image.load('content/gun.png')
 
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
@@ -10,21 +14,19 @@ GRAVITY = 0.5
 
 
 class Player(pg.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, game_inst):
+        self.game = game_inst
         pg.sprite.Sprite.__init__(self)
         self.xspeed, self.yspeed = 0, 0
         self.img = PLAYER_IMG
-        self.rect = self.img.get_rect()
+        self.rect = pg.Rect(x,y,30,60)
 
-        self.rect.x = x;
-        self.rect.y = y
         self.move_left, self.move_right, self.jump = False, False, False
         self.on_ground = False
         self.look_r = True
-        self.air_log = []
         self.timer = 0
 
-    def update_control(self, event: pg.event.Event):
+    def update_control(self, event: pg.event.Event, camera:pg.Rect):
 
         # if key[pg.K_d] and self.xspeed < PLAYER_MAX_SPEED:
         #     self.xspeed += PLAYER_ACCELERATION
@@ -42,8 +44,13 @@ class Player(pg.sprite.Sprite):
             if event.key == pg.K_d: self.move_right = False
             if event.key == pg.K_a: self.move_left = False
             if event.key == pg.K_SPACE: self.jump = False
+        if event.type == pg.MOUSEMOTION:
+            if self.rect.x <= event.pos[0]+camera.x:
+                self.look_r = True
+            else: self.look_r = False
 
     def update(self, blocks):
+        self.on_ground = self.check_on_ground(blocks)
         # багованый вариант с инерцией
         # self.timer += delta
         # if self.timer >=250:
@@ -65,7 +72,16 @@ class Player(pg.sprite.Sprite):
 
         self.move(blocks)
 
-        self.air_log.append(self.on_ground)
+        if self.rect.y > cfg.screen_v: self.game.death()
+
+    def check_on_ground(self, blocks):
+        self.rect.y +=1
+        for b in blocks:
+            if pg.sprite.collide_rect(self, b):
+                self.rect.y -= 1
+                return True
+        self.rect.y -= 1
+        return False
 
 
     def collide_x(self, blocks):
@@ -77,18 +93,14 @@ class Player(pg.sprite.Sprite):
                     self.rect.left = b.rect.right
 
     def collide_y(self, blocks):
-        global touch_ground
-        touch_ground = False
         for b in blocks:
             if pg.sprite.collide_rect(self, b):
                 if self.yspeed > 0:
                     self.yspeed = 0
                     self.rect.bottom = b.rect.top
-                    touch_ground = True
                 if self.yspeed < 0:
                     self.yspeed = 0
                     self.rect.top = b.rect.bottom
-        self.on_ground = touch_ground
 
     def move(self, blocks):
         self.rect.y += self.yspeed
@@ -98,11 +110,13 @@ class Player(pg.sprite.Sprite):
 
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)
-        self.look_r = not self.look_r
+
 
     def draw(self, screen: pg.Surface, camera:pg.Rect):
-        # self.img = PLAYER_IMG if self.on_ground else PLAYER_IMG_AIR
-        if not self.look_r and self.xspeed > 0: self.rotate()
-        if self.look_r and self.xspeed < 0: self.rotate()
+        self.img = PLAYER_IMG if self.on_ground else PLAYER_IMG_AIR
+        self.img.blit(GUN_IMG, (29, 29))
+        # if not self.look_r and self.xspeed > 0: self.rotate()
+        # if self.look_r and self.xspeed < 0: self.rotate()
+        if not self.look_r: self.rotate()
 
-        screen.blit(self.img, (self.rect.x-camera.x, self.rect.y))
+        screen.blit(self.img, (self.rect.x-camera.x if self.look_r else self.rect.x-camera.x-30, self.rect.y))

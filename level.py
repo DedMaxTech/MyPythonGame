@@ -1,16 +1,20 @@
 from typing import Union
 import pygame as pg
 
-img_rock = 'content/block_rock.png'
-img_wood = 'content/block_wood.png'
-img_leaves = 'content/block_leaves.png'
-img_lastick = 'content/block_nthg.png'
+img_rock = 'content/blocks/block_rock.png'
+img_wood = 'content/blocks/block_wood.png'
+img_leaves = 'content/blocks/block_leaves.png'
+img_lastick = 'content/blocks/block_nthg.png'
+img_metal = 'content/blocks/block_metal.png'
+img_glass = 'content/blocks/block_glass.png'
 
 block_s = {
     '0':img_lastick,
     '=':img_rock,
     '|':img_wood,
-    '+':img_leaves
+    '+':img_leaves,
+    '-':img_metal,
+    '/':img_glass,
 }
 
 
@@ -36,7 +40,7 @@ class Level:
         self.levelname = level
         self.h, self.w = 0, 0
         self.blocks = []
-        self.bg = 'content/bg.png'
+        self.bg = 'content/blocks/bg.png'
         self.rect:pg.Rect = None
         if level: self.open_level(level)
 

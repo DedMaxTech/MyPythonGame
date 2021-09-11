@@ -55,8 +55,29 @@ class Game:
         self.ui.clear()
         self.level.open_level('levels/level.txt')
         self.playing = True
-        self.player = player.Player(50, 0)
+        self.player = player.Player(50, 0, self)
+        self.camera.x = 0
         
+
+    def death(self):
+        self.playing = False
+        pg.time.delay(500)
+        for i in range(256):
+            self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
+            self.ui.clear()
+            self.ui.set_ui([
+                Button((350, 200), (i,0,0), 'GAME OVER', 80, ),
+            ])
+            self.draw()
+            pg.display.update()
+            pg.time.delay(10)
+        self.ui.set_ui([
+            Button((500, 300), 'white', 'Try again', 50, self.start_game, 'darkgrey'),
+            Button((500, 360), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
+            Button((500, 420), 'white', 'Exit', 50, exit, 'darkgrey'),
+        ])
+
+
 
     def camera_update(self):
         # if self.player.rect.x < self.camera.x+200 and self.camera.x > 0:
@@ -97,8 +118,8 @@ class Game:
                 self.ui.update_buttons(event)
 
 
-            if event.type in [pg.KEYUP, pg.KEYDOWN] and self.playing:
-                self.player.update_control(event)
+            if event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION] and self.playing:
+                self.player.update_control(event, self.camera)
 
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
 
