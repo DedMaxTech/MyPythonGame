@@ -1,5 +1,6 @@
 import pygame as pg
-import os, traceback, socket, pickle
+import os
+import traceback
 
 import cfg, player, level
 from UI import Interface, Button
@@ -19,8 +20,6 @@ class Game:
         self.camera = pg.Rect(0, 40, self.res[0], self.res[1])
         self.ui = Interface()
         self.level = level.Level()
-        self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.sock.settimeout(5.0)
 
         self.playing = False  # TODO: меню
 
@@ -34,9 +33,8 @@ class Game:
         self.ui.clear()
         self.ui.set_ui([
             Button((100, 100), 'white', 'MENU', 80, ),
-            # Button((150, 200), 'white', 'New game', 50, self.start_game, 'darkgrey'),
-            # Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
-            Button((150, 200), 'white', 'Join game', 50, self.join_game, 'darkgrey'),
+            Button((150, 200), 'white', 'New game', 50, self.start_game, 'darkgrey'),
+            Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
             Button((150, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
 
@@ -65,12 +63,6 @@ class Game:
         self.playing = True
         self.player = player.Player(50, 0, self)
         self.camera.x = 0
-
-    def join_game(self):
-
-        self.sock.connect(('192.168.1.117', 5678))
-        d = {'smth':'lol'}
-        self.sock.sendto(pickle.dumps(d))
 
     def death(self):
         self.playing = False
