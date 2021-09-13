@@ -83,10 +83,10 @@ class Game:
         ])
 
     def camera_update(self):
-        if self.player.rect.x < self.camera.x + 200 and self.camera.x > 0:
-            self.camera.x -= self.camera.x + 200 - self.player.rect.x
-        if self.player.rect.right > self.camera.right - 200 and self.camera.right < self.level.rect.right:
-            self.camera.x += self.player.rect.right - self.camera.right + 200
+        if self.player.rect.x < self.camera.x + 400 and self.camera.x > 0:
+            self.camera.x -= self.camera.x + 400 - self.player.rect.x
+        if self.player.rect.right > self.camera.right - 400 and self.camera.right < self.level.rect.right:
+            self.camera.x += self.player.rect.right - self.camera.right + 400
 
     def draw(self):
         self.ui.draw(self.screen)

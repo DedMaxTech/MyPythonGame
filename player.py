@@ -35,9 +35,8 @@ GUNS = {
 }
 
 
-class Bullet(pg.sprite.Sprite):
+class Bullet():
     def __init__(self, x, y, xv, yv, img,):
-        pg.sprite.Sprite.__init__(self)
         self.rect = pg.Rect(x,y,3,5)
         self.xv, self.yv = xv, yv
         self.img = pg.transform.rotate(img, math.degrees(math.atan(yv/xv)))
@@ -127,6 +126,7 @@ class Player(pg.sprite.Sprite):
             b.rect.y += b.yv
             for i in blocks:
                 if pg.sprite.collide_rect(b, i):
+                    print(self.bullets)
                     if i.type in [i for i in block_s if block_s[i]['dest']]: level.set_block(b.rect.topleft, '0')
                     del self.bullets[self.bullets.index(b)]
 
