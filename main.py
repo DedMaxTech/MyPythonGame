@@ -68,7 +68,9 @@ class Game:
             if n == self.player.n:
                 cur_p = self.player
             elif n not in [p.n for p in self.players]:
-                cur_p = player.Player(0,0, n)
+                p = player.Player(0,0, n)
+                self.players.append(p)
+                cur_p = p
             else:
                 cur_p = [p for p in self.players if p.n == n][0]
             cur_p.rect.topleft = p['pos']
