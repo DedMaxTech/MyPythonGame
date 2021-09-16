@@ -41,17 +41,25 @@ class Server:
 
     def awaiting_data(self):
         msg, addr = self.sock.recvfrom(1024)
-        print('smth')
         data = pickle.loads(msg)
         if addr not in [u.addr for u in self.users]:
             if len(self.users) < self.max_players:
-                p = player.Player(50, 50)
+                n = [i for i in range(self.max_players) if i not in [u.player.n for u in self.users]][0]
+                p = player.Player(50, 50, n)
                 self.users.append(User(addr, p, **data))
-                self.sock.sendto(pickle.dumps({'msg':'ok', 'level':open(self.levelname, 'r').readlines()}),addr)
-
+                self.sock.sendto(pickle.dumps({'msg': 'ok', 'n': n, 'level': open(self.levelname, 'r').readlines()}),
+                                 addr)
         else:
-            pass
-        print(self.users)
+            [u.player.process_move(data) for u in self.users if u.addr == addr]
+
+    def send_data(self):
+        for u in self.users:
+            u.player.update(self.level.get_blocks(), self.level)
+        ps = []
+        for i in [u.player for u in self.users]:
+            ps.append({'pos': i.rect.topleft, 'gun': i.gun, 'n': i.n, 'xspeed': i.xspeed, 'on_ground':i.on_ground, 'r_leg':i.r_leg, 'look_r':i.look_r})
+        for u in self.users:
+            self.sock.sendto(pickle.dumps({'ps': ps}), u.addr)
 
     def event_loop(self):
         for e in pg.event.get():
@@ -65,7 +73,8 @@ class Server:
         if not self.pr.is_alive():
             self.pr = threading.Thread(target=self.awaiting_data, daemon=True)
             self.pr.start()
-        print(f'{self.name} doing some shit....', self.users)
+        # print(f'{self.name} doing some shit....', self.users)
+        self.send_data()
 
     def stop(self):
         self.running = False

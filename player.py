@@ -36,21 +36,20 @@ GUNS = {
 
 
 class Bullet():
-    def __init__(self, x, y, xv, yv, img,):
-        self.rect = pg.Rect(x,y,3,5)
+    def __init__(self, x, y, xv, yv, img, ):
+        self.rect = pg.Rect(x, y, 3, 5)
         self.xv, self.yv = xv, yv
-        self.img = pg.transform.rotate(img, math.degrees(math.atan(yv/xv)))
+        self.img = pg.transform.rotate(img, math.degrees(math.atan(yv / xv)))
 
-    def draw(self, screen:pg.Surface):
-
+    def draw(self, screen: pg.Surface):
         screen.blit(self.img, self.rect.topleft)
 
 
-
-class Player(pg.sprite.Sprite):
-    def __init__(self, x, y, game_inst=None):
+class Player(object):
+    def __init__(self, x, y, n=0, game_inst=None):
+        self.n = n
         self.game = game_inst
-        pg.sprite.Sprite.__init__(self)
+        # pg.sprite.Sprite.__init__(self)
         self.xspeed, self.yspeed = 0, 0
         self.img = PLAYER_IMG
         self.rect = pg.Rect(x, y, 30, 60)
@@ -66,32 +65,16 @@ class Player(pg.sprite.Sprite):
         self.ammo = {'rifle': 240, 'pistol': 100}
         self.bullets = []
 
-    def update_control(self, event: pg.event.Event, camera: pg.Rect):
-
-        # if key[pg.K_d] and self.xspeed < PLAYER_MAX_SPEED:
-        #     self.xspeed += PLAYER_ACCELERATION
-        # if key[pg.K_a] and self.xspeed > -PLAYER_MAX_SPEED:
-        #     self.xspeed -= PLAYER_ACCELERATION
-        # if not key[pg.K_a] and not key[pg.K_d]:
-        #     print('hjr')
-        #     if self.xspeed > 0: self.xspeed -= PLAYER_ACCELERATION
-        #     if self.xspeed < 0: self.xspeed += PLAYER_ACCELERATION
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_d: self.move_right = True
-            if event.key == pg.K_a: self.move_left = True
-            if event.key == pg.K_SPACE: self.jump = True
-        if event.type == pg.KEYUP:
-            if event.key == pg.K_d: self.move_right = False
-            if event.key == pg.K_a: self.move_left = False
-            if event.key == pg.K_SPACE: self.jump = False
-        if event.type == pg.MOUSEMOTION:
-            if self.rect.x <= event.pos[0] + camera.x:
-                self.look_r = True
-            else:
-                self.look_r = False
-        if event.type == pg.USEREVENT:
-            self.r_leg = not self.r_leg
-        if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
+    def process_move(self, d: dict):
+        if d.get('right') is not None:
+            self.move_right = d['right']
+        if d.get('left') is not None:
+            self.move_left = d['left']
+        if d.get('up') is not None:
+            self.jump = d['up']
+        if d.get('look_r') is not None:
+            self.look_r = d['look_r']
+        if d.get('shoot') is not None:
             self.shoot()
 
     def update(self, blocks, level):
@@ -166,8 +149,8 @@ class Player(pg.sprite.Sprite):
         self.collide_x(blocks)
 
     def shoot(self):
-        b = Bullet(self.rect.x+GUNS[self.gun]['pos'][0],
-                   self.rect.y+GUNS[self.gun]['pos'][1],
+        b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
+                   self.rect.y + GUNS[self.gun]['pos'][1],
                    GUNS[self.gun]['speed'] if self.look_r else -GUNS[self.gun]['speed'],
                    randint(-2, 3),
                    BULLET_IMG)
@@ -190,6 +173,7 @@ class Player(pg.sprite.Sprite):
         # if self.look_r and self.xspeed < 0: self.rotate()
         if not self.look_r: self.rotate()
 
-        screen.blit(self.img, (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y+camera.y))
+        screen.blit(self.img,
+                    (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y + camera.y))
         for b in self.bullets:
-            screen.blit(b.img,(b.rect.x-camera.x, b.rect.y+camera.y))
+            screen.blit(b.img, (b.rect.x - camera.x, b.rect.y + camera.y))

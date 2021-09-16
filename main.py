@@ -1,5 +1,5 @@
 import pygame as pg
-import os, traceback, socket, pickle
+import os, traceback, socket, pickle, threading
 
 import cfg, player, level
 from UI import Interface, Button
@@ -16,9 +16,12 @@ class Game:
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED ,vsync=True)
         self.clock = pg.time.Clock()
+        self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, 40, self.res[0], self.res[1])
         self.ui = Interface()
         self.level = level.Level()
+        self.player = None
+        self.players = []
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.serv_port = 0
 
@@ -54,6 +57,29 @@ class Game:
         else:
             self.playing = True
 
+    def await_data(self):
+        msg, addr = self.sock.recvfrom(1024)
+        data = pickle.loads(msg)
+        print(data)
+        ps = data.get('ps')
+        for p in ps:
+            global cur_p
+            n = p['n']
+            if n == self.player.n:
+                cur_p = self.player
+            elif n not in [p.n for p in self.players]:
+                cur_p = player.Player(0,0, n)
+            else:
+                cur_p = [p for p in self.players if p.n == n][0]
+            cur_p.rect.topleft = p['pos']
+            cur_p.gun = p['gun']
+            cur_p.xspeed = p['xspeed']
+            cur_p.on_ground = p['on_ground']
+            cur_p.on_ground = p['look_r']
+            cur_p.r_leg = p['r_leg']
+
+
+
     def join_menu(self, text, add=[]):
         self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
@@ -83,7 +109,7 @@ class Game:
                 self.level.open_level(d.get('level'), prepared=True)
                 self.ui.clear()
                 self.camera.x = 0
-                self.player = player.Player(50, 0, self) # TODO: ONLINEEEEEE
+                self.player = player.Player(50, 0,d.get('n'), self) # TODO: ONLINEEEEEE
                 self.playing = True
         except socket.timeout:
             self.join_menu('Servers dont answer...', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
@@ -144,11 +170,35 @@ class Game:
         if self.player.rect.right > self.camera.right - 400 and self.camera.right < self.level.rect.right:
             self.camera.x += self.player.rect.right - self.camera.right + 400
 
+    def update_control(self, event: pg.event.Event, camera: pg.Rect):
+        d = {}
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_d: d['right'] = True
+            if event.key == pg.K_a: d['left'] = True
+            if event.key == pg.K_SPACE: d['up'] = True
+        if event.type == pg.KEYUP:
+            if event.key == pg.K_d: d['right'] = False
+            if event.key == pg.K_a: d['left'] = False
+            if event.key == pg.K_SPACE: d['up'] = False
+        if event.type == pg.MOUSEMOTION:
+            if self.player.rect.x <= event.pos[0] + camera.x:
+                d['look_r'] = True
+            else:
+                d['look_r'] = False
+        if event.type == pg.USEREVENT:
+            self.player.r_leg = not self.player.r_leg
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
+            d['shoot'] = True
+        print(d)
+        return d
+
     def draw(self):
         self.ui.draw(self.screen)
         if self.playing:
             self.level.draw(self.screen, self.camera)
             self.player.draw(self.screen, self.camera)
+            for p in self.players:
+                p.draw(self.screen, self.camera)
 
     def event_loop(self):
         for event in pg.event.get():
@@ -158,13 +208,15 @@ class Game:
             if event.type == pg.MOUSEBUTTONDOWN:
                 self.ui.update_buttons(event)
 
-            if self.playing:
-                self.player.update_control(event, self.camera)
+            if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN,pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN, pg.USEREVENT]:
+                self.sock.sendto(pickle.dumps(self.update_control(event, self.camera)), (self.serv_ip, self.serv_port))
 
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
 
     def loop(self):
-
+        if not self.pr.is_alive():
+            self.pr = threading.Thread(target=self.await_data, daemon=True)
+            self.pr.start()
         self.event_loop()
         if self.playing:
             self.player.update(self.level.get_blocks(), self.level)
