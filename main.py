@@ -10,7 +10,7 @@ from editor import Editor
 
 class Game:
     def __init__(self):
-        self.res, self.fps = [cfg.screen_h, cfg.screen_v], cfg.fps
+        self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
 
@@ -20,14 +20,16 @@ class Game:
         self.ui = Interface()
         self.level = level.Level()
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.sock.settimeout(5.0)
+        self.serv_port = 0
 
         self.playing = False  # TODO: меню
+        self.searching = False
 
         pg.display.set_caption(cfg.GAMENAME)
         pg.display.toggle_fullscreen()
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
+        self.sock.settimeout(5.0)
 
     def main_menu(self):
         self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -36,7 +38,7 @@ class Game:
             Button((100, 100), 'white', 'MENU', 80, ),
             # Button((150, 200), 'white', 'New game', 50, self.start_game, 'darkgrey'),
             # Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
-            Button((150, 200), 'white', 'Join game', 50, self.join_game, 'darkgrey'),
+            Button((150, 200), 'white', 'Join game', 50, self.look_for_game, 'darkgrey'),
             Button((150, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
 
@@ -52,6 +54,11 @@ class Game:
         else:
             self.playing = True
 
+    def join_menu(self, text, add=[]):
+        self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
+        self.ui.clear()
+        self.ui.set_ui([Button((700, 500), 'white', text, 50, ),]+add)
+
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
         pg.display.toggle_fullscreen()
@@ -63,14 +70,55 @@ class Game:
         self.ui.clear()
         self.level.open_level('levels/level.txt')
         self.playing = True
-        self.player = player.Player(50, 0, self)
+
         self.camera.x = 0
 
     def join_game(self):
+        try:
+            self.sock.sendto(pickle.dumps({'msg':'lol'}),(self.serv_ip, self.serv_port))
+            msg, addr = self.sock.recvfrom(1024*16)
+            if addr == (self.serv_ip, self.serv_port):
+                d:dict = pickle.loads(msg)
+                print(d)
+                self.level.open_level(d.get('level'), prepared=True)
+                self.ui.clear()
+                self.camera.x = 0
+                self.player = player.Player(50, 0, self) # TODO: ONLINEEEEEE
+                self.playing = True
+        except socket.timeout:
+            self.join_menu('Servers dont answer...', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
+        except Exception as e:
+            print(e)
+            self.join_menu('Cant connect to servers:(', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
 
-        self.sock.connect(('192.168.1.117', 5678))
-        d = {'smth':'lol'}
-        self.sock.sendto(pickle.dumps(d))
+        self.loop()
+
+    def look_for_game(self):
+        try:
+            self.sock.sendto(b'conn', cfg.addr)
+            data, server = self.sock.recvfrom(1024)
+            d = data.decode()
+            if d.startswith('ok'):
+                self.join_menu('Connecting to game....')
+                self.serv_port = int(d[2:])
+            elif d.startswith('no'):
+                self.join_menu('All servers full, try again later', [Button((700, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
+                return
+            elif d.startswith('ta'):
+                self.join_menu('Lauching server, reconnecting...')
+                pg.time.delay(500)
+                self.look_for_game()
+
+            print(data, server)
+        except socket.timeout:
+            self.join_menu('Servers dont answer...', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
+        except Exception:
+            self.join_menu('Cant connect to servers:(', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
+
+        self.loop()
+        print(self.serv_port)
+        self.join_game()
+
 
     def death(self):
         self.playing = False

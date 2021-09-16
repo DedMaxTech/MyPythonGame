@@ -1,10 +1,10 @@
 import time
-import socket
+import socket, pickle
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client_socket.settimeout(1.0)
-message = b'conn'
-addr = ("192.168.1.117", 5000)
+message = pickle.dumps({'msg':'lol'})
+addr = ("192.168.1.117", 5001)
 
 def connect():
     try:

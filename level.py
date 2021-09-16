@@ -18,9 +18,9 @@ block_s = {
 }
 
 
-class Block(pg.sprite.Sprite):
+class Block:
     def __init__(self, x, y, t):
-        pg.sprite.Sprite.__init__(self)
+        # pg.sprite.Sprite.__init__(self)
         self.img = None
         self.type = t
         self.set_type(t)
@@ -44,19 +44,21 @@ class Level:
         self.rect:pg.Rect = None
         if level: self.open_level(level)
 
-    def open_level(self, levelname):
-        with open(levelname, 'r') as file:
-            self.levelname = levelname
-            self.blocks = []
-            level = file.readlines()
-            self.bg = level[0][:-1]; level = level[1:]
-            self.h = len(level)
-            for line in level:
-                t, x, y = line.split(' '); x,y = int(x), int(y)
-                if self.w < x: self.w = x
-                b = Block(x, y, t)
-                self.blocks.append(b)
-            self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
+    def open_level(self, level, prepared=False):
+        level = level
+        if not prepared:
+            with open(level, 'r') as file:
+                self.level = level
+                self.blocks = []
+                level = file.readlines()
+        self.bg = level[0][:-1]; level = level[1:]
+        self.h = len(level)
+        for line in level:
+            t, x, y = line.split(' '); x,y = int(x), int(y)
+            if self.w < x: self.w = x
+            b = Block(x, y, t)
+            self.blocks.append(b)
+        self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
 
     def save_level(self, levelname):
         with open(levelname, 'w') as file:

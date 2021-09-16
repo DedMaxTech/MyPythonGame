@@ -44,7 +44,7 @@ class Router:
             self.run_server()
             self.sock.sendto('ta'.encode(), addr)
             return
-        available_ss = [s for s in servers if len(s.players) < s.max_players]
+        available_ss = [s for s in servers if len(s.users) < s.max_players]
         if not available_ss and len(servers) < self.max_servers:
             self.run_server()
             self.sock.sendto('ta'.encode(), addr)
