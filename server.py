@@ -28,7 +28,7 @@ class Server:
         pg.init()
 
         self.t = threading.Timer(10, self.stop)
-        self.pr = threading.Thread(target=self.awaiting_data, daemon=True)
+        self.pr = threading.Thread(target=self.awaiting_data)
         self.clock = pg.time.Clock()
         self.level = level.Level()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -40,17 +40,21 @@ class Server:
         self.level.open_level(self.levelname)
 
     def awaiting_data(self):
-        msg, addr = self.sock.recvfrom(1024)
-        data = pickle.loads(msg)
-        if addr not in [u.addr for u in self.users]:
-            if len(self.users) < self.max_players:
-                n = [i for i in range(self.max_players) if i not in [u.player.n for u in self.users]][0]
-                p = player.Player(50, 50, n)
-                self.users.append(User(addr, p, **data))
-                self.sock.sendto(pickle.dumps({'msg': 'ok', 'n': n, 'level': open(self.levelname, 'r').readlines()}),
-                                 addr)
-        else:
-            [u.player.process_move(data) for u in self.users if u.addr == addr]
+        try:
+            msg, addr = self.sock.recvfrom(1024)
+            data = pickle.loads(msg)
+            if addr not in [u.addr for u in self.users]:
+                if len(self.users) < self.max_players:
+                    n = [i for i in range(self.max_players) if i not in [u.player.n for u in self.users]][0]
+                    p = player.Player(50, 50, n)
+                    self.users.append(User(addr, p, **data))
+                    self.sock.sendto(
+                        pickle.dumps({'msg': 'ok', 'n': n, 'level': open(self.levelname, 'r').readlines()}),
+                        addr)
+            else:
+                [u.player.process_move(data) for u in self.users if u.addr == addr]
+        except Exception as e:
+            print(e)
 
     def send_data(self):
         for u in self.users:
@@ -84,3 +88,4 @@ class Server:
         while self.running:
             self.loop()
             self.clock.tick(60)
+            print(self.clock.get_fps())

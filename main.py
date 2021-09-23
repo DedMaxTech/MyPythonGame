@@ -221,7 +221,7 @@ class Game:
             self.pr.start()
         self.event_loop()
         if self.playing:
-            # self.player.update(self.level.get_blocks(), self.level)
+            self.player.update(self.level.get_blocks(), self.level)
 
             self.camera_update()
 
