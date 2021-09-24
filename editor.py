@@ -15,6 +15,7 @@ class Editor:
         self.clock = pg.time.Clock()
         self.ui = Interface()
         self.level = level.Level()
+        self.levelname = ''
         self.camera = pg.Rect(0,40,self.res[0], self.res[1])
 
         self.editing = False
@@ -42,6 +43,7 @@ class Editor:
     def open_level(self, lvl):
         self.ui.clear()
         self.level.open_level(lvl)
+        self.levelname = lvl
         bs = [];
         a = 0
         bs.append(Button((0, 0), 'white', 'SAVE', 35, self.save_level, bg='darkgrey', ))
@@ -55,7 +57,7 @@ class Editor:
 
     def save_level(self):
         self.editing = False
-        self.level.save_level(self.level.levelname)
+        self.level.save_level(self.levelname)
         self.ui.clear()
         self.main_menu()
 

@@ -110,8 +110,8 @@ class Game:
     def join_game(self):
         try:
             self.sock.connect((self.serv_ip, self.serv_port))
-            data = pickle.loads(self.sock.recv(1024*16))
-            self.level.open_level(data.get('level'), prepared=True)
+            data = pickle.loads(self.sock.recv(1024*4))
+            self.level.open_level(data.get('level'))
             self.ui.clear()
             self.camera.x = 0
             self.player = player.Player(50, 0,data.get('n'), self) # TODO: ONLINEEEEEE

@@ -8,7 +8,6 @@ from editor import Editor
 
 servers = []
 
-
 class User:
     def __init__(self, addr, player=None, **data):
         self.addr = addr
@@ -46,7 +45,8 @@ class Server:
         p = player.Player(50, 50, n)
         u = User(addr, p)
         self.users.append(u)
-        conn.sendall(pickle.dumps({'msg': 'ok', 'n': n, 'level': open(self.levelname, 'r').readlines()}))
+        # conn.sendall(pickle.dumps({'msg': 'ok', 'n': n, 'level': open(self.levelname, 'r').readlines()}))
+        conn.sendall(pickle.dumps({'msg': 'ok', 'n': n, 'level': self.levelname}))
         while True:
             try:
                 data = pickle.loads(conn.recv(1024))
