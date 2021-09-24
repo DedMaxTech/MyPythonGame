@@ -34,6 +34,7 @@ class Server:
         self.level = level.Level()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((socket.gethostbyname(socket.gethostname()), port))
+        print((socket.gethostbyname(socket.gethostname()), port))
 
         self.name = f'[SERVER at {port}]:'
         self.levelname = 'levels/level.txt' 
@@ -106,7 +107,6 @@ class Server:
 
 if __name__ == '__main__':
     port = sys.argv[1]
-    print(port)
     server = Server(int(port), 15)
     server.run()
 
