@@ -11,6 +11,7 @@ from editor import Editor
 class Game:
     def __init__(self):
         self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
+        print(self.serv_ip)
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
 
@@ -22,8 +23,8 @@ class Game:
         self.level = level.Level()
         self.player = None
         self.players = []
-        self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.serv_port = 0
+        self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.serv_port = 5001
 
         self.playing = False  # TODO: меню
         self.searching = False
@@ -32,7 +33,7 @@ class Game:
         pg.display.toggle_fullscreen()
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
-        self.sock.settimeout(5.0)
+        self.sock.settimeout(2.0)
 
     def main_menu(self):
         self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -41,7 +42,7 @@ class Game:
             Button((100, 100), 'white', 'MENU', 80, ),
             # Button((150, 200), 'white', 'New game', 50, self.start_game, 'darkgrey'),
             # Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
-            Button((150, 200), 'white', 'Join game', 50, self.look_for_game, 'darkgrey'),
+            Button((150, 200), 'white', 'Join game', 50, self.join_game, 'darkgrey'),
             Button((150, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
 
@@ -58,28 +59,33 @@ class Game:
             self.playing = True
 
     def await_data(self):
-        msg, addr = self.sock.recvfrom(1024)
-        data = pickle.loads(msg)
-        print(data)
-        ps = data.get('ps')
-        for p in ps:
-            global cur_p
-            n = p['n']
-            if n == self.player.n:
-                cur_p = self.player
-            elif n not in [p.n for p in self.players]:
-                p = player.Player(0,0, n)
-                self.players.append(p)
-                cur_p = p
-            else:
-                cur_p = [p for p in self.players if p.n == n][0]
-            cur_p.rect.topleft = p['pos']
-            cur_p.gun = p['gun']
-            cur_p.xspeed = p['xspeed']
-            cur_p.on_ground = p['on_ground']
-            cur_p.on_ground = p['look_r']
-            cur_p.r_leg = p['r_leg']
-
+        self.sock.settimeout(10)
+        while True:
+            try:
+                data = pickle.loads(self.sock.recv(1024))
+                print(data)
+                ps = data.get('ps')
+                for p in ps:
+                    if not p: continue
+                    global cur_p
+                    n = p['n']
+                    if n == self.player.n:
+                        cur_p = self.player
+                        continue
+                    elif n not in [p.n for p in self.players]:
+                        p = player.Player(0,0, n)
+                        self.players.append(p)
+                        cur_p = p
+                    else:
+                        cur_p = [p for p in self.players if p.n == n][0]
+                    cur_p.rect.topleft = p['pos']
+                    cur_p.gun = p['gun']
+                    cur_p.xspeed = p['xspeed']
+                    cur_p.on_ground = p['on_ground']
+                    cur_p.look_r = p['look_r']
+                    cur_p.r_leg = p['r_leg']
+            except Exception as e:
+                print(e)
 
 
     def join_menu(self, text, add=[]):
@@ -102,18 +108,15 @@ class Game:
         self.camera.x = 0
 
     def join_game(self):
-        print((self.serv_ip, self.serv_port))
         try:
-            self.sock.sendto(pickle.dumps({'msg':'lol'}),(self.serv_ip, self.serv_port))
-            msg, addr = self.sock.recvfrom(1024*16)
-            if addr == (self.serv_ip, self.serv_port):
-                d:dict = pickle.loads(msg)
-                print(d)
-                self.level.open_level(d.get('level'), prepared=True)
-                self.ui.clear()
-                self.camera.x = 0
-                self.player = player.Player(50, 0,d.get('n'), self) # TODO: ONLINEEEEEE
-                self.playing = True
+            self.sock.connect((self.serv_ip, self.serv_port))
+            data = pickle.loads(self.sock.recv(1024*16))
+            self.level.open_level(data.get('level'), prepared=True)
+            self.ui.clear()
+            self.camera.x = 0
+            self.player = player.Player(50, 0,data.get('n'), self) # TODO: ONLINEEEEEE
+            self.playing = True
+            self.pr.start()
         except socket.timeout:
             self.join_menu('Servers dont answer...', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
         except Exception as e:
@@ -121,33 +124,6 @@ class Game:
             self.join_menu('Cant connect to servers:(', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
 
         self.loop()
-
-    def look_for_game(self):
-        try:
-            self.sock.sendto(b'conn', cfg.addr)
-            data, server = self.sock.recvfrom(1024)
-            d = data.decode()
-            if d.startswith('ok'):
-                self.join_menu('Connecting to game....')
-                self.serv_port = int(d[2:])
-            elif d.startswith('no'):
-                self.join_menu('All servers full, try again later', [Button((700, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
-                return
-            elif d.startswith('ta'):
-                self.join_menu('Lauching server, reconnecting...')
-                pg.time.delay(500)
-                self.look_for_game()
-
-            print(data, server)
-        except socket.timeout:
-            self.join_menu('Servers dont answer...', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
-        except Exception:
-            self.join_menu('Cant connect to servers:(', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])
-
-        self.loop()
-        print(self.serv_port)
-        self.join_game()
-
 
     def death(self):
         self.playing = False
@@ -192,7 +168,6 @@ class Game:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
             d['shoot'] = True
-        print(d)
         return d
 
     def draw(self):
@@ -206,23 +181,20 @@ class Game:
     def event_loop(self):
         for event in pg.event.get():
             if event.type == pg.QUIT: exit()
-            # if event.type in [pg.KEYDOWN, pg.K_RETURN] and self.playing == False:
-            #     self.start_game()
             if event.type == pg.MOUSEBUTTONDOWN:
                 self.ui.update_buttons(event)
 
             if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN,pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN, pg.USEREVENT]:
-                self.sock.sendto(pickle.dumps(self.update_control(event, self.camera)), (self.serv_ip, self.serv_port))
+                self.player.process_move(self.update_control(event, self.camera))
+                
 
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
 
     def loop(self):
-        if not self.pr.is_alive():
-            self.pr = threading.Thread(target=self.await_data, daemon=True)
-            self.pr.start()
         self.event_loop()
         if self.playing:
             self.player.update(self.level.get_blocks(), self.level)
+            self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun, 'n': self.player.n, 'xspeed': self.player.xspeed, 'on_ground':self.player.on_ground, 'r_leg':self.player.r_leg, 'look_r':self.player.look_r}))
 
             self.camera_update()
 

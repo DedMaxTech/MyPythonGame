@@ -48,6 +48,7 @@ class Bullet():
 class Player(object):
     def __init__(self, x, y, n=0, game_inst=None):
         self.n = n
+        self.s = {}
         self.game = game_inst
         # pg.sprite.Sprite.__init__(self)
         self.xspeed, self.yspeed = 0, 0

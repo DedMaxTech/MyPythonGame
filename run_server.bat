@@ -1,1 +1,1 @@
-python router.py
+python server.py 5001

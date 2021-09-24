@@ -44,7 +44,6 @@ class Interface:
 
             for b in self.buttons:
                 if pg.Rect.collidepoint(b.rect, event.pos):
-                    print('click')
                     if b.args:
                         b.func(b.args)
                     else:
