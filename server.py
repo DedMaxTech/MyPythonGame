@@ -33,7 +33,7 @@ class Server:
         self.clock = pg.time.Clock()
         self.level = level.Level()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind((socket.gethostbyname(socket.gethostname()), port))
+        self.sock.bind(('10.0.0.69', port))
         print((socket.gethostbyname(socket.gethostname()), port))
 
         self.name = f'[SERVER at {port}]:'
