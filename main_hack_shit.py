@@ -85,7 +85,7 @@ class Game:
                     cur_p.look_r = p['look_r']
                     cur_p.r_leg = p['r_leg']
             except Exception as e:
-                print(e)
+                print(traceback.format_exc())
 
 
     def join_menu(self, text, add=[]):
