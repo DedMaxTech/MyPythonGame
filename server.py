@@ -33,8 +33,8 @@ class Server:
         self.clock = pg.time.Clock()
         self.level = level.Level()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind(('172.17.0.1', port))
-        print((socket.gethostbyname(socket.gethostname()), port))
+        self.sock.bind((cfg.addr[0], port))
+        print((cfg.addr[0], port))
 
         self.name = f'[SERVER at {port}]:'
         self.levelname = 'levels/level.txt' 
