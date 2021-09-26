@@ -1,14 +1,15 @@
 import pygame as pg
 from glob import glob
+import os
 
-
-import cfg, level
+import cfg, level, utils
 from UI import Interface, Button
 
 
 class Editor:
     def __init__(self):
         self.res, self.fps = [cfg.screen_h, cfg.screen_v], cfg.fps
+        os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
 
         self.screen: pg.Surface = pg.display.set_mode((self.res[0], self.res[1] + 40))
@@ -30,6 +31,7 @@ class Editor:
         self.run()
 
     def main_menu(self):
+        self.editing=False
         bs = [];
         a = 0
         bs.append(Button((100,100), 'white', 'Levels:', 80, ),)
@@ -47,8 +49,9 @@ class Editor:
         bs = [];
         a = 0
         bs.append(Button((0, 0), 'white', 'SAVE', 35, self.save_level, bg='darkgrey', ))
+        bs.append(Button((100, 0), 'white', 'EXIT', 35, self.main_menu, bg='darkgrey', ))
         for i in level.block_s:
-            bs.append(Button((130 + a * 45, 0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
+            bs.append(Button((200 + a * 45, 0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
                              img=level.block_s[i]['img'], args=(i)))
             a += 1
         self.ui.set_ui(bs)
@@ -71,12 +74,18 @@ class Editor:
             self.camera.x -= 10
         if keys[pg.K_d]:
             self.camera.x += 10
+        if keys[pg.K_w] and self.camera.y < 40:
+            self.camera.y += 10
+        if keys[pg.K_s]:
+            self.camera.y -= 10
+
 
     def draw(self):
         self.screen.fill('black', [0,0,self.res[0], self.res[1]+40])
         if self.editing:
             self.level.draw(self.screen, self.camera)
         self.ui.draw(self.screen)
+        utils.debug(f'{self.camera.x} {self.camera.y}', self.screen, y=50)
 
 
     def event_loop(self):
@@ -87,11 +96,11 @@ class Editor:
                 if event.button == pg.BUTTON_RIGHT:
                     self.drawing = True
                 if event.button == pg.BUTTON_LEFT:
-                    self.level.set_block((event.pos[0] + self.camera.x, event.pos[1] - 40), self.brush)
+                    self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]-self.camera.y), self.brush)
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == pg.BUTTON_RIGHT: self.drawing = False
             if event.type == pg.MOUSEMOTION and self.drawing: self.level.set_block(
-                (event.pos[0] + self.camera.x, event.pos[1] - 40),
+                (event.pos[0] + self.camera.x, event.pos[1] -self.camera.y),
                 self.brush)
             if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT: self.brush = '0'
             if event.type == pg.KEYUP and event.key == pg.K_LSHIFT: self.brush = self.last_brush

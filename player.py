@@ -110,11 +110,12 @@ class Player(object):
             b.rect.y += b.yv
             for i in blocks:
                 if pg.sprite.collide_rect(b, i):
-                    print(self.bullets)
+                    print(len(self.bullets))
                     if i.type in [i for i in block_s if block_s[i]['dest']]: level.set_block(b.rect.topleft, '0')
                     del self.bullets[self.bullets.index(b)]
+                    break
 
-        if self.rect.y > cfg.screen_v: self.game.death()
+        # if self.rect.y > cfg.screen_v: self.game.death()
 
     def check_on_ground(self, blocks):
         self.rect.y += 1

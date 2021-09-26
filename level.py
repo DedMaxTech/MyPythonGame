@@ -56,7 +56,7 @@ class World:
         level = level[1:]
         self.h = len(level)
         for line in level:
-            t, x, y = line.split(' ');
+            t, x, y = line.split(' ')
             x, y = int(x), int(y)
             if self.w < x: self.w = x
             b = Block(x, y, t)
@@ -78,7 +78,7 @@ class World:
 
     def set_block(self, pos, t):
         flag = True
-        print(len(self.blocks))
+        # print(len(self.blocks))
         for b in self.blocks:
             if pg.Rect.collidepoint(b.rect, pos[0], pos[1]):
                 if t == '0':
@@ -94,6 +94,6 @@ class World:
         return (self.w + 40), self.h
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
-        screen.blit(pg.image.load(self.bg), (0, camera.y))
+        screen.blit(pg.image.load(self.bg), (0,0))
         for i in self.blocks:
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y + camera.y))

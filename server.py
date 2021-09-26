@@ -2,7 +2,7 @@ import pygame as pg
 import os, traceback, socket, pickle, logging, threading, time, sys
 from typing import List
 
-import cfg, player, level
+import cfg, player, level, utils
 
 from editor import Editor
 

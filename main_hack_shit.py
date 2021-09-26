@@ -5,6 +5,7 @@ import cfg, player, level
 from UI import Interface, Button
 
 from editor import Editor
+from utils import *
 
 
 class Game:
@@ -19,11 +20,12 @@ class Game:
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, 40, self.res[0], self.res[1])
         self.ui = Interface()
-        self.level = level.World()
+        self.world = level.World()
         self.player = None
         self.players = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serv_port = 5001
+        self.n = 0
 
         self.playing = False  # TODO: меню
         self.online = False
@@ -102,7 +104,7 @@ class Game:
 
     def start_game(self):
         self.ui.clear()
-        self.level.open_world('levels/level.txt')
+        self.world.open_world('levels/level.txt')
         self.playing = True
         self.player = player.Player(50, 0, 0, self)
         self.camera.x = 0
@@ -111,7 +113,7 @@ class Game:
         try:
             self.sock.connect((self.serv_ip, self.serv_port))
             data = pickle.loads(self.sock.recv(1024 * 4))
-            self.level.open_world(data.get('level'))
+            self.world.open_world(data.get('level'))
             self.ui.clear()
             self.camera.x = 0
             self.player = player.Player(50, 0, data.get('n'), self)  # TODO: ONLINEEEEEE
@@ -146,10 +148,26 @@ class Game:
             Button((500, 420), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
 
+    @threaded(daemon=True)
+    def set_level(self, floor=0, tpx=500):
+        pos = (floor-self.n)*-self.res[1]
+        self.n = floor
+        init_pos = self.camera.y
+        for i in range(1000):
+            p = init_pos + pos*(i/1000)
+            self.camera.y = p
+            if i==tpx:
+                print('move player')
+                self.player.rect.topleft = (800,(floor+1)*900)
+            pg.time.delay(1)
+        self.camera.y = init_pos + pos
+
+        # print(floor, init_pos, pos)
+
     def camera_update(self):
         if self.player.rect.x < self.camera.x + 400 and self.camera.x > 0:
             self.camera.x -= self.camera.x + 400 - self.player.rect.x
-        if self.player.rect.right > self.camera.right - 400 and self.camera.right < self.level.rect.right:
+        if self.player.rect.right > self.camera.right - 400 and self.camera.right < self.world.rect.right:
             self.camera.x += self.player.rect.right - self.camera.right + 400
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
@@ -176,7 +194,7 @@ class Game:
     def draw(self):
         self.ui.draw(self.screen)
         if self.playing:
-            self.level.draw(self.screen, self.camera)
+            self.world.draw(self.screen, self.camera)
             self.player.draw(self.screen, self.camera)
             for p in self.players:
                 p.draw(self.screen, self.camera)
@@ -195,13 +213,19 @@ class Game:
     def loop(self):
         self.event_loop()
         if self.playing:
-            self.player.update(self.level.get_blocks(), self.level)
+            self.player.update(self.world.get_blocks(), self.world)
             if self.online:
                 self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
                                                 'n': self.player.n,'xspeed': self.player.xspeed,
                                                 'on_ground': self.player.on_ground,'r_leg': self.player.r_leg,
                                                 'look_r': self.player.look_r}))
+            # if self.player.rect.x > 1000 and self.n != 1:
+            #     self.set_level(1)
+            # elif self.player.rect.x < 500 and self.n != 0:
+            #     self.set_level(0)
             self.camera_update()
+
+
 
         self.draw()
         pg.display.update()
