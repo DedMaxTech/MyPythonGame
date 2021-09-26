@@ -101,7 +101,7 @@ class Server:
         self.pr.start()
         while self.running:
             self.loop()
-            self.clock.tick(60)
+            self.clock.tick(120)
             # print(self.clock.get_fps(), self.users)
 
 
