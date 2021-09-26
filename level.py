@@ -9,9 +9,9 @@ img_metal = 'content/blocks/block_metal.png'
 img_glass = 'content/blocks/block_glass.png'
 
 block_s = {
-    '0': {'img': img_lastick, 'dest':False},
-    '=': {'img': img_rock, 'dest':False},
-    '|': {'img': img_wood, 'dest':False},
+    '0': {'img': img_lastick, 'dest': False},
+    '=': {'img': img_rock, 'dest': False},
+    '|': {'img': img_wood, 'dest': False},
     '+': {'img': img_leaves, 'dest': True},
     '-': {'img': img_metal, 'dest': False},
     '/': {'img': img_glass, 'dest': True},
@@ -25,7 +25,8 @@ class Block:
         self.type = t
         self.set_type(t)
         self.rect = self.img.get_rect()
-        self.rect.x = x; self.rect.y = y
+        self.rect.x = x;
+        self.rect.y = y
 
     def set_type(self, t):
         self.type = t
@@ -35,37 +36,38 @@ class Block:
         return f'{self.type} {self.rect.x} {self.rect.y}'
 
 
-class Level:
+class World:
     def __init__(self, level=None):
         self.levelname = level
         self.h, self.w = 0, 0
         self.blocks = []
         self.bg = 'content/blocks/bg.png'
-        self.rect:pg.Rect = None
-        if level: self.open_level(level)
+        self.rect: pg.Rect = None
+        if level: self.open_world(level)
 
-    def open_level(self, level, prepared=False):
+    def open_world(self, level, prepared=False):
         level = level
         if not prepared:
             with open(level, 'r') as file:
                 self.level = level
                 self.blocks = []
                 level = file.readlines()
-        self.bg = level[0][:-1]; level = level[1:]
+        self.bg = level[0][:-1];
+        level = level[1:]
         self.h = len(level)
         for line in level:
-            t, x, y = line.split(' '); x,y = int(x), int(y)
+            t, x, y = line.split(' ');
+            x, y = int(x), int(y)
             if self.w < x: self.w = x
             b = Block(x, y, t)
             self.blocks.append(b)
         self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
 
-    def save_level(self, levelname):
+    def save_world(self, levelname):
         with open(levelname, 'w') as file:
             file.write(f'{self.bg}\n')
             for b in self.blocks:
                 file.write(f'{b.__str__()}\n')
-
 
     def get_blocks(self):
 
@@ -84,14 +86,14 @@ class Level:
                 else:
                     b.set_type(t)
                     flag = False
-        if flag and pos[1] >= 0 and t !='0':
-            b = Block(pos[0]//40*40,pos[1]//40*40,t)
+        if flag and pos[1] >= 0 and t != '0':
+            b = Block(pos[0] // 40 * 40, pos[1] // 40 * 40, t)
             self.blocks.append(b)
 
     def get_size(self):
         return (self.w + 40), self.h
 
-    def draw(self, screen:pg.Surface, camera:pg.Rect):
-        screen.blit(pg.image.load(self.bg), (0,camera.y))
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        screen.blit(pg.image.load(self.bg), (0, camera.y))
         for i in self.blocks:
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y + camera.y))

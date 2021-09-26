@@ -30,7 +30,7 @@ class Server:
         self.pr = threading.Thread(target=self.awaiting_conn)
         self.workers_pool = []
         self.clock = pg.time.Clock()
-        self.level = level.Level()
+        self.level = level.World()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((cfg.addr[0], port))
         print((cfg.addr[0], port))
@@ -38,7 +38,7 @@ class Server:
         self.name = f'[SERVER at {port}]:'
         self.levelname = 'levels/level.txt' 
         print(f'{self.name} started...')
-        self.level.open_level(self.levelname)
+        self.level.open_world(self.levelname)
 
     def awaiting_data(self, conn:socket.socket,addr):
         n = [i for i in range(self.max_players) if i not in [u.player.n for u in self.users]][0]

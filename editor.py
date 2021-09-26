@@ -14,7 +14,7 @@ class Editor:
         self.screen: pg.Surface = pg.display.set_mode((self.res[0], self.res[1] + 40))
         self.clock = pg.time.Clock()
         self.ui = Interface()
-        self.level = level.Level()
+        self.level = level.World()
         self.levelname = ''
         self.camera = pg.Rect(0,40,self.res[0], self.res[1])
 
@@ -42,7 +42,7 @@ class Editor:
 
     def open_level(self, lvl):
         self.ui.clear()
-        self.level.open_level(lvl)
+        self.level.open_world(lvl)
         self.levelname = lvl
         bs = [];
         a = 0
@@ -57,7 +57,7 @@ class Editor:
 
     def save_level(self):
         self.editing = False
-        self.level.save_level(self.levelname)
+        self.level.save_world(self.levelname)
         self.ui.clear()
         self.main_menu()
 

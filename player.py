@@ -15,7 +15,7 @@ BULLET_IMG = pg.image.load('content/bullet.png')
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
 JUMP_FORCE = 12
-GRAVITY = 0.5
+GRAVITY = 0.4
 
 GUNS = {
     'rifle': {'img': pg.image.load('content/rifle.png'),

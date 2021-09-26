@@ -19,7 +19,7 @@ class Game:
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, 40, self.res[0], self.res[1])
         self.ui = Interface()
-        self.level = level.Level()
+        self.level = level.World()
         self.player = None
         self.players = []
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -96,7 +96,7 @@ class Game:
 
     def start_game(self):
         self.ui.clear()
-        self.level.open_level('levels/level.txt')
+        self.level.open_world('levels/level.txt')
         self.playing = True
 
         self.camera.x = 0
@@ -109,7 +109,7 @@ class Game:
             if addr == (self.serv_ip, self.serv_port):
                 d:dict = pickle.loads(msg)
                 print(d)
-                self.level.open_level(d.get('level'), prepared=True)
+                self.level.open_world(d.get('level'), prepared=True)
                 self.ui.clear()
                 self.camera.x = 0
                 self.player = player.Player(50, 0,d.get('n'), self) # TODO: ONLINEEEEEE
