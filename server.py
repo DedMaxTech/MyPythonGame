@@ -51,13 +51,14 @@ class Server:
             try:
                 data = pickle.loads(conn.recv(1024))
                 u.player.s = data
-                print(len(self.users),{'ps':[u.player.s for u in self.users]})
+                # print(len(self.users),{'ps':[u.player.s for u in self.users]})
                 conn.sendall(pickle.dumps({'ps':[u.player.s for u in self.users]}))
             except Exception as e:
                 print(e)
                 conn.close()
                 del self.users[self.users.index(u)]
                 break
+        print('player left')
 
     def awaiting_conn(self):
         self.sock.listen(self.max_players)
@@ -69,8 +70,8 @@ class Server:
             # self.workers_pool.append(p)
 
     def send_data(self):
-        for u in self.users:
-            u.player.update(self.level.get_blocks(), self.level)
+        # for u in self.users:
+        #     u.player.update(self.level.get_blocks(), self.level)
         # ps = []
         # for i in [u.player for u in self.users]:
         #     ps.append({'pos': i.rect.topleft, 'gun': i.gun, 'n': i.n, 'xspeed': i.xspeed, 'on_ground':i.on_ground, 'r_leg':i.r_leg, 'look_r':i.look_r})
