@@ -10,7 +10,7 @@ PLAYER_LEGS_IDLE = pg.image.load('content/player/legs/idle.png')
 PLAYER_LEGS_AIR = pg.image.load('content/player/legs/air.png')
 PLAYER_LEGS_L = pg.image.load('content/player/legs/left.png')
 PLAYER_LEGS_R = pg.image.load('content/player/legs/right.png')
-BULLET_IMG = pg.image.load('content/bullet.png')
+BULLET_IMG = pg.image.load('content/player/guns/bullet.png')
 
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
@@ -18,18 +18,18 @@ JUMP_FORCE = 12
 GRAVITY = 0.4
 
 GUNS = {
-    'rifle': {'img': pg.image.load('content/rifle.png'),
+    'rifle': {'img': pg.image.load('content/player/guns/rifle.png'),
               'hold_img': 0,
               'pos': (29, 29),
               'bull_pos': (0, 0),
-              'speed': 50,
+              'speed': 30,
               'mag': 30,
               'auto': True},
-    'pistol': {'img': pg.image.load('content/pistol.png'),
+    'pistol': {'img': pg.image.load('content/player/guns/pistol.png'),
                'hold_img': 0,
                'pos': (29, 29),
                'bull_pos': (0, 0),
-               'speed': 50,
+               'speed': 30,
                'mag': 10,
                'auto': True},
 }
