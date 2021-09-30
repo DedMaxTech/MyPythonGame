@@ -17,8 +17,6 @@ while True:
     if plaing:
         if r.x < 0 or r.right > 1280: plaing = False
         if r.y < 0 or r.bottom > 720: y = -y
-
-
         if keys[pg.K_w] and p1.y > 0:
             p1.y -= 10
         if keys[pg.K_s] and p1.bottom < 720:

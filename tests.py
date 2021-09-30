@@ -1,4 +1,10 @@
-from math import *
-a,b = 1,3
+class A(object):
+    def __init__(self):
+        pass
+    def stop(self):
+        del self
+    def dele
 
-print(degrees(atan(a/b)))
+a = A()
+a.stop()
+print(a)

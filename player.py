@@ -5,8 +5,9 @@ from random import randint
 
 import cfg
 
-PLAYER_IMG = pg.image.load('content/player/player.png')
-PLAYER_LEGS_IDLE = pg.image.load('content/player/legs/idle.png')
+PLAYER_IMG = pg.image.load('content/player2/player.png')
+PLAYER_LEGS_IDLE = pg.image.load('content/player2/legs/idle.png')
+PLAYER_ARMS = pg.image.load('content/player2/arms.png')
 PLAYER_LEGS_AIR = pg.image.load('content/player/legs/air.png')
 PLAYER_LEGS_L = pg.image.load('content/player/legs/left.png')
 PLAYER_LEGS_R = pg.image.load('content/player/legs/right.png')
@@ -53,7 +54,7 @@ class Player(object):
         # pg.sprite.Sprite.__init__(self)
         self.xspeed, self.yspeed = 0, 0
         self.img = PLAYER_IMG
-        self.rect = pg.Rect(x, y, 30, 60)
+        self.rect = pg.Rect(x, y, 30, 80)
 
         self.move_left, self.move_right, self.jump = False, False, False
         self.on_ground = False
@@ -163,18 +164,18 @@ class Player(object):
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         self.img = PLAYER_IMG.copy()
-        if self.on_ground:
-            if self.xspeed == 0:
-                self.img.blit(PLAYER_LEGS_IDLE, (0, 53))
-            else:
-                self.img.blit(PLAYER_LEGS_R if self.r_leg else PLAYER_LEGS_L, (0, 53))
-        else:
-            self.img.blit(PLAYER_LEGS_AIR, (0, 53))
-        self.img.blit(GUNS[self.gun]['img'], GUNS[self.gun]['pos'])
+        # if self.on_ground:
+        #     if self.xspeed == 0:
+        #         self.img.blit(PLAYER_LEGS_IDLE, (0, 53))
+        #     else:
+        #         self.img.blit(PLAYER_LEGS_R if self.r_leg else PLAYER_LEGS_L, (0, 53))
+        # else:
+        #     self.img.blit(PLAYER_LEGS_AIR, (0, 53))
+        # self.img.blit(PLAYER_LEGS_AIR, (0, 0))
+        # self.img.blit(GUNS[self.gun]['img'], GUNS[self.gun]['pos'])
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if not self.look_r: self.rotate()
-
         screen.blit(self.img,
                     (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y + camera.y))
         for b in self.bullets:
