@@ -1,10 +1,11 @@
 import os, traceback, socket, pickle, math
 from random import randint as rd
 import cfg
-from game import player, level
+from game import player, level, core
 from game.UI import Interface, Button
 
 from game.utils import *
+
 
 
 class Game:
@@ -37,7 +38,10 @@ class Game:
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
         self.sock.settimeout(2.0)
+        self.cat = cat_img = pg.image.load('game/content/cat.png').convert_alpha()
         self.tint = pg.image.load('game/content/tint2.png').convert_alpha()
+
+        self.shit = []
 
     def main_menu(self):
         self.playing = False;
@@ -189,15 +193,19 @@ class Game:
             else:
                 d['look_r'] = False
             x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
-            print((x, y))
             if x == 0: x = 1
             ang = int(math.degrees(math.atan(y / abs(x))))
             d['angle'] = ang
         if event.type == pg.USEREVENT:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
+            for i in range(100):
+                s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4)
+                s.yvel = -rd(6,10)
+                s.xvel = rd(-40,50) / 10
+                self.shit.append(s)
             d['shoot'] = True
-            self.shake = 7
+            self.shake = 5
         return d
 
     def procces_camera_shake(self):
@@ -212,9 +220,16 @@ class Game:
         if self.playing:
             self.world.draw(self.frame, self.camera)
             self.player.draw(self.frame, self.camera)
+            for i in self.shit:
+                self.frame.blit(self.cat, (i.rect.x - self.camera.x, i.rect.y + self.camera.y, i.rect.w, i.rect.h))
+
             for p in self.players:
                 p.draw(self.frame, self.camera)
-            self.frame.blit(self.tint, (0, 0))
+            # debug(self.shit.xvel, self.screen)
+            # POST PROCESS
+            # self.frame.blit(self.tint, (0, 0))
+            debug(self.clock.get_fps(),self.frame)
+            debug(len(self.shit), self.frame, y=30)
         self.ui.draw(self.frame)
 
     def event_loop(self):
@@ -232,6 +247,7 @@ class Game:
         self.event_loop()
         if self.playing:
             self.player.update(self.world.get_blocks(), self.world)
+            [i.update(self.world.blocks) for i in self.shit]
             if self.online:
                 self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
                                                 'n': self.player.n, 'xspeed': self.player.xspeed,
