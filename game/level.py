@@ -1,12 +1,12 @@
 from typing import Union
 import pygame as pg
 
-img_rock = 'content/blocks/block_rock.png'
-img_wood = 'content/blocks/block_wood.png'
-img_leaves = 'content/blocks/block_leaves.png'
-img_lastick = 'content/blocks/block_nthg.png'
-img_metal = 'content/blocks/block_metal.png'
-img_glass = 'content/blocks/block_glass.png'
+img_rock = 'game/content/blocks/block_rock.png'
+img_wood = 'game/content/blocks/block_wood.png'
+img_leaves = 'game/content/blocks/block_leaves.png'
+img_lastick = 'game/content/blocks/block_nthg.png'
+img_metal = 'game/content/blocks/block_metal.png'
+img_glass = 'game/content/blocks/block_glass.png'
 
 block_s = {
     '0': {'img': img_lastick, 'dest': False},
@@ -21,7 +21,7 @@ block_s = {
 class Block:
     def __init__(self, x, y, t):
         # pg.sprite.Sprite.__init__(self)
-        self.img = None
+        self.img: pg.Surface = None
         self.type = t
         self.set_type(t)
         self.rect = self.img.get_rect()

@@ -1,10 +1,9 @@
 import pygame as pg
-import os, traceback, socket, pickle, logging, threading, time, sys
+import socket, pickle, threading, sys
 from typing import List
 
-import cfg, player, level, utils
-
-from editor import Editor
+import cfg
+from game import player, level
 
 servers = []
 

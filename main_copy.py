@@ -2,11 +2,9 @@ import pygame as pg
 import os
 import traceback
 
-import cfg, player, level
-from UI import Interface, Button
-
-
-from editor import Editor
+import cfg
+from game import player, level
+from game.UI import Interface, Button
 
 
 class Game:

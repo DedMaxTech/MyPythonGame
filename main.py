@@ -1,11 +1,9 @@
 import pygame as pg
 import os, traceback, socket, pickle, threading
 
-import cfg, player, level
-from UI import Interface, Button
-
-
-from editor import Editor
+import cfg
+from game import player, level
+from game.UI import Interface, Button
 
 
 class Game:
@@ -68,7 +66,7 @@ class Game:
             if n == self.player.n:
                 cur_p = self.player
             elif n not in [p.n for p in self.players]:
-                p = player.Player(0,0, n)
+                p = player.Player(0, 0, n)
                 self.players.append(p)
                 cur_p = p
             else:
@@ -112,7 +110,7 @@ class Game:
                 self.level.open_world(d.get('level'), prepared=True)
                 self.ui.clear()
                 self.camera.x = 0
-                self.player = player.Player(50, 0,d.get('n'), self) # TODO: ONLINEEEEEE
+                self.player = player.Player(50, 0, d.get('n'), self) # TODO: ONLINEEEEEE
                 self.playing = True
         except socket.timeout:
             self.join_menu('Servers dont answer...', [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),])

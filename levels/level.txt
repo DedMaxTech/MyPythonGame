@@ -1,4 +1,4 @@
-content/bg2.png
+game/content/bg2.png
 - 0 0
 - 0 40
 - 0 80
@@ -557,3 +557,5 @@ content/bg2.png
 - 120 2000
 - 40 2000
 - 80 2000
+= 320 760
+= 280 760

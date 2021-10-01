@@ -1,11 +1,10 @@
-import pygame as pg
-import os, traceback, socket, pickle, threading
+import os, traceback, socket, pickle, math
+from random import randint as rd
+import cfg
+from game import player, level
+from game.UI import Interface, Button
 
-import cfg, player, level
-from UI import Interface, Button
-
-from editor import Editor
-from utils import *
+from game.utils import *
 
 
 class Game:
@@ -16,12 +15,13 @@ class Game:
         pg.init()
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED, vsync=True)
+        self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, 40, self.res[0], self.res[1])
         self.ui = Interface()
         self.world = level.World()
-        self.player = None
+        self.player: player.Player = None
         self.players = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serv_port = 5001
@@ -30,23 +30,26 @@ class Game:
         self.playing = False  # TODO: меню
         self.online = False
         self.searching = False
+        self.shake = 0
 
         pg.display.set_caption(cfg.GAMENAME)
         pg.display.toggle_fullscreen()
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
         self.sock.settimeout(2.0)
+        self.tint = pg.image.load('game/content/tint2.png').convert_alpha()
 
     def main_menu(self):
-        self.playing=False; self.online=False
-        self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
+        self.playing = False;
+        self.online = False
+        self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
         self.ui.set_ui([
             Button((100, 100), 'white', 'MENU', 80, ),
             Button((150, 200), 'white', 'New game', 50, self.start_game, 'darkgrey'),
-            # Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
-            Button((150, 260), 'white', 'Join game', 50, self.join_game, 'darkgrey'),
-            Button((150, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
+            Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
+            Button((150, 320), 'white', 'Join game', 50, self.join_game, 'darkgrey'),
+            Button((150, 380), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
 
     def pause_menu(self):
@@ -91,14 +94,14 @@ class Game:
                 print(traceback.format_exc())
 
     def join_menu(self, text, add=[]):
-        self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
+        self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
         self.ui.set_ui([Button((700, 500), 'white', text, 50, ), ] + add)
 
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
         pg.display.toggle_fullscreen()
-        os.system('python editor.py')
+        os.system('python game/editor.py')
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
 
@@ -134,7 +137,7 @@ class Game:
         self.playing = False
         pg.time.delay(500)
         for i in range(256):
-            self.screen.fill('black', [0, 0, self.res[0], self.res[1] + 40])
+            self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
             self.ui.clear()
             self.ui.set_ui([
                 Button((350, 200), (i, 0, 0), 'GAME OVER', 80, ),
@@ -150,15 +153,15 @@ class Game:
 
     @threaded(daemon=True)
     def set_level(self, floor=0, tpx=500):
-        pos = (floor-self.n)*-self.res[1]
+        pos = (floor - self.n) * -self.res[1]
         self.n = floor
         init_pos = self.camera.y
         for i in range(1000):
-            p = init_pos + pos*(i/1000)
+            p = init_pos + pos * (i / 1000)
             self.camera.y = p
-            if i==tpx:
+            if i == tpx:
                 print('move player')
-                self.player.rect.topleft = (800,(floor+1)*900)
+                self.player.rect.topleft = (800, (floor + 1) * 900)
             pg.time.delay(1)
         self.camera.y = init_pos + pos
 
@@ -181,23 +184,38 @@ class Game:
             if event.key == pg.K_a: d['left'] = False
             if event.key == pg.K_SPACE: d['up'] = False
         if event.type == pg.MOUSEMOTION:
-            if self.player.rect.x <= event.pos[0] + camera.x:
+            if self.player.rect.centerx <= event.pos[0] + camera.x:
                 d['look_r'] = True
             else:
                 d['look_r'] = False
+            x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
+            print((x, y))
+            if x == 0: x = 1
+            ang = int(math.degrees(math.atan(y / abs(x))))
+            d['angle'] = ang
         if event.type == pg.USEREVENT:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
             d['shoot'] = True
+            self.shake = 7
         return d
 
+    def procces_camera_shake(self):
+        x, y = 0, 0
+        if self.shake > 0:
+            self.shake -= 1
+            x = rd(-self.shake, self.shake)
+            y = rd(-self.shake, self.shake)
+        return x, y
+
     def draw(self):
-        self.ui.draw(self.screen)
         if self.playing:
-            self.world.draw(self.screen, self.camera)
-            self.player.draw(self.screen, self.camera)
+            self.world.draw(self.frame, self.camera)
+            self.player.draw(self.frame, self.camera)
             for p in self.players:
-                p.draw(self.screen, self.camera)
+                p.draw(self.frame, self.camera)
+            self.frame.blit(self.tint, (0, 0))
+        self.ui.draw(self.frame)
 
     def event_loop(self):
         for event in pg.event.get():
@@ -216,8 +234,8 @@ class Game:
             self.player.update(self.world.get_blocks(), self.world)
             if self.online:
                 self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
-                                                'n': self.player.n,'xspeed': self.player.xspeed,
-                                                'on_ground': self.player.on_ground,'r_leg': self.player.r_leg,
+                                                'n': self.player.n, 'xspeed': self.player.xspeed,
+                                                'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
                                                 'look_r': self.player.look_r}))
             # if self.player.rect.x > 1000 and self.n != 1:
             #     self.set_level(1)
@@ -225,8 +243,7 @@ class Game:
             #     self.set_level(0)
             self.camera_update()
 
-
-
+        self.screen.blit(self.frame, self.procces_camera_shake())
         self.draw()
         pg.display.update()
 
