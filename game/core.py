@@ -1,4 +1,7 @@
 import pygame as pg
+from functools import cache
+from time import sleep
+from game.utils import *
 
 class Actor:
     def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.995):
@@ -6,6 +9,15 @@ class Actor:
         self.xvel, self.yvel = 0.0,0.0
         self.gravity, self.bounce, self.static, self.friction = gravity, bounce, static, friction
         self.on_ground = False
+        self._delete = False
+        
+        self.autodel()
+    
+    @threaded()
+    def autodel(self):
+        sleep(10)
+        print('del')
+        self._delete = True
 
     def update(self, blocks):
         if self.static:
@@ -19,14 +31,18 @@ class Actor:
             if self.yvel > 2:
                 self.yvel = -self.yvel*self.bounce
             else: self.yvel =0
-        if abs(self.xvel) > 0.1:
-            self.xvel = self.xvel*self.friction
-        else: self.xvel =0
+            if abs(self.xvel) > 0.1:
+                self.xvel = self.xvel*self.friction
+            else: self.xvel =0
 
         self.rect.y += self.yvel
         self._collide_y(blocks)
         self.rect.x += self.xvel
         self._collide_x(blocks)
+    
+    def delete(self):
+        self._delete = True
+
     
     def _check_on_ground(self, blocks):
         self.rect.y += 1

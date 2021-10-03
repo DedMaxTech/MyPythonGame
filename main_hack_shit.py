@@ -32,13 +32,14 @@ class Game:
         self.online = False
         self.searching = False
         self.shake = 0
+        self.delta = 0.0
 
         pg.display.set_caption(cfg.GAMENAME)
         pg.display.toggle_fullscreen()
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
         self.sock.settimeout(2.0)
-        self.cat = cat_img = pg.image.load('game/content/cat.png').convert_alpha()
+        self.cat = pg.image.load('game/content/cat.png').convert_alpha()
         self.tint = pg.image.load('game/content/tint2.png').convert_alpha()
 
         self.shit = []
@@ -166,7 +167,7 @@ class Game:
             if i == tpx:
                 print('move player')
                 self.player.rect.topleft = (800, (floor + 1) * 900)
-            pg.time.delay(1)
+            pg.time.wait(1)
         self.camera.y = init_pos + pos
 
         # print(floor, init_pos, pos)
@@ -199,8 +200,8 @@ class Game:
         if event.type == pg.USEREVENT:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
-            for i in range(100):
-                s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4)
+            for i in range(1):
+                s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
                 s.yvel = -rd(6,10)
                 s.xvel = rd(-40,50) / 10
                 self.shit.append(s)
@@ -227,8 +228,8 @@ class Game:
                 p.draw(self.frame, self.camera)
             # debug(self.shit.xvel, self.screen)
             # POST PROCESS
-            # self.frame.blit(self.tint, (0, 0))
-            debug(self.clock.get_fps(),self.frame)
+            self.frame.blit(self.tint, (0, 0))
+            debug(int(self.clock.get_fps()),self.frame)
             debug(len(self.shit), self.frame, y=30)
         self.ui.draw(self.frame)
 
@@ -247,16 +248,20 @@ class Game:
         self.event_loop()
         if self.playing:
             self.player.update(self.world.get_blocks(), self.world)
-            [i.update(self.world.blocks) for i in self.shit]
+            for i in self.shit:
+                if not i._delete:
+                    i.update(self.world.blocks)
+                else:
+                    del self.shit[self.shit.index(i)]
             if self.online:
                 self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
                                                 'n': self.player.n, 'xspeed': self.player.xspeed,
                                                 'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
                                                 'look_r': self.player.look_r}))
-            # if self.player.rect.x > 1000 and self.n != 1:
-            #     self.set_level(1)
-            # elif self.player.rect.x < 500 and self.n != 0:
-            #     self.set_level(0)
+            if self.player.rect.x > 1000 and self.n != 1:
+                self.set_level(1)
+            elif self.player.rect.x < 500 and self.n != 0:
+                self.set_level(0)
             self.camera_update()
 
         self.screen.blit(self.frame, self.procces_camera_shake())
@@ -266,7 +271,7 @@ class Game:
     def run(self):
         while True:
             self.loop()
-            self.clock.tick(self.fps)
+            self.delta = self.clock.tick(self.fps)
 
 
 if __name__ == '__main__':
