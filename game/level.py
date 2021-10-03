@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 import pygame as pg
 
 img_rock = 'game/content/blocks/block_rock.png'
@@ -40,7 +40,7 @@ class World:
     def __init__(self, level=None):
         self.levelname = level
         self.h, self.w = 0, 0
-        self.blocks = []
+        self.blocks: List[Block] = []
         self.bg = 'content/blocks/bg.png'
         self.rect: pg.Rect = None
         if level: self.open_world(level)
@@ -69,10 +69,12 @@ class World:
             for b in self.blocks:
                 file.write(f'{b.__str__()}\n')
 
-    def get_blocks(self):
+    def get_blocks(self, rect:pg.Rect=None):
+        if rect is None:
+            return self.blocks
+        return rect.collidelistall(self.blocks)
 
-        return self.blocks
-
+    
     def set_blocks(self, blocks):
         self.blocks = blocks
 
@@ -95,5 +97,6 @@ class World:
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(pg.image.load(self.bg), (0,0))
-        for i in self.blocks:
+        for i in self.get_blocks(camera):
+            i = self.blocks[i]
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y + camera.y))

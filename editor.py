@@ -2,8 +2,9 @@ import pygame as pg
 from glob import glob
 import os
 
-import cfg, level, utils
-from UI import Interface, Button
+import cfg
+from game import  level, utils
+from game.UI import Interface, Button
 
 
 class Editor:

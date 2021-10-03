@@ -3,6 +3,7 @@ import math
 from game.level import block_s
 from random import randint
 from game.utils import *
+from game.core import Actor
 
 import cfg
 
@@ -50,7 +51,7 @@ class Bullet():
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
 
 
-class Player(object):
+class Player:
     def __init__(self, x, y, n=0, game_inst=None):
         self.n = n
         self.s = {}

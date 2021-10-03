@@ -15,7 +15,7 @@ class Game:
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
 
-        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED, vsync=True)
+        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN, vsync=True)
         self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
@@ -35,7 +35,7 @@ class Game:
         self.delta = 0.0
 
         pg.display.set_caption(cfg.GAMENAME)
-        pg.display.toggle_fullscreen()
+        # pg.display.toggle_fullscreen()
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
         self.sock.settimeout(2.0)
@@ -106,7 +106,7 @@ class Game:
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
         pg.display.toggle_fullscreen()
-        os.system('python game/editor.py')
+        os.system('python editor.py')
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
 
@@ -222,13 +222,14 @@ class Game:
             self.world.draw(self.frame, self.camera)
             self.player.draw(self.frame, self.camera)
             for i in self.shit:
-                self.frame.blit(self.cat, (i.rect.x - self.camera.x, i.rect.y + self.camera.y, i.rect.w, i.rect.h))
+                # self.frame.blit(self.cat, (i.rect.x - self.camera.x, i.rect.y + self.camera.y, i.rect.w, i.rect.h))
+                pg.draw.circle(self.frame, 'green',(i.rect.centerx - self.camera.x, i.rect.centery + self.camera.y,), 20)
 
             for p in self.players:
                 p.draw(self.frame, self.camera)
             # debug(self.shit.xvel, self.screen)
             # POST PROCESS
-            self.frame.blit(self.tint, (0, 0))
+            # self.frame.blit(self.tint, (0, 0))
             debug(int(self.clock.get_fps()),self.frame)
             debug(len(self.shit), self.frame, y=30)
         self.ui.draw(self.frame)
@@ -250,7 +251,7 @@ class Game:
             self.player.update(self.world.get_blocks(), self.world)
             for i in self.shit:
                 if not i._delete:
-                    i.update(self.world.blocks)
+                    i.update(self.delta,self.world.blocks)
                 else:
                     del self.shit[self.shit.index(i)]
             if self.online:
@@ -271,7 +272,7 @@ class Game:
     def run(self):
         while True:
             self.loop()
-            self.delta = self.clock.tick(self.fps)
+            self.delta = self.clock.tick(120)
 
 
 if __name__ == '__main__':

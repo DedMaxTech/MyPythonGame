@@ -19,7 +19,7 @@ class Actor:
         print('del')
         self._delete = True
 
-    def update(self, blocks):
+    def update(self, delta, blocks):
         if self.static:
             return
         
@@ -27,6 +27,7 @@ class Actor:
 
         if not self.on_ground:
             self.yvel += self.gravity
+            
         else:
             if self.yvel > 2:
                 self.yvel = -self.yvel*self.bounce
@@ -43,7 +44,6 @@ class Actor:
     def delete(self):
         self._delete = True
 
-    
     def _check_on_ground(self, blocks):
         self.rect.y += 1
         for b in blocks:
@@ -61,6 +61,9 @@ class Actor:
                 elif self.xvel < 0:
                     self.rect.left = b.rect.right
                 self.hit(b)
+                if abs(self.xvel) > 1:
+                    self.xvel = -self.xvel*self.bounce
+                else: self.xvel =0
 
     def _collide_y(self, blocks):    
         for b in blocks:
