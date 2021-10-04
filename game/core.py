@@ -7,6 +7,7 @@ import cfg
 class Actor:
     def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005):
         self.rect = pg.Rect(x,y,w,h)
+        self.pre_rect = pg.Rect(x-30,y-30,w+30,h+30)
         self.xspeed, self.yspeed = 0.0, 0.0
         self.gravity, self.bounce, self.static, self.friction = gravity, bounce, static, friction
         self.on_ground = False
@@ -38,6 +39,7 @@ class Actor:
         self._collide_y(blocks)
         self.rect.x += self.xspeed *delta/1000*cfg.fps
         self._collide_x(blocks)
+        self.pre_rect.center = self.rect.center
     
     def delete(self):
         self._delete = True

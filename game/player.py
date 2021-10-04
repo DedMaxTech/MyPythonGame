@@ -158,6 +158,7 @@ class Player(Actor):
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if not self.look_r: self.rotate()
+        # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         screen.blit(self.img,
                     (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y + camera.y))
         for b in self.bullets:

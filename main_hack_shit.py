@@ -230,9 +230,9 @@ class Game:
                 p.draw(self.frame, self.camera)
             # debug(self.shit.xvel, self.screen)
             # POST PROCESS
-            # self.frame.blit(self.tint, (0, 0))
-            debug(int(self.clock.get_fps()),self.frame)
-            debug(len(self.shit), self.frame, y=30)
+            self.frame.blit(self.tint, (0, 0))
+            debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
+            debug(f'Actors: {len(self.shit)}', self.frame, y=30)
             debug(self.player.on_ground, self.frame, y=60)
         self.ui.draw(self.frame)
 
@@ -250,10 +250,10 @@ class Game:
     def loop(self):
         self.event_loop()
         if self.playing:
-            self.player.update_control(self.delta,self.world.get_blocks(), self.world)
+            self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             for i in self.shit:
                 if not i._delete:
-                    i.update(self.delta, self.world.blocks)
+                    i.update(self.delta, self.world.get_blocks(i.pre_rect))
                 else:
                     del self.shit[self.shit.index(i)]
             if self.online:

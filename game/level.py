@@ -72,7 +72,7 @@ class World:
     def get_blocks(self, rect:pg.Rect=None):
         if rect is None:
             return self.blocks
-        return rect.collidelistall(self.blocks)
+        return [self.blocks[i] for i in rect.collidelistall(self.blocks)]
 
     
     def set_blocks(self, blocks):
@@ -80,7 +80,6 @@ class World:
 
     def set_block(self, pos, t):
         flag = True
-        # print(len(self.blocks))
         for b in self.blocks:
             if pg.Rect.collidepoint(b.rect, pos[0], pos[1]):
                 if t == '0':
@@ -98,5 +97,4 @@ class World:
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(pg.image.load(self.bg), (0,0))
         for i in self.get_blocks(camera):
-            i = self.blocks[i]
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y + camera.y))
