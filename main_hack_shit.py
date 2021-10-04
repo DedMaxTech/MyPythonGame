@@ -7,6 +7,7 @@ from game.UI import Interface, Button
 from game.utils import *
 
 
+# Game by MaxGyverTech
 
 class Game:
     def __init__(self):
@@ -202,8 +203,8 @@ class Game:
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
             for i in range(1):
                 s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-                s.yvel = -rd(6,10)
-                s.xvel = rd(-40,50) / 10
+                s.yspeed = -rd(6, 10)
+                s.xspeed = rd(-40, 50) / 10
                 self.shit.append(s)
             d['shoot'] = True
             self.shake = 5
@@ -232,6 +233,7 @@ class Game:
             # self.frame.blit(self.tint, (0, 0))
             debug(int(self.clock.get_fps()),self.frame)
             debug(len(self.shit), self.frame, y=30)
+            debug(self.player.on_ground, self.frame, y=60)
         self.ui.draw(self.frame)
 
     def event_loop(self):
@@ -248,10 +250,10 @@ class Game:
     def loop(self):
         self.event_loop()
         if self.playing:
-            self.player.update(self.world.get_blocks(), self.world)
+            self.player.update_control(self.delta,self.world.get_blocks(), self.world)
             for i in self.shit:
                 if not i._delete:
-                    i.update(self.delta,self.world.blocks)
+                    i.update(self.delta, self.world.blocks)
                 else:
                     del self.shit[self.shit.index(i)]
             if self.online:
@@ -272,7 +274,7 @@ class Game:
     def run(self):
         while True:
             self.loop()
-            self.delta = self.clock.tick(120)
+            self.delta = self.clock.tick(cfg.fps)
 
 
 if __name__ == '__main__':

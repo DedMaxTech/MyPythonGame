@@ -45,24 +45,21 @@ class Bullet():
         print(xv,yv)
         self.img = pg.transform.rotate(img, rot)
 
-
     def draw(self, screen: pg.Surface):
         screen.blit(self.img, self.rect.topleft)
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
 
 
-class Player:
+class Player(Actor):
     def __init__(self, x, y, n=0, game_inst=None):
+        super().__init__(x, y, 30,80, friction=0)
         self.n = n
         self.s = {}
         self.game = game_inst
         # pg.sprite.Sprite.__init__(self)
-        self.xspeed, self.yspeed = 0, 0
         self.img = PLAYER_IMG
-        self.rect = pg.Rect(x, y, 30, 80)
 
         self.move_left, self.move_right, self.jump = False, False, False
-        self.on_ground = False
         self.look_r = True
         self.r_leg = True
         self.double = True
@@ -87,10 +84,12 @@ class Player:
         if d.get('shoot') is not None:
             self.shoot()
 
-    def update(self, blocks, level):
+    def update_control(self,delta, blocks, level):
         self.on_ground = self.check_on_ground(blocks)
         if self.on_ground:
             self.double = True
+        
+        # self.
         # багованый вариант с инерцией
         # self.timer += delta
         # if self.timer >=250:
@@ -107,16 +106,14 @@ class Player:
 
         # JUMP
         if self.jump and (self.on_ground or self.double):
+            print('smth')
             if not self.on_ground and self.double:
                 self.double = False
                 self.xspeed = 0
             self.jump = False
             self.yspeed = -JUMP_FORCE
             self.on_ground = False
-        if not self.on_ground: self.yspeed += GRAVITY
-
-        # PROCCES MOVE
-        self.move(blocks)
+        # if not self.on_ground: self.yspeed += GRAVITY
 
         # BULLETS PROCES
         for b in self.bullets:
@@ -128,41 +125,7 @@ class Player:
                     if i.type in [i for i in block_s if block_s[i]['dest']]: level.set_block(b.rect.topleft, '0')
                     del self.bullets[self.bullets.index(b)]
                     break
-
-        # if self.rect.y > cfg.screen_v: self.game.death()
-
-    def check_on_ground(self, blocks):
-        self.rect.y += 1
-        for b in blocks:
-            if self.rect.colliderect(b.rect):
-                self.rect.y -= 1
-                return True
-        self.rect.y -= 1
-        return False
-
-    def collide_x(self, blocks):
-        for b in blocks:
-            if self.rect.colliderect(b.rect):
-                if self.move_right:
-                    self.rect.right = b.rect.left
-                if self.move_left:
-                    self.rect.left = b.rect.right
-
-    def collide_y(self, blocks):
-        for b in blocks:
-            if self.rect.colliderect(b.rect):
-                if self.yspeed > 0:
-                    self.yspeed = 0
-                    self.rect.bottom = b.rect.top
-                if self.yspeed < 0:
-                    self.yspeed = 0
-                    self.rect.top = b.rect.bottom
-
-    def move(self, blocks):
-        self.rect.y += self.yspeed
-        self.collide_y(blocks)
-        self.rect.x += self.xspeed
-        self.collide_x(blocks)
+        self.update(delta, blocks)
 
     def shoot(self):
         xvel = GUNS[self.gun]['speed'] * math.cos(math.radians(self.angle))
@@ -174,6 +137,7 @@ class Player:
                    self.angle,
                    BULLET_IMG)
         self.bullets.append(b)
+
 
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)
