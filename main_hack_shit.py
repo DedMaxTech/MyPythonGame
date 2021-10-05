@@ -9,6 +9,12 @@ from game.utils import *
 
 # Game by MaxGyverTech
 
+with open('game/content/cursor.xbm') as c: 
+    m = open('game/content/cursor_mask.xbm')
+    cursor = pg.cursors.load_xbm(c,m)
+
+# curs = 
+
 class Game:
     def __init__(self):
         self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
@@ -47,6 +53,7 @@ class Game:
         self.shit = []
 
     def main_menu(self):
+        pg.mouse.set_cursor(*pg.cursors.arrow)
         self.playing = False;
         self.online = False
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -58,6 +65,7 @@ class Game:
             Button((150, 320), 'white', 'Join game', 50, self.join_game, 'darkgrey'),
             Button((150, 380), 'white', 'Exit', 50, exit, 'darkgrey'),
         ])
+        
 
     def pause_menu(self):
         self.ui.clear()
@@ -68,8 +76,10 @@ class Game:
                 Button((500, 260), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
                 Button((500, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
             ])
+            pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
             self.playing = True
+            pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def await_data(self):
         self.sock.settimeout(10)
@@ -118,6 +128,7 @@ class Game:
         self.playing = True
         self.player = player.Player(50, 0, 0, self)
         self.camera.x = 0
+        pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def join_game(self):
         try:
@@ -175,6 +186,11 @@ class Game:
         # print(floor, init_pos, pos)
 
     def camera_update(self):
+        # ofset = 800
+        # if self.player.rect.x < self.camera.x + ofset and self.camera.x > 0:
+        #     self.camera.x -= self.camera.x + ofset - self.player.rect.x
+        # if self.player.rect.right > self.camera.right - ofset and self.camera.right < self.world.rect.right:
+        #     self.camera.x += self.player.rect.right - self.camera.right + ofset
         ofset = 800
         if self.player.rect.x < self.camera.x + ofset and self.camera.x > 0:
             self.camera.x -= self.camera.x + ofset - self.player.rect.x
@@ -203,11 +219,11 @@ class Game:
         if event.type == pg.USEREVENT:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
-            for i in range(1):
-                s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-                s.yspeed = -rd(6, 10)
-                s.xspeed = (rd(0, 100) -50) / 10
-                self.shit.append(s)
+            # for i in range(1):
+            #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
+            #     s.yspeed = -rd(6, 10)
+            #     s.xspeed = (rd(0, 100) -50) / 10
+            #     self.world.actors.append(s)
             d['shoot'] = True
             self.shake = 5
         return d
@@ -236,7 +252,7 @@ class Game:
             # POST PROCESS
             self.frame.blit(self.tint, (0, 0))
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
-            debug(f'Actors: {len(self.shit)}', self.frame, y=30)
+            debug(f'Actors: {len(self.world.actors)}', self.frame, y=30)
             debug(self.player.on_ground, self.frame, y=60)
         self.ui.draw(self.frame)
 
@@ -255,6 +271,7 @@ class Game:
         self.event_loop()
         if self.playing:
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
+            self.world.update_actors(self.delta)
             for i in self.shit:
                 if not i._delete:
                     i.update(self.delta, self.world.get_blocks(i.pre_rect))

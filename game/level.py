@@ -41,6 +41,7 @@ class World:
         self.levelname = level
         self.h, self.w = 0, 0
         self.blocks: List[Block] = []
+        self.actors = []
         self.bg_name = 'game/content/blocks/bg.png'
         # self.bg = pg.image.load(self.bg_name).convert()
         self.rect: pg.Rect = None
@@ -76,7 +77,13 @@ class World:
             return self.blocks
         return [self.blocks[i] for i in rect.collidelistall(self.blocks)]
 
-    
+    def update_actors(self, delta):
+        for a in self.actors:
+            if a._delete:
+                del self.actors[self.actors.index(a)]
+                continue
+            a.update(delta, self.get_blocks(a.pre_rect))
+
     def set_blocks(self, blocks):
         self.blocks = blocks
 
@@ -89,7 +96,7 @@ class World:
                 else:
                     b.set_type(t)
                     flag = False
-        if flag and pos[1] >= 0 and t != '0':
+        if flag and t != '0':
             b = Block(pos[0] // 40 * 40, pos[1] // 40 * 40, t)
             self.blocks.append(b)
 
@@ -98,5 +105,6 @@ class World:
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.bg, (0,0))
-        for i in self.get_blocks(camera):
+        for i in self.get_blocks():
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y + camera.y))
+        [a.draw(screen, camera) for a in self.actors]

@@ -19,7 +19,7 @@ class Actor:
     def autodel(self):
         # sleep(7)
         # self.static = True
-        sleep(10)
+        sleep(25)
         self._delete = True
 
     def update(self, delta, blocks):
@@ -83,4 +83,7 @@ class Actor:
     
     def hit(self, actor):
         pass
+    def draw(self, screen, camera):
+        # pg.draw.circle(screen, 'green',(self.rect.centerx - camera.x, self.rect.centery + camera.y,), 20)
+        screen.fill('red',(self.rect.x - camera.x, self.rect.y + camera.y, self.rect.w, self.rect.h))
 

@@ -1,7 +1,7 @@
 import pygame as pg
 import math
 from game.level import block_s
-from random import randint
+from random import randint as rd
 from game.utils import *
 from game.core import Actor
 
@@ -137,6 +137,12 @@ class Player(Actor):
                    self.angle,
                    BULLET_IMG)
         self.bullets.append(b)
+        # b = Actor(self.rect.x + GUNS[self.gun]['pos'][0],
+        #           self.rect.y + GUNS[self.gun]['pos'][1],
+        #           10,10, gravity=0, friction=0, bounce=1)
+        # b.xspeed = xvel if self.look_r else -xvel
+        # b.yspeed = yvel
+        # self.game.world.actors.append(b)
 
 
     def rotate(self):

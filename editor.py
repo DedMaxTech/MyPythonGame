@@ -71,11 +71,11 @@ class Editor:
 
 
     def camera_update(self, keys):
-        if keys[pg.K_a] and self.camera.x > 0:
+        if keys[pg.K_a]:
             self.camera.x -= 10
         if keys[pg.K_d]:
             self.camera.x += 10
-        if keys[pg.K_w] and self.camera.y < 40:
+        if keys[pg.K_w]:
             self.camera.y += 10
         if keys[pg.K_s]:
             self.camera.y -= 10
