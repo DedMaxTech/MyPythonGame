@@ -28,6 +28,17 @@ def glow(img:pg.Surface):
     return sf
 
 
+def glitch(surface:pg.Surface, offset:int, rng:int):
+    surf = pg.Surface((surface.get_size()[0]+rng, surface.get_size()[1]))
+    pa = pg.PixelArray(surf.copy())
+    w,h = surface.get_size()
+    for y in range(h):
+        x = (y+offset) % rng
+        print(x,y, pa.shape, surface.get_size())
+        pa[x:x+w, y] = pa[0:w, y]
+    return pa.make_surface()
+
+
 @threaded(daemon=False)
 def timer(t):
     time.sleep(t)

@@ -10,12 +10,12 @@ def timeit(method):
         return result
     return timed
 
-@timeit
-@njit()
-def rng(a):
-    b = 0
-    for i in range(a):
-        b = b**i
-    return b
+# @timeit
+# @njit()
+# def rng(a):
+#     b = 0
+#     for i in range(a):
+#         b = b**i
+#     return b
 
-rng(10000000)
+# rng(10000000)

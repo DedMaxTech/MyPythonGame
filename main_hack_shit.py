@@ -15,6 +15,7 @@ class Game:
         print(self.serv_ip)
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
+        
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN, vsync=True)
         self.frame = pg.Surface(self.res)
@@ -174,10 +175,11 @@ class Game:
         # print(floor, init_pos, pos)
 
     def camera_update(self):
-        if self.player.rect.x < self.camera.x + 400 and self.camera.x > 0:
-            self.camera.x -= self.camera.x + 400 - self.player.rect.x
-        if self.player.rect.right > self.camera.right - 400 and self.camera.right < self.world.rect.right:
-            self.camera.x += self.player.rect.right - self.camera.right + 400
+        ofset = 800
+        if self.player.rect.x < self.camera.x + ofset and self.camera.x > 0:
+            self.camera.x -= self.camera.x + ofset - self.player.rect.x
+        if self.player.rect.right > self.camera.right - ofset and self.camera.right < self.world.rect.right:
+            self.camera.x += self.player.rect.right - self.camera.right + ofset
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
@@ -204,7 +206,7 @@ class Game:
             for i in range(1):
                 s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
                 s.yspeed = -rd(6, 10)
-                s.xspeed = rd(-40, 50) / 10
+                s.xspeed = (rd(0, 100) -50) / 10
                 self.shit.append(s)
             d['shoot'] = True
             self.shake = 5
@@ -228,6 +230,8 @@ class Game:
 
             for p in self.players:
                 p.draw(self.frame, self.camera)
+            
+            
             # debug(self.shit.xvel, self.screen)
             # POST PROCESS
             self.frame.blit(self.tint, (0, 0))
@@ -261,10 +265,10 @@ class Game:
                                                 'n': self.player.n, 'xspeed': self.player.xspeed,
                                                 'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
                                                 'look_r': self.player.look_r}))
-            if self.player.rect.x > 1000 and self.n != 1:
-                self.set_level(1)
-            elif self.player.rect.x < 500 and self.n != 0:
-                self.set_level(0)
+            # if self.player.rect.x > 1000 and self.n != 1:
+            #     self.set_level(1)
+            # elif self.player.rect.x < 500 and self.n != 0:
+            #     self.set_level(0)
             self.camera_update()
 
         self.screen.blit(self.frame, self.procces_camera_shake())

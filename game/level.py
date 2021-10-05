@@ -30,7 +30,7 @@ class Block:
 
     def set_type(self, t):
         self.type = t
-        self.img = pg.image.load(block_s[t]['img'])
+        self.img = pg.image.load(block_s[t]['img']).convert_alpha()
 
     def __str__(self):
         return f'{self.type} {self.rect.x} {self.rect.y}'
@@ -41,7 +41,8 @@ class World:
         self.levelname = level
         self.h, self.w = 0, 0
         self.blocks: List[Block] = []
-        self.bg = 'content/blocks/bg.png'
+        self.bg_name = 'game/content/blocks/bg.png'
+        # self.bg = pg.image.load(self.bg_name).convert()
         self.rect: pg.Rect = None
         if level: self.open_world(level)
 
@@ -52,7 +53,8 @@ class World:
                 self.level = level
                 self.blocks = []
                 level = file.readlines()
-        self.bg = level[0][:-1];
+        self.bg_name = level[0][:-1]
+        self.bg = pg.image.load(self.bg_name).convert()
         level = level[1:]
         self.h = len(level)
         for line in level:
@@ -65,7 +67,7 @@ class World:
 
     def save_world(self, levelname):
         with open(levelname, 'w') as file:
-            file.write(f'{self.bg}\n')
+            file.write(f'{self.bg_name}\n')
             for b in self.blocks:
                 file.write(f'{b.__str__()}\n')
 
@@ -95,6 +97,6 @@ class World:
         return (self.w + 40), self.h
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
-        screen.blit(pg.image.load(self.bg), (0,0))
+        screen.blit(self.bg, (0,0))
         for i in self.get_blocks(camera):
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y + camera.y))

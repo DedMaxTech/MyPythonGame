@@ -17,8 +17,9 @@ class Actor:
     
     @threaded()
     def autodel(self):
+        # sleep(7)
+        # self.static = True
         sleep(10)
-        print('del')
         self._delete = True
 
     def update(self, delta, blocks):
@@ -35,10 +36,10 @@ class Actor:
                 self.xspeed = self.xspeed * (1 - self.friction)
             else: self.xspeed =0
 
-        self.rect.y += self.yspeed *delta/1000*cfg.fps
-        self._collide_y(blocks)
-        self.rect.x += self.xspeed *delta/1000*cfg.fps
-        self._collide_x(blocks)
+        if self.yspeed: self.rect.y += self.yspeed *delta/1000*cfg.fps
+        if blocks: self._collide_y(blocks)
+        if self.xspeed: self.rect.x += self.xspeed *delta/1000*cfg.fps
+        if blocks: self._collide_x(blocks)
         self.pre_rect.center = self.rect.center
     
     def delete(self):
