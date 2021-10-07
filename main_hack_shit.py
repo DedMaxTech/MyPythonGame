@@ -21,7 +21,7 @@ class Game:
         print(self.serv_ip)
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
-        
+        pg.mixer.init()
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN, vsync=True)
         self.frame = pg.Surface(self.res)
@@ -54,7 +54,7 @@ class Game:
 
     def main_menu(self):
         pg.mouse.set_cursor(*pg.cursors.arrow)
-        self.playing = False;
+        self.playing = False
         self.online = False
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
@@ -72,9 +72,9 @@ class Game:
         if self.playing:
             self.playing = False
             self.ui.set_ui([
-                Button((500, 200), 'white', 'Continue', 50, self.pause_menu, 'darkgrey'),
-                Button((500, 260), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
-                Button((500, 320), 'white', 'Exit', 50, exit, 'darkgrey'),
+                Button((800, 400), 'white', 'Continue', 50, self.pause_menu, 'darkgrey'),
+                Button((800, 460), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
+                Button((800, 520), 'white', 'Exit', 50, exit, 'darkgrey'),
             ])
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
@@ -237,6 +237,7 @@ class Game:
         return x, y
 
     def draw(self):
+        
         if self.playing:
             self.world.draw(self.frame, self.camera)
             self.player.draw(self.frame, self.camera)
@@ -254,13 +255,15 @@ class Game:
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=30)
             debug(self.player.on_ground, self.frame, y=60)
+        else:
+            self.frame.fill('black')
         self.ui.draw(self.frame)
 
     def event_loop(self):
         for event in pg.event.get():
             if event.type == pg.QUIT: exit()
-            if event.type == pg.MOUSEBUTTONDOWN:
-                self.ui.update_buttons(event)
+            self.ui.update_buttons(event)
+                
 
             if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN, pg.USEREVENT]:
                 self.player.process_move(self.update_control(event, self.camera))
