@@ -107,5 +107,5 @@ class World:
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.bg, (0,0))
         for i in self.get_blocks():
-            screen.blit(i.img, (i.rect.x - camera.x, i.rect.y + camera.y))
+            screen.blit(i.img, (i.rect.x - camera.x, i.rect.y - camera.y))
         [a.draw(screen, camera) for a in self.actors]

@@ -101,18 +101,18 @@ class Editor:
         if keys[pg.K_d]:
             self.camera.x += 10
         if keys[pg.K_w]:
-            self.camera.y += 10
-        if keys[pg.K_s]:
             self.camera.y -= 10
+        if keys[pg.K_s]:
+            self.camera.y += 10
 
 
     def draw(self):
         self.screen.fill('black', [0,0,self.res[0], self.res[1]+40])
         if self.editing:
             self.level.draw(self.screen, self.camera)
-            pg.draw.rect(self.screen, 'red', (-self.camera.x,self.camera.y-40,self.camera.w,self.camera.h),1)
-            pg.draw.line(self.screen, 'red', (0,self.camera.y-40),(self.camera.w,self.camera.y-40),1)
-            pg.draw.line(self.screen, 'red', (0,self.camera.y-40+self.camera.h),(self.camera.w,self.camera.y-40+self.camera.h),1)
+            pg.draw.rect(self.screen, 'red', (-self.camera.x,-self.camera.y,self.camera.w,self.camera.h),1)
+            pg.draw.line(self.screen, 'red', (0,-self.camera.y),(self.camera.w,-self.camera.y),1)
+            pg.draw.line(self.screen, 'red', (0,-self.camera.y+self.camera.h),(self.camera.w,-self.camera.y+self.camera.h),1)
         self.ui.draw(self.screen)
         utils.debug(f'{self.camera.x} {self.camera.y}', self.screen, y=50)
 
@@ -123,17 +123,18 @@ class Editor:
             self.ui.update_buttons(event)
             if self.editing:
                 if event.type == pg.MOUSEBUTTONDOWN:
-                        
                     if event.button == pg.BUTTON_RIGHT:
                         self.drawing = True
                     if event.button == pg.BUTTON_LEFT:
-                        self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]-self.camera.y), self.brush)
+                        self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]+self.camera.y), self.brush)
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == pg.BUTTON_RIGHT: self.drawing = False
                 if event.type == pg.MOUSEMOTION and self.drawing: self.level.set_block(
-                    (event.pos[0] + self.camera.x, event.pos[1] -self.camera.y),
+                    (event.pos[0] + self.camera.x, event.pos[1] +self.camera.y),
                     self.brush)
-                if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT: self.brush = '0'
+                if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT:
+                    self.last_brush = self.brush
+                    self.brush = '0'
                 if event.type == pg.KEYUP and event.key == pg.K_LSHIFT: self.brush = self.last_brush
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE: self.set_brush(self.last_brush)
 

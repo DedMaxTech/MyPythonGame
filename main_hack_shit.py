@@ -35,7 +35,7 @@ class Game:
         self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
-        self.camera = pg.Rect(0, 0, self.res[0], self.res[1])
+        self.camera = pg.Rect(0, -40, self.res[0], self.res[1])
         self.ui = Interface(self.sounds)
         self.world = level.World()
         self.player: player.Player = None
@@ -177,7 +177,7 @@ class Game:
 
     @threaded(daemon=True)
     def set_level(self, floor=0, tpx=500):
-        pos = (floor - self.n) * -self.res[1]
+        pos = (floor - self.n) * self.res[1]
         self.n = floor
         init_pos = self.camera.y
         for i in range(1000):
@@ -189,20 +189,26 @@ class Game:
         self.camera.y = init_pos + pos
 
     def camera_update(self):
-        # ofset = 800
-        # if self.player.rect.x < self.camera.x + ofset and self.camera.x > 0:
-        #     self.camera.x -= self.camera.x + ofset - self.player.rect.x
-        # if self.player.rect.right > self.camera.right - ofset and self.camera.right < self.world.rect.right:
-        #     self.camera.x += self.player.rect.right - self.camera.right + ofset
-        ofsetx, ofsety = 900,450
-        if self.player.rect.x < self.camera.x + ofsetx and self.camera.x > 0:
-            self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /20
-        if self.player.rect.right > self.camera.right - ofsetx and self.camera.right < self.world.rect.right:
-            self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/20
+        # ofsetx, ofsety = 900,450
         # if self.player.rect.x < self.camera.x + ofsetx and self.camera.x > 0:
         #     self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /20
         # if self.player.rect.right > self.camera.right - ofsetx and self.camera.right < self.world.rect.right:
         #     self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/20
+        
+        # if self.player.rect.y < self.camera.y + ofsety and self.camera.y > 0:
+        #     self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /20
+        # if self.player.rect.bottom > self.camera.bottom - ofsety and self.camera.bottom < self.world.rect.bottom:
+        #     self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/20
+        ofsetx, ofsety = 930,450
+        if self.player.rect.x < self.camera.x + ofsetx and self.camera.x > 0:
+            self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /20
+        if self.player.rect.right > self.camera.right - ofsetx and self.camera.right < self.world.rect.right:
+            self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/20
+        
+        if self.player.rect.y < self.camera.y + ofsety:
+            self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /20
+        if self.player.rect.bottom > self.camera.bottom - ofsety:
+            self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/20
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
@@ -325,10 +331,10 @@ class Game:
                                                 'n': self.player.n, 'xspeed': self.player.xspeed,
                                                 'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
                                                 'look_r': self.player.look_r}))
-            if self.player.rect.x > 1000 and self.n != 1:
-                self.set_level(1)
-            elif self.player.rect.x < 500 and self.n != 0:
-                self.set_level(0)
+            # if self.player.rect.x > 1000 and self.n != 1:
+            #     self.set_level(1)
+            # elif self.player.rect.x < 500 and self.n != 0:
+            #     self.set_level(0)
             self.camera_update()
 
         self.screen.blit(self.frame, self.procces_camera_shake())
