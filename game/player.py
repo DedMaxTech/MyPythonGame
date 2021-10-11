@@ -84,7 +84,7 @@ class Player(Actor):
             self.shoot()
 
     def update_control(self,delta, blocks, level):
-        self.on_ground = self.check_on_ground(blocks)
+        # self.on_ground = self.check_on_ground(blocks)
         if self.on_ground:
             self.double = True
         
@@ -101,13 +101,19 @@ class Player(Actor):
         # MOVE R/L
         if self.move_right: self.xspeed = PLAYER_ACCELERATION
         if self.move_left: self.xspeed = -PLAYER_ACCELERATION
-        if not self.move_right and not self.move_left: self.xspeed = 0
+        # if not self.move_right and not self.move_left: self.xspeed = 0
 
         # JUMP
         if self.jump and (self.on_ground or self.double):
             if not self.on_ground and self.double:
                 self.double = False
-                self.xspeed = 0
+                # self.xspeed = 0
+            if self.left and self.move_left:
+                self.xspeed += 15
+                print('l')
+            if self.right and self.right:
+                self.xspeed -= 15
+                print('r')
             self.jump = False
             self.yspeed = -JUMP_FORCE
             self.on_ground = False

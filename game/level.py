@@ -55,7 +55,6 @@ class World:
                 self.blocks = []
                 level = file.readlines()
         self.bg_name = level[0][:-1]
-        print(self.bg_name)
         self.bg = pg.image.load(self.bg_name).convert()
         level = level[1:]
         self.h = len(level)
@@ -66,6 +65,7 @@ class World:
             b = Block(x, y, t)
             self.blocks.append(b)
         self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
+        # print(f'Level opened: {level}')
 
     def save_world(self, levelname):
         with open(levelname, 'w') as file:

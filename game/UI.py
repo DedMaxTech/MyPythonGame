@@ -106,7 +106,6 @@ class Interface:
                         if b.args: b.func(b.args)
                         else: b.func()
                     elif type(b)==TextField:
-                        
                         b.active = True 
                         b.text = ''
                     

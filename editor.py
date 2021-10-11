@@ -51,8 +51,8 @@ class Editor:
     def create_menu(self, add=[]):
         self.ui.set_ui([
             Button((100,100), 'white', 'Create Level', 80, ),
-            Button((100,200), 'white', 'Level name:', 40, ), TextField((300,200),'black','type to write', 40,'white', size=(400,40)),
-            Button((100,300), 'white', 'Path to bg:', 40, ), TextField((300,300),'black','type to write', 40,'white', size=(400,40)),Button((700,300), 'white', ' .png', 40, ),
+            Button((100,200), 'white', 'Level name:', 40, ), TextField((300,200),'black','click to write', 40,'white', size=(400,40)),
+            Button((100,300), 'white', 'Path to bg:', 40, ), TextField((300,300),'black','click to write', 40,'white', size=(400,40)),Button((700,300), 'white', ' .png', 40, ),
             Button((100,400), 'white', 'Back', 50, self.main_menu, 'darkgrey'),Button((1000,400), 'white', 'Create', 50, self.create_level, 'darkgrey'),
         ]+add)
     def create_level(self):

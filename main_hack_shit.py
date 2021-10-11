@@ -202,33 +202,65 @@ class Game:
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_d: d['right'] = True
-            if event.key == pg.K_a: d['left'] = True
-            if event.key == pg.K_SPACE: d['up'] = True
-        if event.type == pg.KEYUP:
-            if event.key == pg.K_d: d['right'] = False
-            if event.key == pg.K_a: d['left'] = False
-            if event.key == pg.K_SPACE: d['up'] = False
-        if event.type == pg.MOUSEMOTION:
-            if self.player.rect.centerx <= event.pos[0] + camera.x:
-                d['look_r'] = True
-            else:
-                d['look_r'] = False
-            x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
-            if x == 0: x = 1
-            ang = int(math.degrees(math.atan(y / abs(x))))
-            d['angle'] = ang
-        if event.type == pg.USEREVENT:
-            self.player.r_leg = not self.player.r_leg
-        if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
-            for i in range(1):
-                s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-                s.yspeed = -rd(6, 10)
-                s.xspeed = (rd(0, 100) -50) / 10
-                self.world.actors.append(s)
-            d['shoot'] = True
-            self.shake = 5
+        # if event.type == pg.KEYDOWN:
+        #     if event.key == pg.K_d: d['right'] = True
+        #     if event.key == pg.K_a: d['left'] = True
+        #     if event.key == pg.K_SPACE: d['up'] = True
+        # if event.type == pg.KEYUP:
+        #     if event.key == pg.K_d: d['right'] = False
+        #     if event.key == pg.K_a: d['left'] = False
+        #     if event.key == pg.K_SPACE: d['up'] = False
+        # if event.type == pg.MOUSEMOTION:
+        #     if self.player.rect.centerx <= event.pos[0] + camera.x:
+        #         d['look_r'] = True
+        #     else:
+        #         d['look_r'] = False
+        #     x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
+        #     if x == 0: x = 1
+        #     ang = int(math.degrees(math.atan(y / abs(x))))
+        #     d['angle'] = ang
+        # if event.type == pg.USEREVENT:
+        #     self.player.r_leg = not self.player.r_leg
+        # if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
+        #     for i in range(1):
+        #         s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
+        #         s.yspeed = -rd(6, 10)
+        #         s.xspeed = (rd(0, 100) -50) / 10
+        #         self.world.actors.append(s)
+        #     d['shoot'] = True
+        #     self.shake = 5
+
+        # Python 3.10
+        match event.type:
+            case pg.KEYDOWN:
+                match event.key:
+                    case pg.K_d: d['right'] = True
+                    case pg.K_a: d['left'] = True
+                    case pg.K_SPACE: d['up'] = True
+            case pg.KEYUP:
+                match event.key:
+                    case pg.K_d: d['right'] = False
+                    case pg.K_a: d['left'] = False
+                    case pg.K_SPACE: d['up'] = False
+            case pg.MOUSEMOTION:
+                if self.player.rect.centerx <= event.pos[0] + camera.x:
+                    d['look_r'] = True
+                else:
+                    d['look_r'] = False
+                x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
+                if x == 0: x = 1
+                ang = int(math.degrees(math.atan(y / abs(x))))
+                d['angle'] = ang
+            case pg.USEREVENT:
+                self.player.r_leg = not self.player.r_leg
+            case pg.MOUSEBUTTONDOWN if event.button == pg.BUTTON_LEFT:
+                for i in range(1):
+                    s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
+                    s.yspeed = -rd(6, 10)
+                    s.xspeed = (rd(0, 100) -50) / 10
+                    self.world.actors.append(s)
+                d['shoot'] = True
+                self.shake = 5
         return d
 
     def procces_camera_shake(self):
@@ -252,21 +284,30 @@ class Game:
             self.frame.blit(self.tint, (0, 0))
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=30)
-            debug(self.player.on_ground, self.frame, y=60)
+            debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=60)
         else:
             self.frame.fill('black')
         self.ui.draw(self.frame)
 
     def event_loop(self):
         for event in pg.event.get():
-            if event.type == pg.QUIT: exit()
             self.ui.update_buttons(event)
+
+            # print(event, type(event))
+            # if event.type == pg.QUIT: exit()
+            
+            # if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN, pg.USEREVENT]:
+            #     self.player.process_move(self.update_control(event, self.camera))
+
+            # if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
+
+            match event.type:
+                case pg.QUIT: exit()
+                case pg.KEYDOWN if event.key == pg.K_ESCAPE: self.pause_menu()
+                case pg.KEYUP | pg.KEYDOWN | pg.MOUSEMOTION | pg.MOUSEBUTTONDOWN | pg.USEREVENT if self.playing:
+                    self.player.process_move(self.update_control(event, self.camera))
                 
-
-            if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN, pg.USEREVENT]:
-                self.player.process_move(self.update_control(event, self.camera))
-
-            if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
+            
 
     def loop(self):
         self.event_loop()
@@ -279,10 +320,10 @@ class Game:
                                                 'n': self.player.n, 'xspeed': self.player.xspeed,
                                                 'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
                                                 'look_r': self.player.look_r}))
-            if self.player.rect.x > 1000 and self.n != 1:
-                self.set_level(1)
-            elif self.player.rect.x < 500 and self.n != 0:
-                self.set_level(0)
+            # if self.player.rect.x > 1000 and self.n != 1:
+            #     self.set_level(1)
+            # elif self.player.rect.x < 500 and self.n != 0:
+            #     self.set_level(0)
             self.camera_update()
 
         self.screen.blit(self.frame, self.procces_camera_shake())
