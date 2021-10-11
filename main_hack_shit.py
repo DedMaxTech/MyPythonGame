@@ -194,11 +194,11 @@ class Game:
         #     self.camera.x -= self.camera.x + ofset - self.player.rect.x
         # if self.player.rect.right > self.camera.right - ofset and self.camera.right < self.world.rect.right:
         #     self.camera.x += self.player.rect.right - self.camera.right + ofset
-        ofset = 800
+        ofset = 900
         if self.player.rect.x < self.camera.x + ofset and self.camera.x > 0:
-            self.camera.x -= self.camera.x + ofset - self.player.rect.x
+            self.camera.x -= (self.camera.x + ofset - self.player.rect.x) /20
         if self.player.rect.right > self.camera.right - ofset and self.camera.right < self.world.rect.right:
-            self.camera.x += self.player.rect.right - self.camera.right + ofset
+            self.camera.x += (self.player.rect.right - self.camera.right + ofset)/20
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
