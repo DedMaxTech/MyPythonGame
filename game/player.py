@@ -99,21 +99,16 @@ class Player(Actor):
         #         if self.xspeed > 0: self.xspeed -= PLAYER_ACCELERATION * 2
         #         if self.xspeed < 0: self.xspeed += PLAYER_ACCELERATION * 2
         # MOVE R/L
-        if self.move_right: self.xspeed = PLAYER_ACCELERATION
-        if self.move_left: self.xspeed = -PLAYER_ACCELERATION
-        # if not self.move_right and not self.move_left: self.xspeed = 0
+        if self.move_right and not self.right: self.xspeed = PLAYER_ACCELERATION
+        if self.move_left and not self.left: self.xspeed = -PLAYER_ACCELERATION
+        if not self.move_right and not self.move_left: self.xspeed = 0
+        # if (self.right and self.xspeed > 0) or (self.left and self.xspeed < 0): self.xspeed = 0
 
         # JUMP
         if self.jump and (self.on_ground or self.double):
             if not self.on_ground and self.double:
                 self.double = False
                 # self.xspeed = 0
-            if self.left and self.move_left:
-                self.xspeed += 15
-                print('l')
-            if self.right and self.right:
-                self.xspeed -= 15
-                print('r')
             self.jump = False
             self.yspeed = -JUMP_FORCE
             self.on_ground = False
