@@ -1,5 +1,4 @@
 import pygame as pg
-from functools import cache
 from time import sleep
 from game.utils import *
 import cfg

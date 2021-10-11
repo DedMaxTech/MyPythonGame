@@ -42,7 +42,6 @@ class Bullet():
     def __init__(self, x, y, xv, yv,rot, img, ):
         self.rect = pg.Rect(x, y, 3, 5)
         self.xv, self.yv = xv, yv
-        print(xv,yv)
         self.img = pg.transform.rotate(img, rot)
 
     def draw(self, screen: pg.Surface):
@@ -106,7 +105,6 @@ class Player(Actor):
 
         # JUMP
         if self.jump and (self.on_ground or self.double):
-            print('smth')
             if not self.on_ground and self.double:
                 self.double = False
                 self.xspeed = 0
@@ -169,5 +167,3 @@ class Player(Actor):
                     (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y + camera.y))
         for b in self.bullets:
             screen.blit(b.img, (b.rect.x - camera.x, b.rect.y + camera.y))
-        # print(self.angle)
-        # debug(str(self.angle), screen)

@@ -55,6 +55,7 @@ class World:
                 self.blocks = []
                 level = file.readlines()
         self.bg_name = level[0][:-1]
+        print(self.bg_name)
         self.bg = pg.image.load(self.bg_name).convert()
         level = level[1:]
         self.h = len(level)

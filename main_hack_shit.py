@@ -1,9 +1,11 @@
+import pygame as pg
+
 import os, traceback, socket, pickle, math
 from random import randint as rd
+
 import cfg
 from game import player, level, core
-from game.UI import Interface, Button
-
+from game.UI import Interface, Button, TextField
 from game.utils import *
 
 
@@ -17,18 +19,24 @@ with open('game/content/cursor.xbm') as c:
 
 class Game:
     def __init__(self):
+        global sound
         self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
-        print(self.serv_ip)
+        print(f'Server: {self.serv_ip}')
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
-        pg.mixer.init()
+        try:
+            pg.mixer.init()
+            self.sounds = True
+        except pg.error:
+            self.sounds = False
+            print('No sounddevice, sounds ll turn off')
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN, vsync=True)
         self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, 40, self.res[0], self.res[1])
-        self.ui = Interface()
+        self.ui = Interface(self.sounds)
         self.world = level.World()
         self.player: player.Player = None
         self.players = []
@@ -38,6 +46,7 @@ class Game:
 
         self.playing = False  # TODO: меню
         self.online = False
+        self.pause = False
         self.searching = False
         self.shake = 0
         self.delta = 0.0
@@ -49,8 +58,6 @@ class Game:
         self.sock.settimeout(2.0)
         self.cat = pg.image.load('game/content/cat.png').convert_alpha()
         self.tint = pg.image.load('game/content/tint2.png').convert_alpha()
-
-        self.shit = []
 
     def main_menu(self):
         pg.mouse.set_cursor(*pg.cursors.arrow)
@@ -69,8 +76,8 @@ class Game:
 
     def pause_menu(self):
         self.ui.clear()
-        if self.playing:
-            self.playing = False
+        if not self.pause:
+            self.pause = True
             self.ui.set_ui([
                 Button((800, 400), 'white', 'Continue', 50, self.pause_menu, 'darkgrey'),
                 Button((800, 460), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
@@ -78,7 +85,7 @@ class Game:
             ])
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
-            self.playing = True
+            self.pause = False
             pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def await_data(self):
@@ -86,7 +93,6 @@ class Game:
         while True:
             try:
                 data = pickle.loads(self.sock.recv(1024))
-                print(data)
                 ps = data.get('ps')
                 for p in ps:
                     if not p: continue
@@ -178,12 +184,9 @@ class Game:
             p = init_pos + pos * (i / 1000)
             self.camera.y = p
             if i == tpx:
-                print('move player')
                 self.player.rect.topleft = (800, (floor + 1) * 900)
             pg.time.wait(1)
         self.camera.y = init_pos + pos
-
-        # print(floor, init_pos, pos)
 
     def camera_update(self):
         # ofset = 800
@@ -219,11 +222,11 @@ class Game:
         if event.type == pg.USEREVENT:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
-            # for i in range(1):
-            #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-            #     s.yspeed = -rd(6, 10)
-            #     s.xspeed = (rd(0, 100) -50) / 10
-            #     self.world.actors.append(s)
+            for i in range(1):
+                s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
+                s.yspeed = -rd(6, 10)
+                s.xspeed = (rd(0, 100) -50) / 10
+                self.world.actors.append(s)
             d['shoot'] = True
             self.shake = 5
         return d
@@ -241,15 +244,10 @@ class Game:
         if self.playing:
             self.world.draw(self.frame, self.camera)
             self.player.draw(self.frame, self.camera)
-            for i in self.shit:
-                # self.frame.blit(self.cat, (i.rect.x - self.camera.x, i.rect.y + self.camera.y, i.rect.w, i.rect.h))
-                pg.draw.circle(self.frame, 'green',(i.rect.centerx - self.camera.x, i.rect.centery + self.camera.y,), 20)
 
             for p in self.players:
                 p.draw(self.frame, self.camera)
             
-            
-            # debug(self.shit.xvel, self.screen)
             # POST PROCESS
             self.frame.blit(self.tint, (0, 0))
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
@@ -275,20 +273,16 @@ class Game:
         if self.playing:
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             self.world.update_actors(self.delta)
-            for i in self.shit:
-                if not i._delete:
-                    i.update(self.delta, self.world.get_blocks(i.pre_rect))
-                else:
-                    del self.shit[self.shit.index(i)]
+
             if self.online:
                 self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
                                                 'n': self.player.n, 'xspeed': self.player.xspeed,
                                                 'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
                                                 'look_r': self.player.look_r}))
-            # if self.player.rect.x > 1000 and self.n != 1:
-            #     self.set_level(1)
-            # elif self.player.rect.x < 500 and self.n != 0:
-            #     self.set_level(0)
+            if self.player.rect.x > 1000 and self.n != 1:
+                self.set_level(1)
+            elif self.player.rect.x < 500 and self.n != 0:
+                self.set_level(0)
             self.camera_update()
 
         self.screen.blit(self.frame, self.procces_camera_shake())

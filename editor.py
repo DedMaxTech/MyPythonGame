@@ -4,7 +4,7 @@ import os
 
 import cfg
 from game import  level, utils
-from game.UI import Interface, Button
+from game.UI import Interface, Button, TextField
 
 
 class Editor:
@@ -33,14 +33,39 @@ class Editor:
 
     def main_menu(self):
         self.editing=False
-        bs = [];
+        bs = [
+            Button((100,100), 'white', 'Levels:', 80, ),
+            Button((1000,600), 'white', 'Create Level', 50,self.create_menu,'darkgrey')]
         a = 0
-        bs.append(Button((100,100), 'white', 'Levels:', 80, ),)
-        for i in glob('levels/level*.txt'):
+        for i in glob('levels/*.txt'):
             bs.append(Button((150, 200 + a * 45), 'white', i, 30, self.open_level, 'red', args=(i)));
+            a += 1
+        a = 0
+        bs.append(Button((1000,100), 'white', 'Blocks:', 80, ),)
+        for i in glob('levels/blocks/*.txt'):
+            bs.append(Button((1050, 200 + a * 45), 'white', i, 30, self.open_level, 'red', args=(i)));
             a += 1
         bs.append(Button((150,600), 'white', 'Exit', 50,exit,'darkgrey'))
         self.ui.set_ui(bs)
+
+    def create_menu(self, add=[]):
+        self.ui.set_ui([
+            Button((100,100), 'white', 'Create Level', 80, ),
+            Button((100,200), 'white', 'Level name:', 40, ), TextField((300,200),'black','type to write', 40,'white', size=(400,40)),
+            Button((100,300), 'white', 'Path to bg:', 40, ), TextField((300,300),'black','type to write', 40,'white', size=(400,40)),Button((700,300), 'white', ' .png', 40, ),
+            Button((100,400), 'white', 'Back', 50, self.main_menu, 'darkgrey'),Button((1000,400), 'white', 'Create', 50, self.create_level, 'darkgrey'),
+        ]+add)
+    def create_level(self):
+        path, bg = f'levels/{self.ui.buttons[2].text}.txt', f'game\content/{self.ui.buttons[4].text}.png'
+        print(path,bg)
+        if os.path.isfile(path):
+            self.create_menu([Button((1000,450), 'red', 'Already exists', 50)])
+        elif not os.path.isfile(bg):
+            self.create_menu([Button((1000,450), 'red', 'No such bg', 50)])
+        else:
+            with open(path,'w') as file:
+                file.write(f'{bg}\n')
+            self.open_level(path)
 
 
     def open_level(self, lvl):
@@ -85,6 +110,9 @@ class Editor:
         self.screen.fill('black', [0,0,self.res[0], self.res[1]+40])
         if self.editing:
             self.level.draw(self.screen, self.camera)
+            pg.draw.rect(self.screen, 'red', (-self.camera.x,self.camera.y-40,self.camera.w,self.camera.h),1)
+            pg.draw.line(self.screen, 'red', (0,self.camera.y-40),(self.camera.w,self.camera.y-40),1)
+            pg.draw.line(self.screen, 'red', (0,self.camera.y-40+self.camera.h),(self.camera.w,self.camera.y-40+self.camera.h),1)
         self.ui.draw(self.screen)
         utils.debug(f'{self.camera.x} {self.camera.y}', self.screen, y=50)
 
@@ -92,20 +120,22 @@ class Editor:
     def event_loop(self):
         for event in pg.event.get():
             if event.type == pg.QUIT: exit()
-            if event.type == pg.MOUSEBUTTONDOWN:
-                self.ui.update_buttons(event)
-                if event.button == pg.BUTTON_RIGHT:
-                    self.drawing = True
-                if event.button == pg.BUTTON_LEFT:
-                    self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]-self.camera.y), self.brush)
-            if event.type == pg.MOUSEBUTTONUP:
-                if event.button == pg.BUTTON_RIGHT: self.drawing = False
-            if event.type == pg.MOUSEMOTION and self.drawing: self.level.set_block(
-                (event.pos[0] + self.camera.x, event.pos[1] -self.camera.y),
-                self.brush)
-            if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT: self.brush = '0'
-            if event.type == pg.KEYUP and event.key == pg.K_LSHIFT: self.brush = self.last_brush
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE: self.set_brush(self.last_brush)
+            self.ui.update_buttons(event)
+            if self.editing:
+                if event.type == pg.MOUSEBUTTONDOWN:
+                        
+                    if event.button == pg.BUTTON_RIGHT:
+                        self.drawing = True
+                    if event.button == pg.BUTTON_LEFT:
+                        self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]-self.camera.y), self.brush)
+                if event.type == pg.MOUSEBUTTONUP:
+                    if event.button == pg.BUTTON_RIGHT: self.drawing = False
+                if event.type == pg.MOUSEMOTION and self.drawing: self.level.set_block(
+                    (event.pos[0] + self.camera.x, event.pos[1] -self.camera.y),
+                    self.brush)
+                if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT: self.brush = '0'
+                if event.type == pg.KEYUP and event.key == pg.K_LSHIFT: self.brush = self.last_brush
+                if event.type == pg.KEYDOWN and event.key == pg.K_SPACE: self.set_brush(self.last_brush)
 
     def loop(self):
         self.event_loop()
