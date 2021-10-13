@@ -129,19 +129,19 @@ class Player(Actor):
     def shoot(self):
         xvel = GUNS[self.gun]['speed'] * math.cos(math.radians(self.angle))
         yvel = -GUNS[self.gun]['speed'] * math.sin(math.radians(self.angle))
-        b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
-                   self.rect.y + GUNS[self.gun]['pos'][1],
-                   xvel if self.look_r else -xvel,
-                   yvel,
-                   self.angle,
-                   BULLET_IMG)
-        self.bullets.append(b)
-        # b = Actor(self.rect.x + GUNS[self.gun]['pos'][0],
-        #           self.rect.y + GUNS[self.gun]['pos'][1],
-        #           10,10, gravity=0, friction=0, bounce=1)
-        # b.xspeed = xvel if self.look_r else -xvel
-        # b.yspeed = yvel
-        # self.game.world.actors.append(b)
+        # b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
+        #            self.rect.y + GUNS[self.gun]['pos'][1],
+        #            xvel if self.look_r else -xvel,
+        #            yvel,
+        #            self.angle,
+        #            BULLET_IMG)
+        # self.bullets.append(b)
+        b = Actor(self.rect.x + GUNS[self.gun]['pos'][0],
+                  self.rect.y + GUNS[self.gun]['pos'][1],
+                  10,10, gravity=0, friction=0, bounce=0)
+        b.xspeed = xvel if self.look_r else -xvel
+        b.yspeed = yvel
+        self.game.world.actors.append(b)
 
 
     def rotate(self):

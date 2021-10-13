@@ -31,7 +31,7 @@ class Game:
             self.sounds = False
             print('No sounddevice, sounds ll turn off')
 
-        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN)
+        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN | pg.HWSURFACE)
         self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
@@ -264,11 +264,11 @@ class Game:
             case pg.USEREVENT:
                 self.player.r_leg = not self.player.r_leg
             case pg.MOUSEBUTTONDOWN if event.button == pg.BUTTON_LEFT:
-                for i in range(1):
-                    s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-                    s.yspeed = -rd(6, 10)
-                    s.xspeed = (rd(0, 100) -50) / 10
-                    self.world.actors.append(s)
+                # for i in range(1):
+                #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
+                #     s.yspeed = -rd(6, 10)
+                #     s.xspeed = (rd(0, 100) -50) / 10
+                #     self.world.actors.append(s)
                 d['shoot'] = True
                 self.shake = 5
         return d
