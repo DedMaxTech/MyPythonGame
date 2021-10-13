@@ -1,1 +1,1 @@
-python server.py 5001
+python310 server.py 5001

@@ -47,7 +47,7 @@ class World:
         self.rect: pg.Rect = None
         if level: self.open_world(level)
 
-    def open_world(self, level, prepared=False):
+    def open_world(self, level, prepared=False, video=True):
         level = level
         if not prepared:
             with open(level, 'r') as file:
@@ -55,7 +55,8 @@ class World:
                 self.blocks = []
                 level = file.readlines()
         self.bg_name = level[0][:-1]
-        self.bg = pg.image.load(self.bg_name).convert()
+        if video:self.bg = pg.image.load(self.bg_name).convert()
+        else:self.bg = pg.image.load(self.bg_name)
         level = level[1:]
         self.h = len(level)
         for line in level:

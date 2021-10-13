@@ -31,7 +31,7 @@ class Game:
             self.sounds = False
             print('No sounddevice, sounds ll turn off')
 
-        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN, vsync=True)
+        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN)
         self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
@@ -257,7 +257,7 @@ class Game:
                     d['look_r'] = True
                 else:
                     d['look_r'] = False
-                x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
+                x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25) - camera.y
                 if x == 0: x = 1
                 ang = int(math.degrees(math.atan(y / abs(x))))
                 d['angle'] = ang

@@ -24,7 +24,7 @@ class Server:
         self.max_players = max_players
         self.running = True
         pg.init()
-
+        pg.display.set_mode((20,20))
         self.t = threading.Timer(20, self.stop)
         self.pr = threading.Thread(target=self.awaiting_conn)
         self.workers_pool = []
@@ -37,7 +37,7 @@ class Server:
         self.name = f'[SERVER at {port}]:'
         self.levelname = 'levels/level.txt' 
         print(f'{self.name} started...')
-        self.level.open_world(self.levelname)
+        self.level.open_world(self.levelname, video=False)
 
     def awaiting_data(self, conn:socket.socket,addr):
         n = [i for i in range(self.max_players) if i not in [u.player.n for u in self.users]][0]

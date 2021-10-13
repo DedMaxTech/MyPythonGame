@@ -91,9 +91,10 @@ class Interface:
     def draw(self, screen: pg.Surface):
         for b in self.buttons:
             if pg.Rect.collidepoint(b.rect, self.pos):
-                b.render(screen, True)
+                
                 if self.sounds and not b.hover:
                     self.sound.play()
+                b.render(screen, True)
             else:
                 b.render(screen)
 
@@ -102,6 +103,7 @@ class Interface:
             for b in self.buttons:
                 if type(b)==TextField: b.active = False
                 if pg.Rect.collidepoint(b.rect, event.pos):
+                    
                     if type(b) == Button:
                         if b.args: b.func(b.args)
                         else: b.func()
