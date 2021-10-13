@@ -32,7 +32,7 @@ class Button:
                 off = 50
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
         if self.img: screen.blit(pg.image.load(self.img), self.pos)
-        screen.blit(self.font.render(self.text, True, self.color), self.pos)
+        screen.blit(self.font.render(self.text, False, self.color), self.pos)
 
 class TextField:
     def __init__(self, pos, color, text, font: Union[int, pg.font.Font], bg=None, size=None, callback_f=None, args: tuple = None):

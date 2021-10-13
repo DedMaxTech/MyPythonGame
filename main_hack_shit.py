@@ -57,7 +57,8 @@ class Game:
         pg.time.set_timer(pg.USEREVENT, 100)
         self.sock.settimeout(2.0)
         self.cat = pg.image.load('game/content/cat.png').convert_alpha()
-        self.tint = pg.image.load('game/content/tint2.png').convert_alpha()
+        self.tint = pg.image.load('game/content/tint.png').convert_alpha()
+        self.tint2 = pg.image.load('game/content/tint2.png').convert_alpha()
 
     def main_menu(self):
         pg.mouse.set_cursor(*pg.cursors.arrow)
@@ -66,11 +67,11 @@ class Game:
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
         self.ui.set_ui([
-            Button((100, 100), 'white', 'MENU', 80, ),
-            Button((150, 200), 'white', 'New game', 50, self.start_game, 'darkgrey'),
-            Button((150, 260), 'white', 'Level editor', 50, self.editor, 'darkgrey'),
-            Button((150, 320), 'white', 'Join game', 50, self.join_game, 'darkgrey'),
-            Button((150, 380), 'white', 'Exit', 50, exit, 'darkgrey'),
+            Button((50, 50), 'white', 'MENU', 60, ),
+            Button((75, 120), 'white', 'New game', 30, self.start_game, 'darkgrey'),
+            Button((75, 155), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
+            Button((75, 190), 'white', 'Join game', 30, self.join_game, 'darkgrey'),
+            Button((75, 225), 'white', 'Exit', 30, exit, 'darkgrey'),
         ])
         
 
@@ -79,9 +80,9 @@ class Game:
         if not self.pause:
             self.pause = True
             self.ui.set_ui([
-                Button((800, 400), 'white', 'Continue', 50, self.pause_menu, 'darkgrey'),
-                Button((800, 460), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
-                Button((800, 520), 'white', 'Exit', 50, exit, 'darkgrey'),
+                Button((350, 200), 'white', 'Continue', 25, self.pause_menu, 'darkgrey'),
+                Button((350, 230), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
+                Button((350, 260), 'white', 'Exit', 25, exit, 'darkgrey'),
             ])
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
@@ -189,26 +190,16 @@ class Game:
         self.camera.y = init_pos + pos
 
     def camera_update(self):
-        # ofsetx, ofsety = 900,450
-        # if self.player.rect.x < self.camera.x + ofsetx and self.camera.x > 0:
-        #     self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /20
-        # if self.player.rect.right > self.camera.right - ofsetx and self.camera.right < self.world.rect.right:
-        #     self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/20
-        
-        # if self.player.rect.y < self.camera.y + ofsety and self.camera.y > 0:
-        #     self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /20
-        # if self.player.rect.bottom > self.camera.bottom - ofsety and self.camera.bottom < self.world.rect.bottom:
-        #     self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/20
         ofsetx, ofsety = 930,450
-        if self.player.rect.x < self.camera.x + ofsetx and self.camera.x > 0:
-            self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /20
-        if self.player.rect.right > self.camera.right - ofsetx and self.camera.right < self.world.rect.right:
-            self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/20
+        if self.player.rect.x < self.camera.x + ofsetx:
+            self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /30
+        if self.player.rect.right > self.camera.right - ofsetx:
+            self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/30
         
         if self.player.rect.y < self.camera.y + ofsety:
-            self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /20
+            self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /30
         if self.player.rect.bottom > self.camera.bottom - ofsety:
-            self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/20
+            self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/30
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
@@ -293,11 +284,12 @@ class Game:
             # POST PROCESS
             self.frame.blit(self.tint, (0, 0))
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
-            debug(f'Actors: {len(self.world.actors)}', self.frame, y=30)
-            debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=60)
-            debug(self.camera, self.frame, y=90)
+            debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
+            debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
+            debug(self.camera, self.frame, y=45)
         else:
             self.frame.fill('black')
+        if self.pause: self.frame.blit(self.tint2, (0, 0))
         self.ui.draw(self.frame)
 
     def event_loop(self):
@@ -322,7 +314,7 @@ class Game:
 
     def loop(self):
         self.event_loop()
-        if self.playing:
+        if self.playing and not self.pause:
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             self.world.update_actors(self.delta)
 

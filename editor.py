@@ -9,7 +9,7 @@ from game.UI import Interface, Button, TextField
 
 class Editor:
     def __init__(self):
-        self.res, self.fps = [cfg.screen_h, cfg.screen_v], cfg.fps
+        self.res, self.fps = (1920,1080), cfg.fps
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
 
