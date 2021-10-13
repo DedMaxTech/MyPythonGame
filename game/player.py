@@ -38,15 +38,20 @@ GUNS = {
 }
 
 
-class Bullet():
-    def __init__(self, x, y, xv, yv,rot, img, ):
-        self.rect = pg.Rect(x, y, 3, 5)
-        self.xv, self.yv = xv, yv
-        self.img = pg.transform.rotate(img, rot)
+class Bullet(Actor):
+    def set_img(self,img, rot):
+        self.img = pg.transform.rotate(img, abs(rot))
+        if self.xspeed < 0:
+            self.img = pg.transform.flip(self.img,True,False)
+        if self.yspeed > 0:
+            self.img = pg.transform.flip(self.img,False,True)
 
-    def draw(self, screen: pg.Surface):
-        screen.blit(self.img, self.rect.topleft)
+    def draw(self, screen: pg.Surface, camera):
+        screen.blit(self.img, (self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
+    def hit(self, actor):
+        self.static = True
+        self._delete = True
 
 
 class Player(Actor):
@@ -120,7 +125,6 @@ class Player(Actor):
             b.rect.y += b.yv
             for i in blocks:
                 if pg.sprite.collide_rect(b, i):
-                    print(len(self.bullets))
                     if i.type in [i for i in block_s if block_s[i]['dest']]: level.set_block(b.rect.topleft, '0')
                     del self.bullets[self.bullets.index(b)]
                     break
@@ -136,11 +140,12 @@ class Player(Actor):
         #            self.angle,
         #            BULLET_IMG)
         # self.bullets.append(b)
-        b = Actor(self.rect.x + GUNS[self.gun]['pos'][0],
+        b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
                   self.rect.y + GUNS[self.gun]['pos'][1],
                   10,10, gravity=0, friction=0, bounce=0)
         b.xspeed = xvel if self.look_r else -xvel
         b.yspeed = yvel
+        b.set_img(BULLET_IMG, self.angle)
         self.game.world.actors.append(b)
 
 

@@ -1,4 +1,4 @@
-screen_h, screen_v = 1920,1080
+screen_h, screen_v = 854,480
 fps = 60
 
 GAMENAME = 'MyPythonGame'
