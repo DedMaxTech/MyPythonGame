@@ -71,8 +71,6 @@ class TextField:
         screen.blit(self.font.render(self.text + "|" if self.active else self.text, True, self.color), self.pos)
     
 
-
-
 class Interface:
     def __init__(self, sounds:bool=False):
         self.buttons:List[Button] = []

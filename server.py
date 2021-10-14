@@ -1,10 +1,8 @@
 import pygame as pg
 import socket, pickle, threading, sys
 from typing import List
-
 import cfg
 from game import player, level
-
 servers = []
 
 class User:
@@ -15,7 +13,6 @@ class User:
 
     def __str__(self):
         return f'User at {self.addr}'
-
 
 class Server:
     def __init__(self, port=None, max_players=4):
@@ -50,7 +47,6 @@ class Server:
             try:
                 data = pickle.loads(conn.recv(1024))
                 u.player.s = data
-                # print(len(self.users),{'ps':[u.player.s for u in self.users]})
                 conn.sendall(pickle.dumps({'ps':[u.player.s for u in self.users]}))
             except Exception as e:
                 print(e)
@@ -66,7 +62,6 @@ class Server:
             print('new player ', addr)
             p = threading.Thread(target=self.awaiting_data, daemon=True, args=(conn,addr))
             p.start()
-            # self.workers_pool.append(p)
 
     def send_data(self):
         # for u in self.users:
@@ -90,7 +85,6 @@ class Server:
         # if not self.pr.is_alive():
         #     self.pr = threading.Thread(target=self.awaiting_data)
         #     self.pr.start()
-        # print(f'{self.name} doing some shit....', self.users)
         # self.send_data()
 
     def stop(self):
@@ -102,8 +96,6 @@ class Server:
         while self.running:
             self.loop()
             self.clock.tick(240)
-            # print(self.clock.get_fps(), self.users)
-
 
 if __name__ == '__main__':
     port = sys.argv[1]
