@@ -4,7 +4,7 @@ import os, traceback, socket, pickle, math
 from random import randint as rd
 
 import cfg
-from game import player, level, core
+from game import player, level, core, enemies
 from game.UI import Interface, Button, TextField
 from game.utils import *
 
@@ -40,6 +40,7 @@ class Game:
         self.world = level.World()
         self.player: player.Player = None
         self.players = []
+        self.ais = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serv_port = 5001
         self.n = 0
@@ -135,6 +136,9 @@ class Game:
         self.playing = True
         self.player = player.Player(50, 0, 0, self)
         self.camera.x = 0
+        e = enemies.AI(600,200)
+        self.ais = [e]
+        self.world.actors.append(e)
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def join_game(self):
@@ -287,6 +291,7 @@ class Game:
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
             debug(self.camera, self.frame, y=45)
+            debug(distanse(self.player.rect.center, (200,200)), self.frame, y=60)
         else:
             self.frame.fill('black')
         if self.pause: self.frame.blit(self.tint2, (0, 0))
@@ -316,6 +321,7 @@ class Game:
         self.event_loop()
         if self.playing and not self.pause:
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
+            [ai.update_ai(self.player.rect.center) for ai in self.ais]
             self.world.update_actors(self.delta)
 
             if self.online:

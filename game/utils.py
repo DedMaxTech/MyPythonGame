@@ -38,6 +38,10 @@ def glitch(surface:pg.Surface, offset:int, rng:int):
         pa[x:x+w, y] = pa[0:w, y]
     return pa.make_surface()
 
+def distanse(pos1, pos2):
+    x,y = abs(pos1[0]-pos2[0]), abs(pos1[1]-pos2[1])
+    return (x*x+y*y)**0.5
+
 
 @threaded(daemon=False)
 def timer(t):
