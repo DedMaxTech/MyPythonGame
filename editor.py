@@ -110,9 +110,9 @@ class Editor:
         self.screen.fill('black', [0,0,self.res[0], self.res[1]+40])
         if self.editing:
             self.level.draw(self.screen, self.camera)
-            pg.draw.rect(self.screen, 'red', (-self.camera.x,-self.camera.y,self.camera.w,self.camera.h),1)
-            pg.draw.line(self.screen, 'red', (0,-self.camera.y),(self.camera.w,-self.camera.y),1)
-            pg.draw.line(self.screen, 'red', (0,-self.camera.y+self.camera.h),(self.camera.w,-self.camera.y+self.camera.h),1)
+            pg.draw.rect(self.screen, 'red', (-self.camera.x,-self.camera.y-40,self.camera.w,self.camera.h),1)
+            pg.draw.line(self.screen, 'red', (0,-self.camera.y-40),(self.camera.w,-self.camera.y-40),1)
+            pg.draw.line(self.screen, 'red', (0,-self.camera.y+self.camera.h-40),(self.camera.w,-self.camera.y+self.camera.h-40),1)
         self.ui.draw(self.screen)
         utils.debug(f'{self.camera.x} {self.camera.y}', self.screen, y=50)
 

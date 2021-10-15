@@ -28,5 +28,5 @@ class AI(Actor):
 
         if self.jump and self.on_ground:
             self.jump = False
-            self.yspeed = -8
+            self.yspeed = -12
             self.on_ground = False
