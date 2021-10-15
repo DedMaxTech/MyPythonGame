@@ -13,14 +13,14 @@ class Actor:
         self.right, self.left = False,False
         self._delete = False
         
-        self.autodel()
+        # self.autodel()
     
-    @threaded()
-    def autodel(self):
-        # sleep(7)
-        # self.static = True
-        sleep(25)
-        self._delete = True
+    # @threaded()
+    # def autodel(self):
+    #     # sleep(7)
+    #     # self.static = True
+    #     sleep(25)
+    #     self._delete = True
 
     def update(self, delta, blocks):
         if self.static:

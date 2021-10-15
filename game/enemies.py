@@ -17,9 +17,7 @@ class AI(Actor):
     
     def update_ai(self,player_pos):
         d = distanse(player_pos,self.rect.center)
-        print(d)
         if d < self.START_AGR and abs(player_pos[0]-self.rect.x):
-            print('agr')
             if player_pos[0]-self.rect.x>0:
                 if not self.right:self.xspeed = 3
                 else: self.jump = True
@@ -27,6 +25,7 @@ class AI(Actor):
                 if not self.left:self.xspeed = -3
                 else: self.jump = True
         else: self.xspeed = 0
+
         if self.jump and self.on_ground:
             self.jump = False
             self.yspeed = -8
