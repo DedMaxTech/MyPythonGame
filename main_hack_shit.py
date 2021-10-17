@@ -32,7 +32,6 @@ class Game:
             print('No sounddevice, sounds ll turn off')
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN | pg.HWSURFACE)
-        print(pg.display.Info())
         self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
@@ -227,7 +226,8 @@ class Game:
                 d['look_r'] = True
             else:
                 d['look_r'] = False
-            x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
+            # x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
+            x, y = event.pos[0] + camera.x - self.player.rect.centerx,-((event.pos[1] + 10) + camera.y - self.player.rect.centery) 
             if x == 0: x = 1
             ang = int(math.degrees(math.atan(y / abs(x))))
             d['angle'] = ang
@@ -296,8 +296,8 @@ class Game:
             self.frame.blit(self.tint, (0, 0))
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
-            debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
-            debug(self.camera, self.frame, y=45)
+            # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
+            debug(self.ais[0].state, self.frame,y = 30,)
         else:
             self.frame.fill('black')
         if self.pause: self.frame.blit(self.tint2, (0, 0))
@@ -327,7 +327,7 @@ class Game:
         self.event_loop()
         if self.playing and not self.pause:
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
-            [ai.update_ai(self.player.rect.center) for ai in self.ais]
+            [ai.update_ai(self.player.rect.center, self.delta) for ai in self.ais]
             self.world.update_actors(self.delta)
 
             if self.online:
@@ -351,6 +351,7 @@ class Game:
         pg.display.update()
 
     def run(self):
+        print(vars(),locals())
         while True:
             self.loop()
             self.delta = self.clock.tick(cfg.fps)

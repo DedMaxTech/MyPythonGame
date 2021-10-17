@@ -104,6 +104,7 @@ class World:
 
     def get_size(self):
         return (self.w + 40), self.h
+    
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.bg, (0,0))

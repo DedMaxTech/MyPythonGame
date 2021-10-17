@@ -43,6 +43,7 @@ def distanse(pos1, pos2):
     return (x*x+y*y)**0.5
 
 
+
 @threaded(daemon=False)
 def timer(t):
     time.sleep(t)
