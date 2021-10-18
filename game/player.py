@@ -1,5 +1,6 @@
 import pygame as pg
 import math
+from game.enemies import AI
 from game.level import block_s
 from random import randint as rd
 from game.utils import *
@@ -27,6 +28,7 @@ GUNS = {
               'bull_pos': (0, 0),
               'speed': 30,
               'mag': 30,
+              'dmg':20,
               'auto': True},
     'pistol': {'img': pg.image.load('game/content/player2/guns/pistol.png'),
                'hold_img': 0,
@@ -34,12 +36,14 @@ GUNS = {
                'bull_pos': (0, 0),
                'speed': 30,
                'mag': 10,
+               'dmg':35,
                'auto': True},
 }
 
 
 class Bullet(Actor):
-    def set_img(self,img, rot):
+    def set(self,img, rot, dmg):
+        self.damage = dmg
         self.img = pg.transform.rotate(img, abs(rot))
         if self.xspeed < 0:
             self.img = pg.transform.flip(self.img,True,False)
@@ -51,6 +55,8 @@ class Bullet(Actor):
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
     def hit(self, actor):
         self.static = True
+        if isinstance(actor, AI):
+            actor.hp -= self.damage
         self._delete = True
 
 
@@ -145,7 +151,7 @@ class Player(Actor):
                   10,10, gravity=0, friction=0, bounce=0)
         b.xspeed = xvel if self.look_r else -xvel
         b.yspeed = yvel
-        b.set_img(BULLET_IMG, self.angle)
+        b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'])
         self.game.world.actors.append(b)
 
 

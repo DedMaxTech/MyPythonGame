@@ -2,6 +2,7 @@ import pygame as pg
 
 import os, traceback, socket, pickle, math
 from random import randint as rd
+from typing import List
 
 import cfg
 from game import player, level, core, enemies
@@ -39,8 +40,9 @@ class Game:
         self.ui = Interface(self.sounds)
         self.world = level.World()
         self.player: player.Player = None
-        self.players = []
-        self.ais = []
+        self.players:List[player.Player] = []
+        self.ais: List[enemies.AI] = []
+        self.shits: List[core.Actor] = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serv_port = 5001
         self.n = 0

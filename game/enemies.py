@@ -9,6 +9,10 @@ import cfg
 
 SPEED = 3
 
+AI_IMG_IDLE = pg.image.load('game/content/ai/idle.png')
+AI_IMG_RIGHT = pg.image.load('game/content/ai/lookr.png')
+AI_IMG_LEFT = pg.transform.flip(AI_IMG_RIGHT, True, False)
+
 class AI(Actor):
     START_AGR = 150
     GO_R = 'r'
@@ -20,10 +24,14 @@ class AI(Actor):
         super().__init__(x, y, 30,80, friction=0)
         self.look_r = True
         self.jump = False
+        self.hp = 100
         self.state = self.WAIT
         self.timer = rd(1000,3000)
     
     def update_ai(self,player_pos, delta):
+        if self.hp <=0:
+            self._delete = True
+            return
         self.timer -= delta
         if self.timer <=0:
             states = [self.WAIT]
@@ -41,7 +49,7 @@ class AI(Actor):
         #         if not self.left:self.xspeed = -SPEED
         #         else: self.jump = True
         # else: self.xspeed = 0
-        if d < self.START_AGR and abs(player_pos[0]-self.rect.x) > 20:
+        if d < self.START_AGR and abs(player_pos[0]-self.rect.x) > 30:
             self.state = self.FOLLOW
 
 
@@ -62,3 +70,13 @@ class AI(Actor):
             self.jump = False
             self.yspeed = -12
             self.on_ground = False
+
+    def draw(self, screen:pg.Surface, camera:pg.Rect):
+        if self.xspeed == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
+        else:
+            if self.xspeed>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
+            else:img,off = AI_IMG_LEFT.copy(), (-30,0)
+        # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
+        pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+30,self.rect.y-camera.y),2)
+        
+        screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
