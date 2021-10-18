@@ -22,7 +22,7 @@ class Actor:
     #     sleep(25)
     #     self._delete = True
 
-    def update(self, delta, blocks):
+    def update(self, delta, blocks, actors):
         if self.static:
             return
         
@@ -41,6 +41,7 @@ class Actor:
         if blocks: self._collide_y(blocks)
         if self.xspeed: self.rect.x += self.xspeed *delta/1000*cfg.fps
         if blocks: self._collide_x(blocks)
+        self._collide_actors(actors)
         self.pre_rect.center = self.rect.center
     
     def delete(self):
@@ -99,6 +100,8 @@ class Actor:
                 else:
                     self.yspeed = 0
                 self.hit(b)
+    def _collide_actors(self, actors):
+        [self.hit(a) for a in actors if self.rect.colliderect(a.rect) and a != self]
     
     def hit(self, actor):
         pass

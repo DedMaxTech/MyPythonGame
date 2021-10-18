@@ -146,7 +146,7 @@ class Game:
         self.camera.x = 0
         e = enemies.AI(600,200)
         self.ais = [e]
-        self.world.actors.append(e)
+        self.world.actors = [self.player,e]
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def join_game(self):
@@ -172,20 +172,22 @@ class Game:
 
     def death(self):
         self.playing = False
+        self.frame.fill('black')
         pg.time.delay(500)
         for i in range(256):
-            self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
+            self.frame.fill('black')
             self.ui.clear()
             self.ui.set_ui([
-                Button((350, 200), (i, 0, 0), 'GAME OVER', 80, ),
+                Button((150, 100), (i, 0, 0), 'GAME OVER', 40, ),
             ])
-            self.draw()
+            # self.draw()
+            self.ui.draw(self.frame)
             pg.display.update()
             pg.time.delay(10)
         self.ui.set_ui([
-            Button((500, 300), 'white', 'Try again', 50, self.start_game, 'darkgrey'),
-            Button((500, 360), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'),
-            Button((500, 420), 'white', 'Exit', 50, exit, 'darkgrey'),
+            Button((350, 200), 'white', 'Try again', 25, self.start_game, 'darkgrey'),
+            Button((350, 230), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
+            Button((350, 260), 'white', 'Exit', 25, exit, 'darkgrey'),
         ])
 
     @threaded(daemon=True)
@@ -236,11 +238,11 @@ class Game:
         if event.type == pg.USEREVENT:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
-            for i in range(1):
-                s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-                s.yspeed = -rd(6, 10)
-                s.xspeed = (rd(0, 100) -50) / 10
-                self.world.actors.append(s)
+            # for i in range(1):
+            #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
+            #     s.yspeed = -rd(6, 10)
+            #     s.xspeed = (rd(0, 100) -50) / 10
+            #     self.world.actors.append(s)
             d['shoot'] = True
             self.shake = 5
 
@@ -300,6 +302,7 @@ class Game:
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
             debug(self.ais[0].state, self.frame,y = 30,)
+            debug(self.player   .hp, self.frame,y = 45,)
         else:
             self.frame.fill('black')
         if self.pause: self.frame.blit(self.tint2, (0, 0))
@@ -328,6 +331,7 @@ class Game:
     def loop(self):
         self.event_loop()
         if self.playing and not self.pause:
+            if self.player._delete: self.start_game()
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             [ai.update_ai(self.player.rect.center, self.delta) for ai in self.ais]
             self.world.update_actors(self.delta)

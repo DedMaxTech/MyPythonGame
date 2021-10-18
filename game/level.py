@@ -84,7 +84,7 @@ class World:
             if a._delete:
                 del self.actors[self.actors.index(a)]
             else:
-                a.update(delta, self.get_blocks(a.pre_rect))
+                a.update(delta, self.get_blocks(a.pre_rect), self.actors)
 
     def set_blocks(self, blocks):
         self.blocks = blocks

@@ -1,3 +1,4 @@
+from os import SEEK_CUR
 import pygame as pg
 import math
 from game.enemies import AI
@@ -21,6 +22,10 @@ PLAYER_MAX_SPEED = 5
 JUMP_FORCE = 12
 GRAVITY = 0.4
 
+RED_TINT = pg.Surface(PLAYER_IMG.get_size())
+RED_TINT.fill('red')
+
+
 GUNS = {
     'rifle': {'img': pg.image.load('game/content/player/guns/rifle.png'),
               'hold_img': 0,
@@ -42,7 +47,9 @@ GUNS = {
 
 
 class Bullet(Actor):
-    def set(self,img, rot, dmg):
+    def set(self,img, rot, dmg, parent):
+
+        self.parent = parent
         self.damage = dmg
         self.img = pg.transform.rotate(img, abs(rot))
         if self.xspeed < 0:
@@ -54,6 +61,8 @@ class Bullet(Actor):
         screen.blit(self.img, (self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
     def hit(self, actor):
+        if actor == self.parent:
+            return
         self.static = True
         if isinstance(actor, AI):
             actor.hp -= self.damage
@@ -75,6 +84,8 @@ class Player(Actor):
         self.double = True
         self.timer = 0
         self.angle = 0
+        self.hp = 100
+        self.dmg_timer = 0
 
         self.gun = 'pistol'
         self.ammo = {'rifle': 240, 'pistol': 100}
@@ -95,6 +106,8 @@ class Player(Actor):
             self.shoot()
 
     def update_control(self,delta, blocks, level):
+        if self.hp <= 0: self.delete()
+        if self.dmg_timer >0: self.dmg_timer-=delta
         # self.on_ground = self.check_on_ground(blocks)
         if self.on_ground:
             self.double = True
@@ -134,7 +147,7 @@ class Player(Actor):
                     if i.type in [i for i in block_s if block_s[i]['dest']]: level.set_block(b.rect.topleft, '0')
                     del self.bullets[self.bullets.index(b)]
                     break
-        self.update(delta, blocks)
+        # self.update(delta, blocks, level.actors)
 
     def shoot(self):
         xvel = GUNS[self.gun]['speed'] * math.cos(math.radians(self.angle))
@@ -151,7 +164,7 @@ class Player(Actor):
                   10,10, gravity=0, friction=0, bounce=0)
         b.xspeed = xvel if self.look_r else -xvel
         b.yspeed = yvel
-        b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'])
+        b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
         self.game.world.actors.append(b)
 
 
@@ -174,6 +187,8 @@ class Player(Actor):
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if not self.look_r: self.rotate()
+        if self.dmg_timer > 0:
+            self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         screen.blit(self.img,
                     (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y - camera.y))

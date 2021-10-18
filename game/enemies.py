@@ -2,6 +2,7 @@ import pygame as pg
 import math
 from game.level import block_s
 from random import randint as rd
+from game import player
 from game.utils import *
 from game.core import Actor
 
@@ -14,11 +15,12 @@ AI_IMG_RIGHT = pg.image.load('game/content/ai/lookr.png')
 AI_IMG_LEFT = pg.transform.flip(AI_IMG_RIGHT, True, False)
 
 class AI(Actor):
-    START_AGR = 150
+    START_AGR = 250
     GO_R = 'r'
     GO_L = 'l'
     WAIT = 'w'
     FOLLOW = 'f'
+    ATTACK = 'a'
 
     def __init__(self, x, y):
         super().__init__(x, y, 30,80, friction=0)
@@ -27,18 +29,21 @@ class AI(Actor):
         self.hp = 100
         self.state = self.WAIT
         self.timer = rd(1000,3000)
+        self.attack_kd = 0
+        self.dmg_timer = 0
     
     def update_ai(self,player_pos, delta):
         if self.hp <=0:
             self._delete = True
             return
         self.timer -= delta
+        if self.attack_kd >0: self.attack_kd-=delta
+        if self.dmg_timer >0: self.dmg_timer-=delta
         if self.timer <=0:
             states = [self.WAIT]
             if not self.right: states += self.GO_R
             if not self.left: states += self.GO_L
             self.state = states[rd(0,len(states)-1)]
-            print(self.state)
             self.timer = rd(1000,3000)
         d = distanse(player_pos,self.rect.center)
         # if d < self.START_AGR and abs(player_pos[0]-self.rect.x):
@@ -70,6 +75,12 @@ class AI(Actor):
             self.jump = False
             self.yspeed = -12
             self.on_ground = False
+    
+    def hit(self, actor):
+        if isinstance(actor, player.Player) and self.attack_kd <= 0:
+            self.attack_kd = 1000
+            actor.hp -= 20
+            actor.dmg_timer = 100
 
     def draw(self, screen:pg.Surface, camera:pg.Rect):
         if self.xspeed == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
@@ -77,6 +88,7 @@ class AI(Actor):
             if self.xspeed>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
             else:img,off = AI_IMG_LEFT.copy(), (-30,0)
         # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
-        pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+30,self.rect.y-camera.y),2)
-        
+        pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+(30*self.hp/100),self.rect.y-camera.y),4)
+        if self.dmg_timer > 0:
+            img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
