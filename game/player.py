@@ -1,8 +1,7 @@
-from os import SEEK_CUR
 import pygame as pg
 import math
 from game.enemies import AI
-from game.level import block_s
+from game.level import block_s, Block
 from random import randint as rd
 from game.utils import *
 from game.core import Actor
@@ -66,6 +65,8 @@ class Bullet(Actor):
         self.static = True
         if isinstance(actor, AI):
             actor.hp -= self.damage
+        if isinstance(actor, Block):
+            if actor.type in [i for i in block_s if block_s[i]['dest']]: actor.set_type('0')
         self._delete = True
 
 
