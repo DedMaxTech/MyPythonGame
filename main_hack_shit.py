@@ -251,7 +251,12 @@ class Game:
             #     self.world.actors.append(s)
             d['shoot'] = True
             self.shake = 5
-
+        
+        x,y = pg.mouse.get_pos()
+        x, y =x+camera.x - self.player.rect.centerx, self.player.rect.centery - y - camera.y
+        # print(x,y)
+        d['look_r'] = x>=0
+        d['angle'] = angle((abs(x),y))
         # Python 3.10
         # match event.type:
         #     case pg.KEYDOWN:
@@ -311,8 +316,8 @@ class Game:
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
-            debug(self.ais[0].state, self.frame,y = 30,)
-            debug(self.player   .hp, self.frame,y = 45,)
+            debug(f'ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp}', self.frame,y = 30,)
+            # debug(self.player   .hp, self.frame,y = 45,)
         else:
             self.frame.fill('black')
         if self.pause: self.frame.blit(self.tint2, (0, 0))
@@ -366,6 +371,7 @@ class Game:
         pg.display.update()
 
     def run(self):
+        print(angle((10,5)))
         while True:
             self.loop()
             self.delta = self.clock.tick(cfg.fps)

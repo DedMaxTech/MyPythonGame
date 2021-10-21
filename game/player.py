@@ -17,8 +17,10 @@ PLAYER_LEGS_R = pg.image.load('game/content/player/legs/right.png')
 BULLET_IMG = pg.image.load('game/content/player/guns/bullet.png')
 
 PLAYER_ACCELERATION = 5
+PLAYER_AIR_ACCELERATION = 3
 PLAYER_MAX_SPEED = 5
-JUMP_FORCE = 14
+JUMP_FORCE = 10
+WALL_JUMP_FORCE = 6
 GRAVITY = 0.4
 
 RED_TINT = pg.Surface(PLAYER_IMG.get_size())
@@ -72,7 +74,7 @@ class Bullet(Actor):
 
 class Player(Actor):
     def __init__(self, x, y, n=0, game_inst=None):
-        super().__init__(x, y, 40,80, friction=0.2)
+        super().__init__(x, y, 35,80, friction=0.2)
         self.n = n
         self.s = {}
         self.game = game_inst
@@ -127,8 +129,10 @@ class Player(Actor):
         #         if self.xspeed > 0: self.xspeed -= PLAYER_ACCELERATION * 2
         #         if self.xspeed < 0: self.xspeed += PLAYER_ACCELERATION * 2
         # MOVE R/L
-        if self.move_right and not self.right: self.xspeed += PLAYER_ACCELERATION -self.xspeed
-        if self.move_left and not self.left: self.xspeed -= PLAYER_ACCELERATION+self.xspeed
+        # ACCEL = PLAYER_ACCELERATION if self.on_ground else PLAYER_AIR_ACCELERATION
+        ACCEL = PLAYER_ACCELERATION
+        if self.move_right and not self.right: self.xspeed += ACCEL -self.xspeed
+        if self.move_left and not self.left: self.xspeed -= ACCEL+self.xspeed
         # if not self.move_right and not self.move_left: self.xspeed = 0
         # if (self.right and self.xspeed > 0) or (self.left and self.xspeed < 0): self.xspeed = 0
 
@@ -169,10 +173,13 @@ class Player(Actor):
             if not self.on_ground:
                 if self.left and self.move_left:
                     self.move_left = False
-                    self.xspeed += 8
+                    self.xspeed += WALL_JUMP_FORCE
+                    self.double = True
                 elif self.right and self.right:
                     self.move_right = False
-                    self.xspeed -= 8
+                    self.xspeed -= WALL_JUMP_FORCE
+                    self.double = True
+                elif self.double: self.double = False
                 else:return
             self.jump = False
             self.yspeed = -JUMP_FORCE
