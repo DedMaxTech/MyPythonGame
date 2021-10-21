@@ -1,7 +1,7 @@
 import pygame as pg
 import math
 from game.enemies import AI
-from game.level import block_s, Block
+from game.level import World, block_s, Block
 from random import randint as rd
 from game.utils import *
 from game.core import Actor
@@ -18,7 +18,7 @@ BULLET_IMG = pg.image.load('game/content/player/guns/bullet.png')
 
 PLAYER_ACCELERATION = 5
 PLAYER_MAX_SPEED = 5
-JUMP_FORCE = 12
+JUMP_FORCE = 14
 GRAVITY = 0.4
 
 RED_TINT = pg.Surface(PLAYER_IMG.get_size())
@@ -72,14 +72,15 @@ class Bullet(Actor):
 
 class Player(Actor):
     def __init__(self, x, y, n=0, game_inst=None):
-        super().__init__(x, y, 30,80, friction=0)
+        super().__init__(x, y, 40,80, friction=0.2)
         self.n = n
         self.s = {}
         self.game = game_inst
         # pg.sprite.Sprite.__init__(self)
         self.img = PLAYER_IMG
 
-        self.move_left, self.move_right, self.jump = False, False, False
+        self.move_left, self.move_right, self.jump, self.tp = False, False, False, False
+        self.move_speed = 0
         self.look_r = True
         self.r_leg = True
         self.double = True
@@ -105,6 +106,8 @@ class Player(Actor):
             self.angle = d['angle']
         if d.get('shoot') is not None:
             self.shoot()
+        if d.get('tp') is not None:
+            self.tp = d['tp']
 
     def update_control(self,delta, blocks, level):
         if self.hp <= 0: self.delete()
@@ -124,31 +127,56 @@ class Player(Actor):
         #         if self.xspeed > 0: self.xspeed -= PLAYER_ACCELERATION * 2
         #         if self.xspeed < 0: self.xspeed += PLAYER_ACCELERATION * 2
         # MOVE R/L
-        if self.move_right and not self.right: self.xspeed = PLAYER_ACCELERATION
-        if self.move_left and not self.left: self.xspeed = -PLAYER_ACCELERATION
-        if not self.move_right and not self.move_left: self.xspeed = 0
+        if self.move_right and not self.right: self.xspeed += PLAYER_ACCELERATION -self.xspeed
+        if self.move_left and not self.left: self.xspeed -= PLAYER_ACCELERATION+self.xspeed
+        # if not self.move_right and not self.move_left: self.xspeed = 0
         # if (self.right and self.xspeed > 0) or (self.left and self.xspeed < 0): self.xspeed = 0
 
+        if self.tp:
+            self.tp = False
+            # self.rect.center = self.get_point(level, 200)
+            xv, yv = vec_to_speed(15, -self.angle)
+            self.xspeed += xv if self.look_r else -xv
+            self.yspeed = yv
+
+        # if self.jump and not self.on_ground:
+        #     if self.left and self.move_left:
+        #         self.move_left = False
+        #         self.xspeed += 10
+        #         print('l')
+        #     if self.right and self.right:
+        #         self.move_right = False
+        #         self.xspeed -= 10
+        #         print('r')
         # JUMP
-        if self.jump and (self.on_ground or self.double):
-            if not self.on_ground and self.double:
-                self.double = False
+        self._jump()
+        # if self.jump and (self.on_ground or self.double):
+        #     if not self.on_ground and self.double:
+        #         self.double = False
+        #         # self.xspeed = 0
+        #     self.jump = False
+        #     self.yspeed = -JUMP_FORCE
+        #     self.on_ground = False
+        # if not self.on_ground: self.yspeed += GRAVITY
+        
+        # self.update(delta, blocks, level.actors)
+
+    def _jump(self):
+        if self.jump:
+            # if not self.on_ground and self.double:
+            #     self.double = False
                 # self.xspeed = 0
+            if not self.on_ground:
+                if self.left and self.move_left:
+                    self.move_left = False
+                    self.xspeed += 8
+                elif self.right and self.right:
+                    self.move_right = False
+                    self.xspeed -= 8
+                else:return
             self.jump = False
             self.yspeed = -JUMP_FORCE
             self.on_ground = False
-        # if not self.on_ground: self.yspeed += GRAVITY
-
-        # BULLETS PROCES
-        for b in self.bullets:
-            b.rect.x += b.xv
-            b.rect.y += b.yv
-            for i in blocks:
-                if pg.sprite.collide_rect(b, i):
-                    if i.type in [i for i in block_s if block_s[i]['dest']]: level.set_block(b.rect.topleft, '0')
-                    del self.bullets[self.bullets.index(b)]
-                    break
-        # self.update(delta, blocks, level.actors)
 
     def shoot(self):
         xvel, yvel = vec_to_speed(GUNS[self.gun]['speed'], self.angle)
@@ -166,6 +194,19 @@ class Player(Actor):
         b.yspeed = -yvel
         b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
         self.game.world.actors.append(b)
+
+    def get_point(self, world, rad, ang=None):
+        r = rad
+        rect = self.rect.copy()
+        while r>=0:
+            rect.center = self.rect.center
+            angle = rd(-180, 0) if ang is None else ang
+            x, y = vec_to_speed(r, angle)
+            rect.x += x; rect.y+=y
+            if not world.get_blocks(rect):
+                return rect.center
+            r-=1
+        return self.rect.center
 
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)

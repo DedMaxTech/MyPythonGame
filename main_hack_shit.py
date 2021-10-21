@@ -57,6 +57,7 @@ class Game:
         self.searching = False
         self.shake = 0
         self.delta = 0.0
+        self.w = 1
 
         pg.display.set_caption(cfg.GAMENAME)
         # pg.display.toggle_fullscreen()
@@ -144,6 +145,7 @@ class Game:
     def start_game(self):
         self.ui.clear()
         self.world.open_world('levels/level.txt')
+        self.w = 2
         self.playing = True
         self.player = player.Player(50, 0, 0, self)
         self.camera.x = 0
@@ -209,14 +211,14 @@ class Game:
     def camera_update(self):
         ofsetx, ofsety = 930,450
         if self.player.rect.x < self.camera.x + ofsetx:
-            self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /30
+            self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /40
         if self.player.rect.right > self.camera.right - ofsetx:
-            self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/30
+            self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/40
         
         if self.player.rect.y < self.camera.y + ofsety:
-            self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /30
+            self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /40
         if self.player.rect.bottom > self.camera.bottom - ofsety:
-            self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/30
+            self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/40
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
@@ -224,6 +226,7 @@ class Game:
             if event.key == pg.K_d: d['right'] = True
             if event.key == pg.K_a: d['left'] = True
             if event.key == pg.K_SPACE: d['up'] = True
+            if event.key == pg.K_q: d['tp'] = True
         if event.type == pg.KEYUP:
             if event.key == pg.K_d: d['right'] = False
             if event.key == pg.K_a: d['left'] = False
@@ -301,7 +304,10 @@ class Game:
             
             # POST PROCESS
             self.frame.blit(self.tint, (0, 0))
-            self.frame.blit(sf,(0,0))
+            if self.w< 854:
+                sf.fill('black')
+                pg.draw.circle(sf,'white', (self.player.rect.x-self.camera.x, self.player.rect.y-self.camera.y), self.w)
+                self.frame.blit(sf,(0,0))
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
@@ -334,6 +340,7 @@ class Game:
         self.event_loop()
         if self.playing and not self.pause:
             if self.player._delete: self.start_game()
+            if self.w < 854: self.w *= 1.1
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             [ai.update_ai(self.player.rect.center, self.delta) for ai in self.ais]
             self.world.update_actors(self.delta)
@@ -359,7 +366,6 @@ class Game:
         pg.display.update()
 
     def run(self):
-        print(vars(),locals())
         while True:
             self.loop()
             self.delta = self.clock.tick(cfg.fps)
