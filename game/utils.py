@@ -1,4 +1,4 @@
-import time
+import time, math
 import threading
 import pygame as pg
 
@@ -42,7 +42,15 @@ def distanse(pos1, pos2):
     x,y = abs(pos1[0]-pos2[0]), abs(pos1[1]-pos2[1])
     return (x*x+y*y)**0.5
 
+def angle(pos1,pos2=(0,0)):
+    x,y = pos1[0] - pos2[0], pos2[1]-pos1[1]
+    if x == 0: x = 0.01
+    return int(math.degrees(math.tan(y/x)))  
 
+def vec_to_speed(vec, angle):
+    xvel = vec * math.cos(math.radians(angle))
+    yvel = vec * math.sin(math.radians(angle))
+    return xvel, yvel
 
 @threaded(daemon=False)
 def timer(t):

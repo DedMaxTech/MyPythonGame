@@ -151,8 +151,7 @@ class Player(Actor):
         # self.update(delta, blocks, level.actors)
 
     def shoot(self):
-        xvel = GUNS[self.gun]['speed'] * math.cos(math.radians(self.angle))
-        yvel = -GUNS[self.gun]['speed'] * math.sin(math.radians(self.angle))
+        xvel, yvel = vec_to_speed(GUNS[self.gun]['speed'], self.angle)
         # b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
         #            self.rect.y + GUNS[self.gun]['pos'][1],
         #            xvel if self.look_r else -xvel,
@@ -164,10 +163,9 @@ class Player(Actor):
                   self.rect.y + GUNS[self.gun]['pos'][1],
                   10,10, gravity=0, friction=0, bounce=0)
         b.xspeed = xvel if self.look_r else -xvel
-        b.yspeed = yvel
+        b.yspeed = -yvel
         b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
         self.game.world.actors.append(b)
-
 
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)

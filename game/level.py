@@ -1,5 +1,6 @@
 from typing import List, Union
 import pygame as pg
+from game import core
 
 img_rock = 'game/content/blocks/block_rock.png'
 img_wood = 'game/content/blocks/block_wood.png'
@@ -18,15 +19,12 @@ block_s = {
 }
 
 
-class Block:
+class Block(core.Actor):
     def __init__(self, x, y, t):
-        # pg.sprite.Sprite.__init__(self)
+        super().__init__(x,y,40,40, static=True)
         self.img: pg.Surface = None
         self.type = t
         self.set_type(t)
-        self.rect = self.img.get_rect()
-        self.rect.x = x;
-        self.rect.y = y
 
     def set_type(self, t):
         self.type = t
@@ -48,6 +46,7 @@ class World:
         if level: self.open_world(level)
 
     def open_world(self, level, prepared=False, video=True):
+        self.actors = []
         level = level
         if not prepared:
             with open(level, 'r') as file:
@@ -80,6 +79,9 @@ class World:
         return [self.blocks[i] for i in rect.collidelistall(self.blocks)]
 
     def update_actors(self, delta):
+        for b in self.blocks:
+            if b.type == '0':
+                del self.blocks[self.blocks.index(b)]
         for a in self.actors:
             if a._delete:
                 del self.actors[self.actors.index(a)]
@@ -105,7 +107,6 @@ class World:
     def get_size(self):
         return (self.w + 40), self.h
     
-
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.bg, (0,0))
         for i in self.get_blocks():

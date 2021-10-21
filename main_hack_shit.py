@@ -17,6 +17,10 @@ with open('game/content/cursor.xbm') as c:
     cursor = pg.cursors.load_xbm(c,m)
 
 # curs = 
+sf = pg.Surface((854,480))
+sf.fill('black')
+pg.draw.circle(sf,'white',(427,240), 50)
+sf.set_colorkey('white')
 
 class Game:
     def __init__(self):
@@ -79,7 +83,6 @@ class Game:
             Button((75, 225), 'white', 'Exit', 30, exit, 'darkgrey'),
         ]+add)
         
-
     def pause_menu(self):
         self.ui.clear()
         if not self.pause:
@@ -298,6 +301,7 @@ class Game:
             
             # POST PROCESS
             self.frame.blit(self.tint, (0, 0))
+            self.frame.blit(sf,(0,0))
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
@@ -326,8 +330,6 @@ class Game:
             #     case pg.KEYUP | pg.KEYDOWN | pg.MOUSEMOTION | pg.MOUSEBUTTONDOWN | pg.USEREVENT if self.playing:
             #         self.player.process_move(self.update_control(event, self.camera))
                 
-            
-
     def loop(self):
         self.event_loop()
         if self.playing and not self.pause:
