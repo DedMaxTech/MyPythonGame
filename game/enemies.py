@@ -87,7 +87,9 @@ class AI(Actor):
     def hit(self, actor):
         if isinstance(actor, player.Player) and self.attack_kd <= 0:
             self.attack_kd = 1000
-            actor.hp -= 20
+            dmg = 20
+            actor.hp -= dmg
+            write_stat('received damage', get_stat('received damage')+dmg)
             actor.dmg_timer = 100
 
     def draw(self, screen:pg.Surface, camera:pg.Rect):

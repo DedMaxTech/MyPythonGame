@@ -30,6 +30,7 @@ class Button:
                 screen.fill(self.bg, self.rect)
             else:
                 off = 50
+                screen.blit(self.font.render('~ ', False, self.color), (self.pos[0]-self.font.size('~ ')[0], self.pos[1]))
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
         if self.img: screen.blit(pg.image.load(self.img), self.pos)
         screen.blit(self.font.render(self.text, False, self.color), self.pos)

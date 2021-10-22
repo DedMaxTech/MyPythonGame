@@ -1,5 +1,5 @@
 import time, math
-import threading
+import threading, pickle
 import pygame as pg
 
 
@@ -51,6 +51,23 @@ def vec_to_speed(vec, angle):
     xvel = vec * math.cos(math.radians(angle))
     yvel = vec * math.sin(math.radians(angle))
     return xvel, yvel
+def get_stat(key=None):
+    d= dict()
+    try:
+        d = pickle.load(open('stats.p', 'rb'))
+    except EOFError:
+        d = dict()
+    # with open('stats.p', 'rb') as file:
+    #     d = dict() if not file.readlines() else pickle.load(file)
+    #     print(d)
+    return d if key is None else d.get(key)
+
+def write_stat(key, val):
+    d = get_stat()
+    d[key] = val
+    with open('stats.p','wb') as file:
+        pickle.dump(d,file)
+
 
 @threaded(daemon=False)
 def timer(t):

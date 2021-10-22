@@ -16,6 +16,8 @@ with open('game/content/cursor.xbm') as c:
     m = open('game/content/cursor_mask.xbm')
     cursor = pg.cursors.load_xbm(c,m)
 
+AUTOSAVE_EVENT = pg.USEREVENT+1
+
 # curs = 
 sf = pg.Surface((854,480))
 sf.fill('black')
@@ -58,12 +60,14 @@ class Game:
         self.searching = False
         self.shake = 0
         self.delta = 0.0
+        self.millis = get_stat('time')
         self.w = 1
 
         pg.display.set_caption(cfg.GAMENAME)
         # pg.display.toggle_fullscreen()
         self.main_menu()
         pg.time.set_timer(pg.USEREVENT, 100)
+        pg.time.set_timer(AUTOSAVE_EVENT, 10000)
         self.sock.settimeout(2.0)
         self.cat = pg.image.load('game/content/cat.png').convert_alpha()
         self.tint = pg.image.load('game/content/tint.png').convert_alpha()
@@ -82,8 +86,19 @@ class Game:
             Button((75, 120), 'white', 'New game', 30, self.start_game, 'darkgrey'),
             Button((75, 155), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
             Button((75, 190), 'white', 'Join game', 30, self.join_game, 'darkgrey'),
-            Button((75, 225), 'white', 'Exit', 30, exit, 'darkgrey'),
+            Button((75, 225), 'white', 'Statistics', 30, self.stats_menu, 'darkgrey'),
+            Button((75, 260), 'white', 'Exit', 30, exit, 'darkgrey'),
+            # Button((600, 400), 'white', f'Secs in game: {self.millis:.1f}', 20, ),
         ]+add)
+    
+    def stats_menu(self, add=[]):
+        y = 120
+        bs = [Button((50, 50), 'white', 'YOUR STATS', 40, ),Button((75, 400), 'white', 'Back', 25, self.main_menu, 'darkgrey'),]
+        d:dict = get_stat()
+        for key in d:
+            bs.append(Button((75, y), 'white',f'{key.title()}: {int(d[key])}', 20))
+            y+=23
+        self.ui.set_ui(bs+add)
         
     def pause_menu(self):
         self.ui.clear()
@@ -317,8 +332,8 @@ class Game:
             debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
-            debug(f'ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp}', self.frame,y = 30,)
-            # debug(self.player   .hp, self.frame,y = 45,)
+            debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp}', self.frame,y = 30,)
+            debug(self.camera, self.frame,y = 45,)
         else:
             self.frame.fill('black')
         if self.pause: self.frame.blit(self.tint2, (0, 0))
@@ -335,6 +350,8 @@ class Game:
                 self.player.process_move(self.update_control(event, self.camera))
 
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
+            if event.type == AUTOSAVE_EVENT:
+                write_stat('time', self.millis)
 
             # match event.type:
             #     case pg.QUIT: exit()
@@ -344,6 +361,7 @@ class Game:
                 
     def loop(self):
         self.event_loop()
+        self.millis += self.delta/1000
         if self.playing and not self.pause:
             if self.player._delete: self.start_game()
             if self.w < 854: self.w *= 1.1
@@ -372,7 +390,7 @@ class Game:
         pg.display.update()
 
     def run(self):
-        print(angle((10,5)))
+        print(repr(get_stat()))
         while True:
             self.loop()
             self.delta = self.clock.tick(cfg.fps)

@@ -68,6 +68,7 @@ class Bullet(Actor):
         self.static = True
         if isinstance(actor, AI):
             actor.hp -= self.damage
+            write_stat('done damage', get_stat('done damage')+self.damage)
             fx.blood(self.rect.center,self.parent.world, 10)
         if isinstance(actor, Block):
             if actor.type in [i for i in block_s if block_s[i]['dest']]: actor.set_type('0')
@@ -204,6 +205,7 @@ class Player(Actor):
         b.yspeed = -yvel
         b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
         self.game.world.actors.append(b)
+        write_stat('shoots', get_stat('shoots')+1)
 
     def get_point(self, world, rad, ang=None):
         r = rad
