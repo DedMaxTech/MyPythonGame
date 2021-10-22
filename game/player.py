@@ -1,11 +1,11 @@
 import pygame as pg
 import math
-from game.enemies import AI
-from game.level import World, block_s, Block
+from .enemies import AI
+from .level import World, block_s, Block
 from random import randint as rd
-from game.utils import *
-from game.core import Actor
-from game import fx
+from .utils import *
+from .core import Actor
+from . import fx
 
 import cfg
 

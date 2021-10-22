@@ -161,11 +161,11 @@ class Game:
 
     def start_game(self):
         self.ui.clear()
-        self.world.open_world('levels/level.txt')
+        x, y =self.world.open_world('levels/level.txt')
         self.w = 2
         self.playing = True
         if self.pause: self.pause = False
-        self.player = player.Player(50, 0, 0, self)
+        self.player = player.Player(x, y, 0, self)
         self.camera.x = 0
         # e = 
         self.ais = [enemies.AI(600,200) for i in range(3)]

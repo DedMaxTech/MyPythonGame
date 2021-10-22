@@ -1,6 +1,7 @@
 from typing import List, Union
 import pygame as pg
-from game import core
+from . import core
+from game.utils import real
 
 img_rock = 'game/content/blocks/block_rock.png'
 img_wood = 'game/content/blocks/block_wood.png'
@@ -31,7 +32,7 @@ class Block(core.Actor):
         self.img = pg.image.load(block_s[t]['img']).convert_alpha()
 
     def __str__(self):
-        return f'{self.type} {self.rect.x} {self.rect.y}'
+        return f'b {self.type} {self.rect.x} {self.rect.y}'
 
 
 class World:
@@ -39,7 +40,9 @@ class World:
         self.levelname = level
         self.h, self.w = 0, 0
         self.blocks: List[Block] = []
-        self.actors = []
+        self.actors: List[core.Actor] = []
+        self.images: List[pg.Surface] = []
+        self.spawn_pos = (40,40)
         self.bg_name = 'game/content/blocks/bg.png'
         # self.bg = pg.image.load(self.bg_name).convert()
         self.rect: pg.Rect = None
@@ -58,18 +61,37 @@ class World:
         else:self.bg = pg.image.load(self.bg_name)
         level = level[1:]
         self.h = len(level)
+        self.spawn_pos = (40,40)
         for line in level:
-            t, x, y = line.split(' ')
-            x, y = int(x), int(y)
-            if self.w < x: self.w = x
-            b = Block(x, y, t)
-            self.blocks.append(b)
+            line = line[:-1]
+            if line[0] == 'b':
+                _, t, x, y = line.split(' ')
+                x, y = int(x), int(y)
+                if self.w < x: self.w = x
+                b = Block(x, y, t)
+                self.blocks.append(b)
+            elif line[0] == 'i':
+                _, x, y, path = line.split(' ')
+                print(repr(path))
+                self.images.append((pg.image.load(path).convert_alpha(),path, (int(x), int(y))))
+            elif line[0] == 'p':
+                _, x, y = line.split(' ')
+                self.spawn_pos = (int(x), int(y))
+            # t, x, y = line.split(' ')
+            # x, y = int(x), int(y)
+            # if self.w < x: self.w = x
+            # b = Block(x, y, t)
+            # self.blocks.append(b)
         self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
         # print(f'Level opened: {level}')
+        return self.spawn_pos
 
     def save_world(self, levelname):
         with open(levelname, 'w') as file:
             file.write(f'{self.bg_name}\n')
+            file.write(f'p {self.spawn_pos[0]} {self.spawn_pos[1]}\n')
+            for _,path, pos in self.images:
+                file.write(f'i {pos[0]} {pos[1]} {path}\n')
             for b in self.blocks:
                 file.write(f'{b.__str__()}\n')
 
@@ -111,4 +133,5 @@ class World:
         screen.blit(self.bg, (0,0))
         for i in self.get_blocks():
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y - camera.y))
+        for sf,_, pos in self.images: screen.blit(sf, real(pos, camera))
         [a.draw(screen, camera) for a in self.actors]

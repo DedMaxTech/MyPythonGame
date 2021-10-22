@@ -1,6 +1,6 @@
 import pygame as pg
 import math
-from game.level import block_s
+# from game.level import block_s
 from random import randint as rd
 from game import player
 from game.utils import *
