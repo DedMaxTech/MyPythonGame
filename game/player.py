@@ -180,7 +180,7 @@ class Player(Actor):
                     self.move_left = False
                     self.xspeed += WALL_JUMP_FORCE
                     self.double = True
-                elif self.right and self.right and not self.look_r:
+                elif self.right and self.move_right and not self.look_r:
                     self.move_right = False
                     self.xspeed -= WALL_JUMP_FORCE
                     self.double = True
@@ -236,6 +236,10 @@ class Player(Actor):
         # else:
         #     self.img.blit(PLAYER_LEGS_AIR, (0, 53))
         # self.img.blit(PLAYER_LEGS_AIR, (0, 0))
+        off = 0 if self.look_r else -30
+        if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
+            self.img = pg.transform.rotate(self.img, -30)
+            off = -10 if self.look_r else -60
         gun_img = pg.transform.rotate(GUNS[self.gun]['img'].copy(), self.angle)
         # debug(gun_img.get_rect().center, screen)
         self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+30))
@@ -246,6 +250,6 @@ class Player(Actor):
             self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         screen.blit(self.img,
-                    (self.rect.x - camera.x if self.look_r else self.rect.x - camera.x - 30, self.rect.y - camera.y))
+                    (self.rect.x - camera.x+off, self.rect.y - camera.y))
         for b in self.bullets:
             screen.blit(b.img, (b.rect.x - camera.x, b.rect.y + camera.y))
