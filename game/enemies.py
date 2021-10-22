@@ -57,17 +57,25 @@ class AI(Actor):
         if d < self.START_AGR and abs(player_pos[0]-self.rect.x) > 30:
             self.state = self.FOLLOW
 
-
-        match self.state:
-            case self.WAIT:
-                self.xspeed = 0
-            case self.GO_R:
-                self.xspeed = SPEED
-            case self.GO_L:
-                self.xspeed = -SPEED
-            case self.FOLLOW:
-                if player_pos[0]-self.rect.x>0:self.xspeed = SPEED
-                else: self.xspeed = -SPEED
+        if self.state == self.WAIT:
+            self.xspeed = 0
+        elif self.state == self.GO_R:
+            self.xspeed = SPEED
+        elif self.state == self.GO_L:
+            self.xspeed = -SPEED
+        elif self.state == self.FOLLOW:
+            if player_pos[0]-self.rect.x>0:self.xspeed = SPEED
+            else: self.xspeed = -SPEED
+        # match self.state:
+        #     case self.WAIT:
+        #         self.xspeed = 0
+        #     case self.GO_R:
+        #         self.xspeed = SPEED
+        #     case self.GO_L:
+        #         self.xspeed = -SPEED
+        #     case self.FOLLOW:
+        #         if player_pos[0]-self.rect.x>0:self.xspeed = SPEED
+        #         else: self.xspeed = -SPEED
         if self.xspeed != 0:
             if self.right or self.left:
                 self.jump = True

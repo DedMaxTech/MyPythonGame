@@ -4,31 +4,33 @@ from game.utils import *
 import cfg
 
 class Actor:
-    def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005):
+    def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True):
         self.rect = pg.Rect(x,y,w,h)
         self.pre_rect = pg.Rect(x-30,y-30,w+30,h+30)
         self.xspeed, self.yspeed = 0.0, 0.0
-        self.gravity, self.bounce, self.static, self.friction = gravity, bounce, static, friction
+        self.gravity, self.bounce, self.static, self.friction, self.collision = gravity, bounce, static, friction, collision
         self.on_ground = False
         self.right, self.left = False,False
         self._delete = False
+        self.die = False
+        self.die_kd = 0
         
         # self.autodel()
     
-    # @threaded()
-    # def autodel(self):
-    #     # sleep(7)
-    #     # self.static = True
-    #     sleep(25)
-    #     self._delete = True
+    def autodel(self, secs):
+        self.die = True
+        self.die_kd = secs*1000
 
     def update(self, delta, blocks, actors):
         if self.static:
             return
-        
-        self.on_ground = self.check_on_ground(blocks)
-        self.right, self.left = self.check_right(blocks), self.check_left(blocks)
+        if self.collision:
+            self.on_ground = self.check_on_ground(blocks)
+            self.right, self.left = self.check_right(blocks), self.check_left(blocks)
 
+        if self.die:
+            if self.die_kd >0: self.die_kd -= delta
+            else: self.delete()
         if not self.on_ground:
             self.yspeed += self.gravity
             
@@ -38,10 +40,10 @@ class Actor:
             else: self.xspeed =0
 
         if self.yspeed: self.rect.y += self.yspeed *delta/1000*cfg.fps
-        if blocks: self._collide_y(blocks)
+        if blocks and self.collision: self._collide_y(blocks)
         if self.xspeed: self.rect.x += self.xspeed *delta/1000*cfg.fps
-        if blocks: self._collide_x(blocks)
-        self._collide_actors(actors)
+        if blocks and self.collision: self._collide_x(blocks)
+        if self.collision: self._collide_actors(actors)
         self.pre_rect.center = self.rect.center
     
     def delete(self):

@@ -35,6 +35,7 @@ class Game:
         except pg.error:
             self.sounds = False
             print('No sounddevice, sounds ll turn off')
+        print(pg.mixer.get_init())
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN | pg.HWSURFACE)
         self.frame = pg.Surface(self.res)
@@ -149,9 +150,9 @@ class Game:
         self.playing = True
         self.player = player.Player(50, 0, 0, self)
         self.camera.x = 0
-        e = enemies.AI(600,200)
-        self.ais = [e]
-        self.world.actors = [self.player,e]
+        # e = 
+        self.ais = [enemies.AI(600,200) for i in range(3)]
+        self.world.actors = [self.player] + self.ais
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def join_game(self):

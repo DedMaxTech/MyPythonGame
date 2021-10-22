@@ -5,6 +5,7 @@ from game.level import World, block_s, Block
 from random import randint as rd
 from game.utils import *
 from game.core import Actor
+from game import fx
 
 import cfg
 
@@ -67,6 +68,7 @@ class Bullet(Actor):
         self.static = True
         if isinstance(actor, AI):
             actor.hp -= self.damage
+            fx.blood(self.rect.center,self.parent.world, 10)
         if isinstance(actor, Block):
             if actor.type in [i for i in block_s if block_s[i]['dest']]: actor.set_type('0')
         self._delete = True
@@ -90,6 +92,7 @@ class Player(Actor):
         self.angle = 0
         self.hp = 100
         self.dmg_timer = 0
+        self.world = None
 
         self.gun = 'pistol'
         self.ammo = {'rifle': 240, 'pistol': 100}
@@ -117,7 +120,7 @@ class Player(Actor):
         # self.on_ground = self.check_on_ground(blocks)
         if self.on_ground:
             self.double = True
-        
+        self.world = level
         # self.
         # багованый вариант с инерцией
         # self.timer += delta
