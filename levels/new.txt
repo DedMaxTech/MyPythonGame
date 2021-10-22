@@ -1,1 +1,0 @@
-game\content/bg2.png
