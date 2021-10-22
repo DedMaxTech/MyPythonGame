@@ -174,11 +174,11 @@ class Player(Actor):
             #     self.double = False
                 # self.xspeed = 0
             if not self.on_ground:
-                if self.left and self.move_left:
+                if self.left and self.move_left and self.look_r:
                     self.move_left = False
                     self.xspeed += WALL_JUMP_FORCE
                     self.double = True
-                elif self.right and self.right:
+                elif self.right and self.right and not self.look_r:
                     self.move_right = False
                     self.xspeed -= WALL_JUMP_FORCE
                     self.double = True
