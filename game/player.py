@@ -69,7 +69,8 @@ class Bullet(Actor):
         if isinstance(actor, AI):
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
-            fx.blood(self.rect.center,self.parent.world, 10)
+            fx.blood(self.rect.center,self.parent.world)
+            fx.damage(self.rect.center,-self.damage,self.parent.world)
         if isinstance(actor, Block):
             if actor.type in [i for i in block_s if block_s[i]['dest']]: actor.set_type('0')
         self._delete = True
@@ -203,7 +204,9 @@ class Player(Actor):
                   10,10, gravity=0, friction=0, bounce=0)
         b.xspeed = xvel if self.look_r else -xvel
         b.yspeed = -yvel
-        b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
+        # b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
+        d = GUNS[self.gun]['dmg']
+        b.set(BULLET_IMG, self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
         self.game.world.actors.append(b)
         write_stat('shoots', get_stat('shoots')+1)
 

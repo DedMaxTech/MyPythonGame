@@ -106,8 +106,9 @@ class Game:
             self.pause = True
             self.ui.set_ui([
                 Button((350, 200), 'white', 'Continue', 25, self.pause_menu, 'darkgrey'),
-                Button((350, 230), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
-                Button((350, 260), 'white', 'Exit', 25, exit, 'darkgrey'),
+                Button((350, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey'),
+                Button((350, 260), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
+                Button((350, 290), 'white', 'Exit', 25, exit, 'darkgrey'),
             ])
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
@@ -163,6 +164,7 @@ class Game:
         self.world.open_world('levels/level.txt')
         self.w = 2
         self.playing = True
+        if self.pause: self.pause = False
         self.player = player.Player(50, 0, 0, self)
         self.camera.x = 0
         # e = 

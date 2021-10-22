@@ -1,5 +1,6 @@
 import time, math
 import threading, pickle
+from typing import Tuple, Union
 import pygame as pg
 
 
@@ -51,6 +52,13 @@ def vec_to_speed(vec, angle):
     xvel = vec * math.cos(math.radians(angle))
     yvel = vec * math.sin(math.radians(angle))
     return xvel, yvel
+
+def real(pos:Union[Tuple[int,int], pg.Rect], camera:pg.Rect):
+    if type(pos)==pg.Rect:
+        return pg.Rect(pos.x - camera.x, pos.y - camera.y,pos.w, pos.h)
+    else:
+        return pos[0] - camera.x, pos[1] - camera.y
+
 def get_stat(key=None):
     d= dict()
     try:

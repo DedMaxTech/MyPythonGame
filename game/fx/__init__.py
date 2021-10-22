@@ -1,1 +1,1 @@
-from .fxs import blood
+from .fxs import blood, damage
