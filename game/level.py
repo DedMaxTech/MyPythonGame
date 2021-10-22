@@ -49,7 +49,7 @@ class World:
         if level: self.open_world(level)
 
     def open_world(self, level, prepared=False, video=True):
-        self.actors = []
+        self.actors, self.images = [],[]
         level = level
         if not prepared:
             with open(level, 'r') as file:
