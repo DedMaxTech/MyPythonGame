@@ -1,10 +1,11 @@
 game/content/bg2.png
 p 200 900
+ai 600 800
 i 300 900 game\content\tutorial\move.png
 i 900 900 game\content\tutorial\jump.png
 i 1300 900 game\content\tutorial\double.png
 i 1900 900 game\content\tutorial\walljump.png
-i 1900 6dddddddddd00 game\content\tutorial\repeat.png
+i 1900 600 game\content\tutorial\repeat.png
 b - 0 -40
 b - 0 0
 b - 0 40

@@ -1,5 +1,6 @@
 from .particals import *
 from random import randint as rd
+from . import *
 
 def blood(pos,world, amount=10):
     x,y = pos

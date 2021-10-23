@@ -1,6 +1,6 @@
 import pygame as pg
 from time import sleep
-from game.utils import *
+from . import *
 import cfg
 
 class Actor:
@@ -47,6 +47,7 @@ class Actor:
         self.pre_rect.center = self.rect.center
     
     def delete(self):
+        # print('del', self)
         self._delete = True
 
     def check_on_ground(self, blocks):

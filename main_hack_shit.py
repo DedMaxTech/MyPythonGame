@@ -168,8 +168,7 @@ class Game:
         self.player = player.Player(x, y, 0, self)
         self.camera.x = 0
         # e = 
-        self.ais = [enemies.AI(600,200) for i in range(3)]
-        self.world.actors = [self.player] + self.ais
+        self.world.actors += [self.player]
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def join_game(self):
@@ -368,8 +367,7 @@ class Game:
             if self.player._delete: self.start_game()
             if self.w < 854: self.w *= 1.1
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
-            [ai.update_ai(self.player.rect.center, self.delta) for ai in self.ais]
-            self.world.update_actors(self.delta)
+            self.world.update_actors(self.delta, self.player)
 
             if self.online:
                 try:

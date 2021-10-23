@@ -1,7 +1,7 @@
 from typing import List, Union
 import pygame as pg
-from . import core
-from game.utils import real
+
+from . import core, enemies
 
 img_rock = 'game/content/blocks/block_rock.png'
 img_wood = 'game/content/blocks/block_wood.png'
@@ -41,6 +41,7 @@ class World:
         self.h, self.w = 0, 0
         self.blocks: List[Block] = []
         self.actors: List[core.Actor] = []
+        self.ais: List[enemies.AI] = []
         self.images: List[pg.Surface] = []
         self.spawn_pos = (40,40)
         self.bg_name = 'game/content/blocks/bg.png'
@@ -49,7 +50,7 @@ class World:
         if level: self.open_world(level)
 
     def open_world(self, level, prepared=False, video=True):
-        self.actors, self.images = [],[]
+        self.actors, self.images, self.ais = [],[], []
         level = level
         if not prepared:
             with open(level, 'r') as file:
@@ -72,11 +73,16 @@ class World:
                 self.blocks.append(b)
             elif line[0] == 'i':
                 _, x, y, path = line.split(' ')
-                print(repr(path))
                 self.images.append((pg.image.load(path).convert_alpha(),path, (int(x), int(y))))
             elif line[0] == 'p':
                 _, x, y = line.split(' ')
                 self.spawn_pos = (int(x), int(y))
+            elif line.startswith('ai'):
+                _, x, y = line.split(' ')
+                print(line)
+                ai = enemies.AI(int(x),int(y))
+                self.ais.append(ai)
+                self.actors.append(ai)
             # t, x, y = line.split(' ')
             # x, y = int(x), int(y)
             # if self.w < x: self.w = x
@@ -100,7 +106,7 @@ class World:
             return self.blocks
         return [self.blocks[i] for i in rect.collidelistall(self.blocks)]
 
-    def update_actors(self, delta):
+    def update_actors(self, delta, player = None):
         for b in self.blocks:
             if b.type == '0':
                 del self.blocks[self.blocks.index(b)]
@@ -109,6 +115,8 @@ class World:
                 del self.actors[self.actors.index(a)]
             else:
                 a.update(delta, self.get_blocks(a.pre_rect), self.actors)
+        if self.ais:
+            [ai.update_ai(player, delta) for ai in self.ais]
 
     def set_blocks(self, blocks):
         self.blocks = blocks

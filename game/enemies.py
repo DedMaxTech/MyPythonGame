@@ -2,7 +2,7 @@ import pygame as pg
 import math
 # from game.level import block_s
 from random import randint as rd
-from game import player
+# from .player import Player
 from game.utils import *
 from game.core import Actor
 
@@ -32,9 +32,9 @@ class AI(Actor):
         self.attack_kd = 0
         self.dmg_timer = 0
     
-    def update_ai(self,player_pos, delta):
+    def update_ai(self,player, delta):
         if self.hp <=0:
-            self._delete = True
+            self.delete()
             return
         self.timer -= delta
         if self.attack_kd >0: self.attack_kd-=delta
@@ -45,7 +45,7 @@ class AI(Actor):
             if not self.left: states += self.GO_L
             self.state = states[rd(0,len(states)-1)]
             self.timer = rd(1000,3000)
-        d = distanse(player_pos,self.rect.center)
+        d = distanse(player.rect.center,self.rect.center)
         # if d < self.START_AGR and abs(player_pos[0]-self.rect.x):
         #     if player_pos[0]-self.rect.x>0:
         #         if not self.right:self.xspeed = SPEED
@@ -54,7 +54,7 @@ class AI(Actor):
         #         if not self.left:self.xspeed = -SPEED
         #         else: self.jump = True
         # else: self.xspeed = 0
-        if d < self.START_AGR and abs(player_pos[0]-self.rect.x) > 30:
+        if player is not None and d < self.START_AGR and abs(player.rect.center[0]-self.rect.x) > 30:
             self.state = self.FOLLOW
 
         if self.state == self.WAIT:
@@ -64,7 +64,7 @@ class AI(Actor):
         elif self.state == self.GO_L:
             self.xspeed = -SPEED
         elif self.state == self.FOLLOW:
-            if player_pos[0]-self.rect.x>0:self.xspeed = SPEED
+            if player.rect.center[0]-self.rect.x>15:self.xspeed = SPEED
             else: self.xspeed = -SPEED
         # match self.state:
         #     case self.WAIT:
