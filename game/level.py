@@ -1,7 +1,8 @@
 from typing import List, Union
 import pygame as pg
 
-from . import core, enemies
+from . import enemies,core
+from . utils import *
 
 img_rock = 'game/content/blocks/block_rock.png'
 img_wood = 'game/content/blocks/block_wood.png'

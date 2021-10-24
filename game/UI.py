@@ -1,7 +1,5 @@
 from typing import Union, List
 import pygame as pg
-from pygame.constants import KEYDOWN
-from game.utils import threaded
 
 
 

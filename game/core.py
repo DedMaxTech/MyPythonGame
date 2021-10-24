@@ -1,6 +1,6 @@
 import pygame as pg
 from time import sleep
-from . import *
+from . utils import *
 import cfg
 
 class Actor:

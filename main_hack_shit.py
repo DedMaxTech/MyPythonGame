@@ -5,9 +5,15 @@ from random import randint as rd
 from typing import List
 
 import cfg
-from game import player, level, core, enemies
-from game.UI import Interface, Button, TextField
-from game.utils import *
+
+try:
+    pg.mixer.init()
+    sounds = True
+except pg.error:
+    sounds = False
+    print('No sounddevice, sounds ll turn off')
+
+from game import *
 
 
 # Game by MaxGyverTech
@@ -31,20 +37,15 @@ class Game:
         print(f'Server: {self.serv_ip}')
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         pg.init()
-        try:
-            pg.mixer.init()
-            self.sounds = True
-        except pg.error:
-            self.sounds = False
-            print('No sounddevice, sounds ll turn off')
-        print(pg.mixer.get_init())
+        
+        # print(not pg.mixer.get_init()is No40)
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN | pg.HWSURFACE)
         self.frame = pg.Surface(self.res)
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, -40, self.res[0], self.res[1])
-        self.ui = Interface(self.sounds)
+        self.ui = Interface(sounds)
         self.world = level.World()
         self.player: player.Player = None
         self.players:List[player.Player] = []
@@ -105,10 +106,10 @@ class Game:
         if not self.pause:
             self.pause = True
             self.ui.set_ui([
-                Button((350, 200), 'white', 'Continue', 25, self.pause_menu, 'darkgrey'),
-                Button((350, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey'),
-                Button((350, 260), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
-                Button((350, 290), 'white', 'Exit', 25, exit, 'darkgrey'),
+                Button((400, 200), 'white', 'Continue', 25, self.pause_menu, 'darkgrey'),
+                Button((400, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey'),
+                Button((400, 260), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
+                Button((400, 290), 'white', 'Exit', 25, exit, 'darkgrey'),
             ])
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:

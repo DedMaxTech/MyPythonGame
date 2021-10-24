@@ -3,8 +3,8 @@ import math
 # from game.level import block_s
 from random import randint as rd
 # from .player import Player
-from game.utils import *
-from game.core import Actor
+from . import player, core
+from . utils import *
 
 import cfg
 
@@ -14,7 +14,7 @@ AI_IMG_IDLE = pg.image.load('game/content/ai/idle.png')
 AI_IMG_RIGHT = pg.image.load('game/content/ai/lookr.png')
 AI_IMG_LEFT = pg.transform.flip(AI_IMG_RIGHT, True, False)
 
-class AI(Actor):
+class AI(core.Actor):
     START_AGR = 250
     GO_R = 'r'
     GO_L = 'l'

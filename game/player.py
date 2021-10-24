@@ -1,11 +1,8 @@
 import pygame as pg
 import math
-from .enemies import AI
-from .level import World, block_s, Block
+from . import enemies, core, fx, level
+from . utils import *
 from random import randint as rd
-from .utils import *
-from .core import Actor
-from . import fx
 
 import cfg
 
@@ -27,6 +24,15 @@ GRAVITY = 0.4
 RED_TINT = pg.Surface(PLAYER_IMG.get_size())
 RED_TINT.fill('red')
 
+sounds = not pg.mixer.get_init() is None
+print('sound',sounds)
+if sounds:
+    print('load sound')
+    SOUNDS = {
+        'jump':pg.mixer.Sound('game/content/sounds/jump.wav'),
+        'hurt':pg.mixer.Sound('game/content/sounds/hurt.wav'),
+        'shoot':pg.mixer.Sound('game/content/sounds/shoot.wav'),
+    }
 
 GUNS = {
     'rifle': {'img': pg.image.load('game/content/player/guns/rifle.png'),
@@ -48,7 +54,7 @@ GUNS = {
 }
 
 
-class Bullet(Actor):
+class Bullet(core.Actor):
     def set(self,img, rot, dmg, parent):
 
         self.parent = parent
@@ -66,17 +72,18 @@ class Bullet(Actor):
         if actor == self.parent:
             return
         self.static = True
-        if isinstance(actor, AI):
+        if isinstance(actor, enemies.AI):
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
             fx.blood(self.rect.center,self.parent.world)
             fx.damage(self.rect.center,-self.damage,self.parent.world)
-        if isinstance(actor, Block):
-            if actor.type in [i for i in block_s if block_s[i]['dest']]: actor.set_type('0')
+            if sounds: SOUNDS['hurt'].play()
+        if isinstance(actor, level.Block):
+            if actor.type in [i for i in level.block_s if level.block_s[i]['dest']]: actor.set_type('0')
         self._delete = True
 
 
-class Player(Actor):
+class Player(core.Actor):
     def __init__(self, x, y, n=0, game_inst=None):
         super().__init__(x, y, 35,80, friction=0.2)
         self.n = n
@@ -189,6 +196,7 @@ class Player(Actor):
             self.jump = False
             self.yspeed = -JUMP_FORCE
             self.on_ground = False
+            if sounds: SOUNDS['jump'].play()
 
     def shoot(self):
         xvel, yvel = vec_to_speed(GUNS[self.gun]['speed'], self.angle)
@@ -208,6 +216,7 @@ class Player(Actor):
         d = GUNS[self.gun]['dmg']
         b.set(BULLET_IMG, self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
         self.game.world.actors.append(b)
+        if sounds: SOUNDS['shoot'].play()
         write_stat('shoots', get_stat('shoots')+1)
 
     def get_point(self, world, rad, ang=None):
