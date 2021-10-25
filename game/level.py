@@ -44,6 +44,7 @@ class World:
         self.actors: List[core.Actor] = []
         self.ais: List[enemies.AI] = []
         self.images: List[pg.Surface] = []
+        self.ignore_str = []
         self.spawn_pos = (40,40)
         self.bg_name = 'game/content/blocks/bg.png'
         # self.bg = pg.image.load(self.bg_name).convert()
@@ -51,7 +52,7 @@ class World:
         if level: self.open_world(level)
 
     def open_world(self, level, prepared=False, video=True):
-        self.actors, self.images, self.ais = [],[], []
+        self.actors, self.images, self.ais, self.ignore_str = [],[], [], []
         level = level
         if not prepared:
             with open(level, 'r') as file:
@@ -79,12 +80,14 @@ class World:
                 _, x, y = line.split(' ')
                 self.spawn_pos = (int(x), int(y))
             elif line.startswith('ai'):
+                self.ignore_str.append(f'{line}\n')
                 _, x, y = line.split(' ')
                 print(line)
                 ai = enemies.AI(int(x),int(y))
                 self.ais.append(ai)
                 self.actors.append(ai)
             elif line.startswith('ps'):
+                self.ignore_str.append(f'{line}\n')
                 _, x1,y1,x2,y2,w,h = line.split(' ')
                 self.actors += objects.create_portals((int(x1),int(y1)),(int(x2),int(y2)),(int(w),int(h)))
             # t, x, y = line.split(' ')
@@ -100,6 +103,7 @@ class World:
         with open(levelname, 'w') as file:
             file.write(f'{self.bg_name}\n')
             file.write(f'p {self.spawn_pos[0]} {self.spawn_pos[1]}\n')
+            [file.write(l) for l in self.ignore_str]
             for _,path, pos in self.images:
                 file.write(f'i {pos[0]} {pos[1]} {path}\n')
             for b in self.blocks:

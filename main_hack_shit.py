@@ -117,7 +117,7 @@ class Game:
             self.pause = True
             self.ui.set_ui([
                 Button((400, 200), 'white', 'Continue', 25, self.pause_menu, 'darkgrey'),
-                Button((400, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey'),
+                Button((400, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey', args=(self.level)),
                 Button((400, 260), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
                 Button((400, 290), 'white', 'Exit', 25, exit, 'darkgrey'),
             ])
