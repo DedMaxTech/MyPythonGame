@@ -7,13 +7,19 @@ def create_portals(pos1, pos2, size = (40,40)):
     p1.second, p2.second = p2,p1
     return p1,p2
 
+
+PORTAL_IMG = pg.image.load('game/content/portal.png')
+sounds = not pg.mixer.get_init() is None
+print('sound',sounds)
+if sounds:
+    sound = pg.mixer.Sound('game/content/sounds/portal.wav')
 class Portal(core.Actor):
     def __init__(self, pos,size = (40,40), second = None):
-        x,y = pos
-        w,h = size
+        x,y = pos; w,h = size
         super().__init__(x, y, w,h, static=True)
         self.second = second
         self.ignore = []
+        self.img = pg.transform.scale(PORTAL_IMG.copy(), size)
     def update(self, delta, blocks, actors):
         for i in self.ignore:
             i[0] -= delta
@@ -26,8 +32,7 @@ class Portal(core.Actor):
         if isinstance(actor, core.Actor) and self.second and actor not in ignore:
             x,y = real(actor.rect.topleft, self.rect)
             self.second.ignore.append([500,actor])
-            
-            # actor.rect.topleft = (self.second.rect.x +x , self.second.rect.y +y)
             actor.rect.center = self.second.rect.center
             actor.yspeed = - actor.yspeed
             print(actor.rect.topleft)
+            if sounds: sound.play()

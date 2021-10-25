@@ -14,7 +14,7 @@ class Actor:
         self._delete = False
         self.die = False
         self.die_kd = 0
-        
+        self.img = None
         # self.autodel()
     
     def autodel(self, secs):
@@ -111,5 +111,8 @@ class Actor:
     def draw(self, screen:pg.Surface, camera:pg.Rect):
         # pg.draw.circle(screen, 'green',(self.rect.centerx - camera.x, self.rect.centery + camera.y,), 20)
         # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
-        screen.fill('red',real(self.rect,camera))
+        if self.img:
+            screen.blit(self.img, real(self.rect.topleft, camera))
+        else:
+            screen.fill('red',real(self.rect,camera))
 
