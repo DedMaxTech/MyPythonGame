@@ -15,7 +15,7 @@ class Button:
         self.text = text
         self.func = callback_f if callback_f is not None else self.nothing
         self.args = args
-        self.rect = pg.Rect(self.x-5, self.y, self.size[0]+5, self.size[1])
+        self.rect = pg.Rect(self.x, self.y, self.size[0]+10, self.size[1])
         self.hover = False
         
 
@@ -28,10 +28,23 @@ class Button:
                 screen.fill(self.bg, self.rect)
             else:
                 off = 50
-                screen.blit(self.font.render('~ ', False, self.color), (self.pos[0]-self.font.size('~ ')[0], self.pos[1]))
+                screen.blit(self.font.render('~ ', False, self.color), (self.rect.x+5-self.font.size('~ ')[0], self.rect.y))
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
-        if self.img: screen.blit(pg.image.load(self.img), self.pos)
-        screen.blit(self.font.render(self.text, False, self.color), self.pos)
+        if self.img: screen.blit(pg.image.load(self.img), self.rect.topleft)
+        screen.blit(self.font.render(self.text, False, self.color), (self.rect.x+5, self.rect.y))
+
+def vertical(margin, buttons:List[Button]):
+    x,y = buttons[0].rect.topleft
+    for b in buttons:
+        b.rect.topleft = (x,y)
+        y+=b.size[1]+margin
+    return buttons
+def horizontal(margin, buttons:List[Button]):
+    x,y = buttons[0].rect.topleft
+    for b in buttons:
+        b.rect.topleft = (x,y)
+        x+=b.size[0]+margin
+    return buttons
 
 class TextField:
     def __init__(self, pos, color, text, font: Union[int, pg.font.Font], bg=None, size=None, callback_f=None, args: tuple = None):

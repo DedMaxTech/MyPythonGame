@@ -63,6 +63,7 @@ class Game:
         self.delta = 0.0
         self.millis = get_stat('time')
         self.w = 1
+        self.level = 'levels/tutorial.txt'
 
         pg.display.set_caption(cfg.GAMENAME)
         # pg.display.toggle_fullscreen()
@@ -82,15 +83,24 @@ class Game:
         self.pause = False
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
-        self.ui.set_ui([
-            Button((50, 50), 'white', 'MENU', 60, ),
-            Button((75, 120), 'white', 'New game', 30, self.start_game, 'darkgrey'),
-            Button((75, 155), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
-            Button((75, 190), 'white', 'Join game', 30, self.join_game, 'darkgrey'),
-            Button((75, 225), 'white', 'Statistics', 30, self.stats_menu, 'darkgrey'),
-            Button((75, 260), 'white', 'Exit', 30, exit, 'darkgrey'),
-            # Button((600, 400), 'white', f'Secs in game: {self.millis:.1f}', 20, ),
-        ]+add)
+        self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),]+
+            vertical(5,[
+            Button((75, 120), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
+            Button((75, 155), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
+            Button((75, 190), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
+            Button((75, 200), 'white', 'Join game', 30, self.join_game, 'darkgrey'),
+            Button((75, 260), 'white', 'Statistics', 30, self.stats_menu, 'darkgrey'),
+            Button((75, 295), 'white', 'Exit', 30, exit, 'darkgrey'),
+        ])+add)
+    
+    def select_level_menu(self):
+        levels = {
+            'Tutorial':'levels/tutorial.txt',
+            'Portals':'levels/portals.txt'
+        }
+        self.ui.set_ui([Button((50, 50), 'white', 'Select level:', 40, ),]+vertical(5,
+            [Button((75,100),'white',name,20,self.start_game,'red', args=levels[name]) for name in levels]
+        ))
     
     def stats_menu(self, add=[]):
         y = 120
@@ -160,9 +170,10 @@ class Game:
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
 
-    def start_game(self):
+    def start_game(self, level='levels/tutorial.txt'):
+        self.level = level
         self.ui.clear()
-        x, y =self.world.open_world('levels/level.txt')
+        x, y =self.world.open_world(level)
         self.w = 2
         self.playing = True
         if self.pause: self.pause = False
@@ -365,7 +376,7 @@ class Game:
         self.event_loop()
         self.millis += self.delta/1000
         if self.playing and not self.pause:
-            if self.player._delete: self.start_game()
+            if self.player._delete: self.start_game(self.level)
             if self.w < 854: self.w *= 1.1
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             self.world.update_actors(self.delta, self.player)
