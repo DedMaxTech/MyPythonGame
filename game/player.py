@@ -24,6 +24,8 @@ GRAVITY = 0.4
 RED_TINT = pg.Surface(PLAYER_IMG.get_size())
 RED_TINT.fill('red')
 
+
+
 sounds = not pg.mixer.get_init() is None
 print('sound',sounds)
 if sounds:
@@ -41,7 +43,8 @@ GUNS = {
               'bull_pos': (0, 0),
               'speed': 30,
               'mag': 30,
-              'dmg':20,
+              'dmg':15,
+              'kd':100,
               'auto': True},
     'pistol': {'img': pg.image.load('game/content/player2/guns/pistol.png'),
                'hold_img': 0,
@@ -50,13 +53,14 @@ GUNS = {
                'speed': 30,
                'mag': 10,
                'dmg':35,
-               'auto': True},
+               'kd':300,
+               'auto': False},
 }
 
 
 class Bullet(core.Actor):
     def set(self,img, rot, dmg, parent):
-
+        self.autodel(20)
         self.parent = parent
         self.damage = dmg
         self.img = pg.transform.rotate(img, abs(rot))
@@ -102,8 +106,13 @@ class Player(core.Actor):
         self.hp = 100
         self.dmg_timer = 0
         self.world = None
+        self.shoot = False
+        self.shoot_kd = 0
+        self.inventory_kd = 1000
+        self.font = pg.font.Font(cfg.font, 14)
 
-        self.gun = 'pistol'
+        self.gun = 0
+        self.guns = ['pistol', 'rifle']
         self.ammo = {'rifle': 240, 'pistol': 100}
         self.bullets = []
 
@@ -119,13 +128,19 @@ class Player(core.Actor):
         if d.get('angle') is not None:
             self.angle = d['angle']
         if d.get('shoot') is not None:
-            self.shoot()
+            self.shoot = d['shoot']
         if d.get('tp') is not None:
             self.tp = d['tp']
+        if d.get('wheel') is not None:
+            self.gun += d['wheel']
+            self.gun = self.gun % len(self.guns)
+            self.inventory_kd = 1000
 
     def update_control(self,delta, blocks, level):
         if self.hp <= 0: self.delete()
         if self.dmg_timer >0: self.dmg_timer-=delta
+        if self.shoot_kd >0: self.shoot_kd -= delta
+        if self.inventory_kd>0: self.inventory_kd -= delta
         # self.on_ground = self.check_on_ground(blocks)
         if self.on_ground:
             self.double = True
@@ -174,7 +189,7 @@ class Player(core.Actor):
         #     self.yspeed = -JUMP_FORCE
         #     self.on_ground = False
         # if not self.on_ground: self.yspeed += GRAVITY
-        
+        if self.shoot and self.shoot_kd<=0: self._shoot()
         # self.update(delta, blocks, level.actors)
 
     def _jump(self):
@@ -198,8 +213,8 @@ class Player(core.Actor):
             self.on_ground = False
             if sounds: SOUNDS['jump'].play()
 
-    def shoot(self):
-        xvel, yvel = vec_to_speed(GUNS[self.gun]['speed'], self.angle)
+    def _shoot(self):
+        xvel, yvel = vec_to_speed(GUNS[self.guns[self.gun]]['speed'], self.angle)
         # b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
         #            self.rect.y + GUNS[self.gun]['pos'][1],
         #            xvel if self.look_r else -xvel,
@@ -207,15 +222,18 @@ class Player(core.Actor):
         #            self.angle,
         #            BULLET_IMG)
         # self.bullets.append(b)
-        b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
-                  self.rect.y + GUNS[self.gun]['pos'][1],
+        b = Bullet(self.rect.x + GUNS[self.guns[self.gun]]['pos'][0],
+                  self.rect.y + GUNS[self.guns[self.gun]]['pos'][1],
                   10,10, gravity=0, friction=0, bounce=0)
         b.xspeed = xvel if self.look_r else -xvel
         b.yspeed = -yvel
         # b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
-        d = GUNS[self.gun]['dmg']
+        d = GUNS[self.guns[self.gun]]['dmg']
         b.set(BULLET_IMG, self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
         self.game.world.actors.append(b)
+
+        self.shoot_kd = GUNS[self.guns[self.gun]]['kd']
+        self.shoot = GUNS[self.guns[self.gun]]['auto']
         if sounds: SOUNDS['shoot'].play()
         write_stat('shoots', get_stat('shoots')+1)
 
@@ -249,7 +267,7 @@ class Player(core.Actor):
         if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
             self.img = pg.transform.rotate(self.img, -30)
             off = -10 if self.look_r else -60
-        gun_img = pg.transform.rotate(GUNS[self.gun]['img'].copy(), self.angle)
+        gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle)
         # debug(gun_img.get_rect().center, screen)
         self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+30))
         # if not self.look_r and self.xspeed > 0: self.rotate()
@@ -257,6 +275,8 @@ class Player(core.Actor):
         if not self.look_r: self.rotate()
         if self.dmg_timer > 0:
             self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
+        if self.inventory_kd>0:
+            self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         screen.blit(self.img,
                     (self.rect.x - camera.x+off, self.rect.y - camera.y))

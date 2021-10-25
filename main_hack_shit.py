@@ -272,14 +272,22 @@ class Game:
             d['angle'] = ang
         if event.type == pg.USEREVENT:
             self.player.r_leg = not self.player.r_leg
-        if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
-            # for i in range(1):
-            #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-            #     s.yspeed = -rd(6, 10)
-            #     s.xspeed = (rd(0, 100) -50) / 10
-            #     self.world.actors.append(s)
-            d['shoot'] = True
-            self.shake = 5
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if event.button == pg.BUTTON_LEFT:
+
+                # for i in range(1):
+                #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
+                #     s.yspeed = -rd(6, 10)
+                #     s.xspeed = (rd(0, 100) -50) / 10
+                #     self.world.actors.append(s)
+                d['shoot'] = True
+                self.shake = 5
+            elif event.button == pg.BUTTON_WHEELUP:
+                d['wheel'] = 1
+            elif event.button == pg.BUTTON_WHEELDOWN:
+                d['wheel'] = -1
+        if event.type == pg.MOUSEBUTTONUP and event.button == pg.BUTTON_LEFT:
+            d['shoot'] = False
         
         x,y = pg.mouse.get_pos()
         x, y =x+camera.x - self.player.rect.centerx, self.player.rect.centery - y - camera.y
@@ -359,7 +367,7 @@ class Game:
             # print(event, type(event))
             if event.type == pg.QUIT: exit()
             
-            if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN, pg.USEREVENT]:
+            if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN,pg.MOUSEBUTTONUP, pg.MOUSEWHEEL, pg.USEREVENT]:
                 self.player.process_move(self.update_control(event, self.camera))
 
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()

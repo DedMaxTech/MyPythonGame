@@ -8,7 +8,7 @@ def create_portals(pos1, pos2, size = (40,40)):
     return p1,p2
 
 
-PORTAL_IMG = pg.image.load('game/content/portal.png')
+PORTAL_IMG = pg.image.load('game/content/portal2.png')
 sounds = not pg.mixer.get_init() is None
 print('sound',sounds)
 if sounds:

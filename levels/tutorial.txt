@@ -6,8 +6,6 @@ i 900 900 game\content\tutorial\jump.png
 i 1300 900 game\content\tutorial\double.png
 i 1900 900 game\content\tutorial\walljump.png
 i 1900 600 game\content\tutorial\repeat.png
-ps 300 900 800 900 120 40
-ps 100 900 100 500 40 40
 b - 0 -40
 b - 0 0
 b - 0 40
