@@ -169,7 +169,7 @@ class Game:
         self.player = player.Player(x, y, 0, self)
         self.camera.x = 0
         # e = 
-        self.world.actors += [self.player]
+        self.world.actors += [self.player, core.Actor(350, 600,40,40)]
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
     def join_game(self):

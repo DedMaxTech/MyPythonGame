@@ -1,7 +1,7 @@
 from typing import List, Union
 import pygame as pg
 
-from . import enemies,core
+from . import enemies,core, objects
 from . utils import *
 
 img_rock = 'game/content/blocks/block_rock.png'
@@ -75,7 +75,7 @@ class World:
             elif line[0] == 'i':
                 _, x, y, path = line.split(' ')
                 self.images.append((pg.image.load(path).convert_alpha(),path, (int(x), int(y))))
-            elif line[0] == 'p':
+            elif line.startswith('pl') == 'p':
                 _, x, y = line.split(' ')
                 self.spawn_pos = (int(x), int(y))
             elif line.startswith('ai'):
@@ -84,6 +84,9 @@ class World:
                 ai = enemies.AI(int(x),int(y))
                 self.ais.append(ai)
                 self.actors.append(ai)
+            elif line.startswith('ps'):
+                _, x1,y1,x2,y2,w,h = line.split(' ')
+                self.actors += objects.create_portals((int(x1),int(y1)),(int(x2),int(y2)),(int(w),int(h)))
             # t, x, y = line.split(' ')
             # x, y = int(x), int(y)
             # if self.w < x: self.w = x

@@ -71,16 +71,16 @@ class Bullet(core.Actor):
     def hit(self, actor):
         if actor == self.parent:
             return
-        self.static = True
         if isinstance(actor, enemies.AI):
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
             fx.blood(self.rect.center,self.parent.world)
             fx.damage(self.rect.center,-self.damage,self.parent.world)
             if sounds: SOUNDS['hurt'].play()
+            self._delete = True
         if isinstance(actor, level.Block):
             if actor.type in [i for i in level.block_s if level.block_s[i]['dest']]: actor.set_type('0')
-        self._delete = True
+            self._delete = True
 
 
 class Player(core.Actor):
