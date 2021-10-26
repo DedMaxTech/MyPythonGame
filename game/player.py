@@ -43,6 +43,7 @@ GUNS = {
               'bull_pos': (0, 0),
               'speed': 30,
               'mag': 30,
+              'reload':2000,
               'dmg':15,
               'kd':100,
               'auto': True},
@@ -52,6 +53,7 @@ GUNS = {
                'bull_pos': (0, 0),
                'speed': 30,
                'mag': 10,
+               'reload': 1000,
                'dmg':35,
                'kd':300,
                'auto': False},
@@ -78,7 +80,7 @@ class Bullet(core.Actor):
         if isinstance(actor, enemies.AI):
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
-            fx.blood(self.rect.center,self.parent.world)
+            fx.blood(self.rect.center,self.parent.world, 5)
             fx.damage(self.rect.center,-self.damage,self.parent.world)
             if sounds: SOUNDS['hurt'].play()
             self._delete = True
@@ -113,7 +115,9 @@ class Player(core.Actor):
 
         self.gun = 0
         self.guns = ['pistol', 'rifle']
-        self.ammo = {'rifle': 240, 'pistol': 100}
+        self.ammo = {'rifle': [30, 30], 'pistol': [10,50]}
+        self._reload = False
+        self.reload_kd = 0
         self.bullets = []
 
     def process_move(self, d: dict):
@@ -135,12 +139,28 @@ class Player(core.Actor):
             self.gun += d['wheel']
             self.gun = self.gun % len(self.guns)
             self.inventory_kd = 1000
+            self._reload = False
+        if d.get('reload') is not None:
+            self.reload()
 
     def update_control(self,delta, blocks, level):
         if self.hp <= 0: self.delete()
         if self.dmg_timer >0: self.dmg_timer-=delta
         if self.shoot_kd >0: self.shoot_kd -= delta
         if self.inventory_kd>0: self.inventory_kd -= delta
+        if self._reload:
+            if self.reload_kd>0: self.reload_kd -= delta
+            else:
+                amm = self.ammo[self.guns[self.gun]]
+                if amm[1]>0:
+                    m = GUNS[self.guns[self.gun]]['mag']
+                    print(amm)
+                    for i in range(1,m+1):
+                        if amm[1]-i<=0: 
+                            m=i
+                            break
+                    self.ammo[self.guns[self.gun]] = [m, self.ammo[self.guns[self.gun]][1]-m]
+                self._reload = False
         # self.on_ground = self.check_on_ground(blocks)
         if self.on_ground:
             self.double = True
@@ -212,8 +232,19 @@ class Player(core.Actor):
             self.yspeed = -JUMP_FORCE
             self.on_ground = False
             if sounds: SOUNDS['jump'].play()
+    def reload(self):
+        self._reload = True
+        self.ammo[self.guns[self.gun]] = [0, self.ammo[self.guns[self.gun]][0]+self.ammo[self.guns[self.gun]][1]]
+        self.reload_kd = GUNS[self.guns[self.gun]]['reload']
 
     def _shoot(self):
+        if self._reload: 
+            self.shoot = False
+            return
+        if self.ammo[self.guns[self.gun]][0]<=0:
+            self.shoot = False
+            self.reload()
+            return
         xvel, yvel = vec_to_speed(GUNS[self.guns[self.gun]]['speed'], self.angle)
         # b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
         #            self.rect.y + GUNS[self.gun]['pos'][1],
@@ -231,6 +262,8 @@ class Player(core.Actor):
         d = GUNS[self.guns[self.gun]]['dmg']
         b.set(BULLET_IMG, self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
         self.game.world.actors.append(b)
+
+        self.ammo[self.guns[self.gun]][0] -= 1
 
         self.shoot_kd = GUNS[self.guns[self.gun]]['kd']
         self.shoot = GUNS[self.guns[self.gun]]['auto']

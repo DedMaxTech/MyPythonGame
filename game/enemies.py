@@ -54,7 +54,7 @@ class AI(core.Actor):
         #         if not self.left:self.xspeed = -SPEED
         #         else: self.jump = True
         # else: self.xspeed = 0
-        if player is not None and d < self.START_AGR and abs(player.rect.center[0]-self.rect.x) > 30:
+        if player is not None and d < self.START_AGR and abs(player.rect.centerx-self.rect.x) > 30:
             self.state = self.FOLLOW
 
         if self.state == self.WAIT:
@@ -64,7 +64,7 @@ class AI(core.Actor):
         elif self.state == self.GO_L:
             self.xspeed = -SPEED
         elif self.state == self.FOLLOW:
-            if player.rect.center[0]-self.rect.x>15:self.xspeed = SPEED
+            if player.rect.centerx-self.rect.x>15:self.xspeed = SPEED
             else: self.xspeed = -SPEED
         # match self.state:
         #     case self.WAIT:

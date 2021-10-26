@@ -112,7 +112,6 @@ class Game:
         self.ui.set_ui(bs+add)
         
     def pause_menu(self):
-        self.ui.clear()
         if not self.pause:
             self.pause = True
             self.ui.set_ui([
@@ -123,6 +122,7 @@ class Game:
             ])
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
+            self.ui.set_ui(self.gameui)
             self.pause = False
             pg.mouse.set_cursor(*pg.cursors.diamond)
 
@@ -182,6 +182,9 @@ class Game:
         # e = 
         self.world.actors += [self.player, core.Actor(350, 600,40,40)]
         pg.mouse.set_cursor(*pg.cursors.diamond)
+        pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png'), pg.image.load('game/content/ui/hp_empty.png'), colorkey='black')
+        self.gameui = [pb, Button((20,422),'white','',1,img='game/content/ui/heart.png')]
+        self.ui.set_ui(self.gameui)
 
     def join_game(self):
         try:
@@ -256,6 +259,7 @@ class Game:
             if event.key == pg.K_a: d['left'] = True
             if event.key == pg.K_SPACE: d['up'] = True
             if event.key == pg.K_q: d['tp'] = True
+            if event.key == pg.K_r: d['reload'] = True
         if event.type == pg.KEYUP:
             if event.key == pg.K_d: d['right'] = False
             if event.key == pg.K_a: d['left'] = False
@@ -354,7 +358,7 @@ class Game:
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
             debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp}', self.frame,y = 30,)
-            debug(self.camera, self.frame,y = 45,)
+            debug(self.player.ammo, self.frame,y = 45,)
         else:
             self.frame.fill('black')
         if self.pause: self.frame.blit(self.tint2, (0, 0))
@@ -388,6 +392,8 @@ class Game:
             if self.w < 854: self.w *= 1.1
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             self.world.update_actors(self.delta, self.player)
+            self.gameui[0].value = self.player.hp/100
+
 
             if self.online:
                 try:

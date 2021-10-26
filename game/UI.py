@@ -82,6 +82,23 @@ class TextField:
         # if self.img: screen.blit(pg.image.load(self.img), self.pos)
         screen.blit(self.font.render(self.text + "|" if self.active else self.text, True, self.color), self.pos)
     
+class ProgressBar:
+    def __init__(self, pos, img_full, img_empty=None, value=1, colorkey='black'):
+        self.img = img_full
+        self.empty_img = img_empty
+        self.value = value
+        self.rect = img_full.get_rect()
+        self.rect.topleft = pos
+        self.key = colorkey
+    
+    def render(self, screen):
+        if self.empty_img: screen.blit(self.empty_img, self.rect.topleft)
+        sf = pg.Surface((self.rect.w, self.rect.h))
+        sf.fill(self.key)
+        sf.set_colorkey(self.key)
+        sf.blit(self.img, (0,0))
+        sf.fill(self.key, (self.rect.w*self.value, 0, self.rect.w, self.rect.h))
+        screen.blit(sf,self.rect.topleft)
 
 class Interface:
     def __init__(self, sounds:bool=False):
@@ -100,6 +117,9 @@ class Interface:
 
     def draw(self, screen: pg.Surface):
         for b in self.buttons:
+            if type(b)==ProgressBar:
+                b.render(screen)
+                continue
             if pg.Rect.collidepoint(b.rect, self.pos):
                 
                 if self.sounds and not b.hover:
