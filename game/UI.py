@@ -22,10 +22,9 @@ class Button:
 
     def nothing(self): pass
 
-    def render(self, screen:pg.Surface, hover=False):
-        self.hover = hover
+    def render(self, screen:pg.Surface):
         if self.bg:
-            if not hover:
+            if not self.hover:
                 screen.fill(self.bg, self.rect)
             else:
                 off = 50
@@ -72,10 +71,9 @@ class TextField:
             else:
                 self.text += event.unicode
 
-    def render(self, screen:pg.Surface, hover=False):
-        self.hover = hover
+    def render(self, screen:pg.Surface):
         if self.bg:
-            if not hover:
+            if not self.hover:
                 screen.fill(self.bg, self.rect)
             else:
                 off = 50
@@ -124,16 +122,22 @@ class Interface:
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
             for b in self.buttons:
                 if type(b)==TextField: b.active = False
-                if pg.Rect.collidepoint(b.rect, event.pos):
-                    if self.sounds and not b.hover:
+                collide = pg.Rect.collidepoint(b.rect, event.pos)
+                if collide:
+                    if self.sounds:
                         self.sound.play()
-                        b.hover = True
                     if type(b) == Button:
                         if b.args: b.func(b.args)
                         else: b.func()
                     elif type(b)==TextField:
                         b.active = True 
                         b.text = ''
+        if event.type == pg.MOUSEMOTION:
+            for b in self.buttons:
+                collide = pg.Rect.collidepoint(b.rect, event.pos)
+                if collide and self.sounds and not b.hover:
+                    self.sound.play()
+                b.hover = collide
                     
         elif event.type == pg.MOUSEMOTION: self.pos = event.pos
         [b.update(event) for b in self.buttons if type(b)==TextField and b.active]
