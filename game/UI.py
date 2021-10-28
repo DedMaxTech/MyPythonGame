@@ -1,5 +1,6 @@
 from typing import Union, List
 import pygame as pg
+from .utils import *
 
 
 
@@ -115,7 +116,7 @@ class Interface:
     def set_ui(self, buttons: list):
         self.buttons = buttons
 
-    def draw(self, screen: pg.Surface):
+    def draw(self, screen: pg.Surface, offset=(0,0)):
         for b in self.buttons:
             if type(b)==ProgressBar:
                 b.render(screen)

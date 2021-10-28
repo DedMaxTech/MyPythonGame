@@ -122,7 +122,8 @@ class Game:
             ])
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
-            self.ui.set_ui(self.gameui)
+            # self.ui.set_ui(self.gameui)
+            self.ui.clear()
             self.pause = False
             pg.mouse.set_cursor(*pg.cursors.diamond)
 
@@ -182,9 +183,9 @@ class Game:
         # e = 
         self.world.actors += [self.player, core.Actor(350, 600,40,40)]
         pg.mouse.set_cursor(*pg.cursors.diamond)
-        pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
-        self.gameui = [pb, Button((20,422),'white','',1,img='game/content/ui/heart.png')]
-        self.ui.set_ui(self.gameui)
+        # pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
+        # self.gameui = [pb, Button((20,422),'white','',1,img='game/content/ui/heart.png')]
+        # self.ui.set_ui(self.gameui)
 
     def join_game(self):
         try:
@@ -343,7 +344,7 @@ class Game:
         
         if self.playing:
             self.world.draw(self.frame, self.camera)
-            self.player.draw(self.frame, self.camera)
+            # self.player.draw(self.frame, self.camera)
 
             for p in self.players:
                 p.draw(self.frame, self.camera)
@@ -392,7 +393,7 @@ class Game:
             if self.w < 854: self.w *= 1.1
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
             self.world.update_actors(self.delta, self.player)
-            self.gameui[0].value = self.player.hp/100
+            # self.gameui[0].value = self.player.hp/100
 
 
             if self.online:

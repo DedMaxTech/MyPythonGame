@@ -1,6 +1,7 @@
 import pygame as pg
 import math
 from . import enemies, core, fx, level
+from .UI import Interface, Button,ProgressBar
 from . utils import *
 from random import randint as rd
 
@@ -97,6 +98,7 @@ class Player(core.Actor):
         self.game = game_inst
         # pg.sprite.Sprite.__init__(self)
         self.img = PLAYER_IMG
+        self.ui = Interface()
 
         self.move_left, self.move_right, self.jump, self.tp = False, False, False, False
         self.move_speed = 0
@@ -119,6 +121,11 @@ class Player(core.Actor):
         self._reload = False
         self.reload_kd = 0
         self.bullets = []
+
+        self.ui.set_ui([
+            ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black'),
+            Button((20,422),'white','',1,img='game/content/ui/heart.png'),
+        ])
 
     def process_move(self, d: dict):
         if d.get('right') is not None:
@@ -144,10 +151,16 @@ class Player(core.Actor):
             self.reload()
 
     def update_control(self,delta, blocks, level):
+        # HP MANAGEMENT
         if self.hp <= 0: self.delete()
+        else: self.ui.buttons[0].value = self.hp/100
+
+        # TIMERS
         if self.dmg_timer >0: self.dmg_timer-=delta
         if self.shoot_kd >0: self.shoot_kd -= delta
         if self.inventory_kd>0: self.inventory_kd -= delta
+
+        # RELOAD
         if self._reload:
             if self.reload_kd>0: self.reload_kd -= delta
             else:
@@ -313,5 +326,6 @@ class Player(core.Actor):
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         screen.blit(self.img,
                     (self.rect.x - camera.x+off, self.rect.y - camera.y))
+        self.ui.draw(screen)
         for b in self.bullets:
             screen.blit(b.img, (b.rect.x - camera.x, b.rect.y + camera.y))
