@@ -118,23 +118,16 @@ class Interface:
 
     def draw(self, screen: pg.Surface, offset=(0,0)):
         for b in self.buttons:
-            if type(b)==ProgressBar:
-                b.render(screen)
-                continue
-            if pg.Rect.collidepoint(b.rect, self.pos):
-                
-                if self.sounds and not b.hover:
-                    self.sound.play()
-                b.render(screen, True)
-            else:
-                b.render(screen)
+            b.render(screen)
 
     def update_buttons(self, event):
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
             for b in self.buttons:
                 if type(b)==TextField: b.active = False
                 if pg.Rect.collidepoint(b.rect, event.pos):
-                    
+                    if self.sounds and not b.hover:
+                        self.sound.play()
+                        b.hover = True
                     if type(b) == Button:
                         if b.args: b.func(b.args)
                         else: b.func()

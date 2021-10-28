@@ -42,6 +42,7 @@ GUNS = {
               'hold_img': 0,
               'pos': (29, 29),
               'bull_pos': (0, 0),
+              'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
               'speed': 30,
               'mag': 30,
               'reload':2000,
@@ -52,6 +53,7 @@ GUNS = {
                'hold_img': 0,
                'pos': (29, 29),
                'bull_pos': (0, 0),
+               'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
                'speed': 30,
                'mag': 10,
                'reload': 1000,
@@ -124,6 +126,10 @@ class Player(core.Actor):
 
         self.ui.set_ui([
             ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black'),
+            Button((790,428),'yellow','', 20),
+            Button((790,418),'red','', 15),
+            Button((790,445),'white','', 15),
+            Button((750,420),'white','',1,img='game/content/ui/ammo.png'),
             Button((20,422),'white','',1,img='game/content/ui/heart.png'),
         ])
 
@@ -153,7 +159,20 @@ class Player(core.Actor):
     def update_control(self,delta, blocks, level):
         # HP MANAGEMENT
         if self.hp <= 0: self.delete()
-        else: self.ui.buttons[0].value = self.hp/100
+
+        #UI UPDATE
+        amm = self.ammo[self.guns[self.gun]]
+        self.ui.buttons[0].value = self.hp/100
+        self.ui.buttons[1].text = f'{amm[0]}/{amm[1]}'
+        if self.reload_kd>0 and self._reload:
+            self.ui.buttons[2].text = f'{self.reload_kd/1000:.2f}'
+        else:
+            self.ui.buttons[2].text = ''
+            # max_amm = GUNS[self.guns[self.gun]]['mag']
+            # print(max_amm == amm[0])
+            # if max_amm == amm:self.ui.buttons[2].text = ''
+            # else: self.ui.buttons[2].text = 'R to reload'
+        self.ui.buttons[3].text = self.guns[self.gun].title()
 
         # TIMERS
         if self.dmg_timer >0: self.dmg_timer-=delta
@@ -167,7 +186,6 @@ class Player(core.Actor):
                 amm = self.ammo[self.guns[self.gun]]
                 if amm[1]>0:
                     m = GUNS[self.guns[self.gun]]['mag']
-                    print(amm)
                     for i in range(1,m+1):
                         if amm[1]-i<=0: 
                             m=i
@@ -273,7 +291,7 @@ class Player(core.Actor):
         b.yspeed = -yvel
         # b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
         d = GUNS[self.guns[self.gun]]['dmg']
-        b.set(BULLET_IMG, self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
+        b.set(GUNS[self.guns[self.gun]]['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
         self.game.world.actors.append(b)
 
         self.ammo[self.guns[self.gun]][0] -= 1
