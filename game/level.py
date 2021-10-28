@@ -82,7 +82,6 @@ class World:
             elif line.startswith('ai'):
                 self.ignore_str.append(f'{line}\n')
                 _, x, y = line.split(' ')
-                print(line)
                 ai = enemies.AI(int(x),int(y))
                 self.ais.append(ai)
                 self.actors.append(ai)

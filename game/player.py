@@ -48,6 +48,7 @@ GUNS = {
               'reload':2000,
               'dmg':15,
               'kd':100,
+              'acc':2,
               'auto': True},
     'pistol': {'img': pg.image.load('game/content/player2/guns/pistol.png'),
                'hold_img': 0,
@@ -59,6 +60,7 @@ GUNS = {
                'reload': 1000,
                'dmg':35,
                'kd':300,
+               'acc':1,
                'auto': False},
 }
 
@@ -276,7 +278,8 @@ class Player(core.Actor):
             self.shoot = False
             self.reload()
             return
-        xvel, yvel = vec_to_speed(GUNS[self.guns[self.gun]]['speed'], self.angle)
+        gun = GUNS[self.guns[self.gun]]
+        xvel, yvel = vec_to_speed(gun['speed'], self.angle+rd(-gun['acc'], gun['acc']))
         # b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
         #            self.rect.y + GUNS[self.gun]['pos'][1],
         #            xvel if self.look_r else -xvel,
@@ -284,20 +287,22 @@ class Player(core.Actor):
         #            self.angle,
         #            BULLET_IMG)
         # self.bullets.append(b)
-        b = Bullet(self.rect.x + GUNS[self.guns[self.gun]]['pos'][0],
-                  self.rect.y + GUNS[self.guns[self.gun]]['pos'][1],
+        b = Bullet(self.rect.x + gun['pos'][0],
+                  self.rect.y + gun['pos'][1],
                   10,10, gravity=0, friction=0, bounce=0)
         b.xspeed = xvel if self.look_r else -xvel
         b.yspeed = -yvel
         # b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
-        d = GUNS[self.guns[self.gun]]['dmg']
-        b.set(GUNS[self.guns[self.gun]]['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
+        d = gun['dmg']
+        b.set(gun['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
         self.game.world.actors.append(b)
 
         self.ammo[self.guns[self.gun]][0] -= 1
 
-        self.shoot_kd = GUNS[self.guns[self.gun]]['kd']
-        self.shoot = GUNS[self.guns[self.gun]]['auto']
+        if self.shoot and self.game: self.game.shake = 5
+
+        self.shoot_kd = gun['kd']
+        self.shoot = gun['auto']
         if sounds: SOUNDS['shoot'].play()
         write_stat('shoots', get_stat('shoots')+1)
 

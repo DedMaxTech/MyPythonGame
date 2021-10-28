@@ -286,7 +286,7 @@ class Game:
                 #     s.xspeed = (rd(0, 100) -50) / 10
                 #     self.world.actors.append(s)
                 d['shoot'] = True
-                self.shake = 5
+                # self.shake = 5
             elif event.button == pg.BUTTON_WHEELUP:
                 d['wheel'] = 1
             elif event.button == pg.BUTTON_WHEELDOWN:
