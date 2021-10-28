@@ -182,7 +182,7 @@ class Game:
         # e = 
         self.world.actors += [self.player, core.Actor(350, 600,40,40)]
         pg.mouse.set_cursor(*pg.cursors.diamond)
-        pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png'), pg.image.load('game/content/ui/hp_empty.png'), colorkey='black')
+        pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
         self.gameui = [pb, Button((20,422),'white','',1,img='game/content/ui/heart.png')]
         self.ui.set_ui(self.gameui)
 
