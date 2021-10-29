@@ -1,6 +1,8 @@
 screen_h, screen_v = 854,480
 fps = 60
 
+potato = False
+
 font = 'game/content/pixel_font.ttf'
 GAMENAME = 'MyPythonGame'
 # addr = ("192.168.1.117", 5001)

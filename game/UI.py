@@ -12,7 +12,7 @@ class Button:
         self.font: pg.font.Font = font if type(font) == pg.font.Font else pg.font.Font('game/content/pixel_font.ttf', font)
         self.size = self.font.size(text) if size is None else size
         self.bg = bg if bg is None else pg.Color(bg)
-        self.img = img
+        self.img = pg.image.load(img).convert_alpha() if img is not None else None
         self.text = text
         self.func = callback_f if callback_f is not None else self.nothing
         self.args = args
@@ -30,7 +30,7 @@ class Button:
                 off = 50
                 screen.blit(self.font.render('~ ', False, self.color), (self.rect.x+5-self.font.size('~ ')[0], self.rect.y))
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
-        if self.img: screen.blit(pg.image.load(self.img), self.rect.topleft)
+        if self.img: screen.blit(self.img, self.rect.topleft)
         screen.blit(self.font.render(self.text, False, self.color), (self.rect.x+5, self.rect.y))
 
 def vertical(margin, buttons:List[Button]):

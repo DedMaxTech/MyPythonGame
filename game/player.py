@@ -83,10 +83,12 @@ class Bullet(core.Actor):
         if actor == self.parent:
             return
         if isinstance(actor, enemies.AI):
+            print('hit ai')
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
-            fx.blood(self.rect.center,self.parent.world, 5)
-            fx.damage(self.rect.center,-self.damage,self.parent.world)
+            if not cfg.potato:
+                fx.blood(self.rect.center,self.parent.world, 5)
+                fx.damage(self.rect.center,-self.damage,self.parent.world)
             if sounds: SOUNDS['hurt'].play()
             self._delete = True
         if isinstance(actor, level.Block):

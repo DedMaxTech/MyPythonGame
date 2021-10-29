@@ -31,6 +31,7 @@ class AI(core.Actor):
         self.timer = rd(1000,3000)
         self.attack_kd = 0
         self.dmg_timer = 0
+        
     
     def update_ai(self,player, delta):
         if self.hp <=0:

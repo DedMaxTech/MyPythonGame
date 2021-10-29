@@ -60,6 +60,7 @@ class World:
                 self.blocks = []
                 level = file.readlines()
         self.bg_name = level[0][:-1]
+        print(f'{video=}')
         if video:self.bg = pg.image.load(self.bg_name).convert()
         else:self.bg = pg.image.load(self.bg_name)
         level = level[1:]
@@ -112,6 +113,11 @@ class World:
         if rect is None:
             return self.blocks
         return [self.blocks[i] for i in rect.collidelistall(self.blocks)]
+    
+    def get_actors(self, rect:pg.Rect=None):
+        if rect is None:
+            return self.actors
+        return [self.actors[i] for i in rect.collidelistall(self.actors)]
 
     def update_actors(self, delta, player = None):
         for b in self.blocks:
@@ -122,9 +128,9 @@ class World:
                 del self.actors[self.actors.index(a)]
             else:
                 if not a.static and a.collision:
-                    a.update(delta, self.get_blocks(a.pre_rect), self.actors)
+                    a.update(delta, self.get_blocks(a.pre_rect), self.get_actors(a.pre_rect))
                 else:
-                    a.update(delta, [], self.actors)
+                    a.update(delta, [], self.get_actors(a.pre_rect))
         if self.ais:
             [ai.update_ai(player, delta) for ai in self.ais]
 

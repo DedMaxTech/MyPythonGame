@@ -350,7 +350,7 @@ class Game:
                 p.draw(self.frame, self.camera)
             
             # POST PROCESS
-            self.frame.blit(self.tint, (0, 0))
+            if not cfg.potato: self.frame.blit(self.tint, (0, 0))
             if self.w< 854:
                 sf.fill('black')
                 pg.draw.circle(sf,'white', (self.player.rect.x-self.camera.x, self.player.rect.y-self.camera.y), self.w)
