@@ -10,6 +10,7 @@ class Actor:
         self.xspeed, self.yspeed = 0.0, 0.0
         self.gravity, self.bounce, self.static, self.friction, self.collision = gravity, bounce, static, friction, collision
         self.on_ground = False
+        self.need_sides = False
         self.right, self.left = False,False
         self._delete = False
         self.die = False
@@ -26,7 +27,7 @@ class Actor:
             return
         if self.collision:
             self.on_ground = self.check_on_ground(blocks)
-            self.right, self.left = self.check_right(blocks), self.check_left(blocks)
+            if self.need_sides: self.right, self.left = self.check_right(blocks), self.check_left(blocks)
 
         if self.die:
             if self.die_kd >0: self.die_kd -= delta
@@ -78,6 +79,7 @@ class Actor:
         return False
 
     def _collide_x(self, blocks):
+        if self.xspeed == 0: return
         for b in blocks:
             if self.rect.colliderect(b.rect):
                 if self.xspeed>0:
@@ -89,7 +91,8 @@ class Actor:
                     self.xspeed = -self.xspeed * self.bounce
                 else: self.xspeed =0
 
-    def _collide_y(self, blocks):    
+    def _collide_y(self, blocks): 
+        if self.yspeed == 0: return
         for b in blocks:
             if self.rect.colliderect(b.rect):
                 if self.yspeed > 0:

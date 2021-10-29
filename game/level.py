@@ -128,9 +128,9 @@ class World:
                 del self.actors[self.actors.index(a)]
             else:
                 if not a.static and a.collision:
-                    a.update(delta, self.get_blocks(a.pre_rect), self.get_actors(a.pre_rect))
+                    a.update(delta, self.get_blocks(a.pre_rect), self.actors)
                 else:
-                    a.update(delta, [], self.get_actors(a.pre_rect))
+                    a.update(delta, [], self.actors)
         if self.ais:
             [ai.update_ai(player, delta) for ai in self.ais]
 

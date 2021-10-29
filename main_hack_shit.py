@@ -30,6 +30,7 @@ sf.fill('black')
 pg.draw.circle(sf,'white',(427,240), 50)
 sf.set_colorkey('white')
 
+
 class Game:
     def __init__(self):
         global sound
@@ -64,6 +65,7 @@ class Game:
         self.millis = get_stat('time')
         self.w = 1
         self.level = 'levels/tutorial.txt'
+        self.fps_alert = False
 
         pg.display.set_caption(cfg.GAMENAME)
         # pg.display.toggle_fullscreen()
@@ -355,7 +357,7 @@ class Game:
                 sf.fill('black')
                 pg.draw.circle(sf,'white', (self.player.rect.x-self.camera.x, self.player.rect.y-self.camera.y), self.w)
                 self.frame.blit(sf,(0,0))
-            debug(f'FPS: {int(self.clock.get_fps())}',self.frame)
+            debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
             debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp}', self.frame,y = 30,)
@@ -389,6 +391,7 @@ class Game:
         self.event_loop()
         self.millis += self.delta/1000
         if self.playing and not self.pause:
+            
             if self.player._delete: self.start_game(self.level)
             if self.w < 854: self.w *= 1.1
             self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
@@ -411,6 +414,7 @@ class Game:
             # elif self.player.rect.x < 500 and self.n != 0:
             #     self.set_level(0)
             self.camera_update()
+            if self.clock.get_fps()<=35: self.fps_alert=True
 
         self.screen.blit(self.frame, self.procces_camera_shake())
         self.draw()
@@ -421,6 +425,7 @@ class Game:
         while True:
             self.loop()
             self.delta = self.clock.tick(cfg.fps)
+            
 
 
 if __name__ == '__main__':

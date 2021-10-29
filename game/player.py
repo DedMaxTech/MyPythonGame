@@ -66,14 +66,17 @@ GUNS = {
 
 
 class Bullet(core.Actor):
-    def set(self,img, rot, dmg, parent):
+    def __init__(self, x, y, xv,yv, img, rot, dmg, parent):
+        w,h = img.get_size()
+        super().__init__(x, y, w, h,gravity=0, friction=0)
         self.autodel(20)
         self.parent = parent
         self.damage = dmg
         self.img = pg.transform.rotate(img, abs(rot))
-        if self.xspeed < 0:
+        self.xspeed, self.yspeed = xv,yv
+        if xv < 0:
             self.img = pg.transform.flip(self.img,True,False)
-        if self.yspeed > 0:
+        if yv > 0:
             self.img = pg.transform.flip(self.img,False,True)
 
     def draw(self, screen: pg.Surface, camera):
@@ -83,7 +86,6 @@ class Bullet(core.Actor):
         if actor == self.parent:
             return
         if isinstance(actor, enemies.AI):
-            print('hit ai')
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
             if not cfg.potato:
@@ -120,6 +122,7 @@ class Player(core.Actor):
         self.shoot_kd = 0
         self.inventory_kd = 1000
         self.font = pg.font.Font(cfg.font, 14)
+        self.need_sides = True
 
         self.gun = 0
         self.guns = ['pistol', 'rifle']
@@ -289,14 +292,13 @@ class Player(core.Actor):
         #            self.angle,
         #            BULLET_IMG)
         # self.bullets.append(b)
+        d = gun['dmg']
         b = Bullet(self.rect.x + gun['pos'][0],
                   self.rect.y + gun['pos'][1],
-                  10,10, gravity=0, friction=0, bounce=0)
-        b.xspeed = xvel if self.look_r else -xvel
-        b.yspeed = -yvel
-        # b.set(BULLET_IMG, self.angle,GUNS[self.gun]['dmg'], self)
-        d = gun['dmg']
-        b.set(gun['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self)
+                  xvel if self.look_r else -xvel,
+                  -yvel,
+                  gun['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self
+        )
         self.game.world.actors.append(b)
 
         self.ammo[self.guns[self.gun]][0] -= 1

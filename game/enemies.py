@@ -31,9 +31,11 @@ class AI(core.Actor):
         self.timer = rd(1000,3000)
         self.attack_kd = 0
         self.dmg_timer = 0
+        self.need_sides = True
         
     
     def update_ai(self,player, delta):
+        print(self.left,self.right)
         if self.hp <=0:
             self.delete()
             return
