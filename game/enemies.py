@@ -35,7 +35,6 @@ class AI(core.Actor):
         
     
     def update_ai(self,player, delta):
-        print(self.left,self.right)
         if self.hp <=0:
             self.delete()
             return

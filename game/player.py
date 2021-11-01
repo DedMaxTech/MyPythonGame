@@ -353,6 +353,6 @@ class Player(core.Actor):
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         screen.blit(self.img,
                     (self.rect.x - camera.x+off, self.rect.y - camera.y))
-        self.ui.draw(screen)
+        self.ui.draw(self.game.screen)
         for b in self.bullets:
             screen.blit(b.img, (b.rect.x - camera.x, b.rect.y + camera.y))

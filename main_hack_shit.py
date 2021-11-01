@@ -1,3 +1,4 @@
+from time import sleep
 import pygame as pg
 
 import os, traceback, socket, pickle, math
@@ -43,6 +44,7 @@ class Game:
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN | pg.HWSURFACE)
         self.frame = pg.Surface(self.res)
+        
         self.clock = pg.time.Clock()
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, -40, self.res[0], self.res[1])
@@ -172,6 +174,12 @@ class Game:
         os.system('python editor.py')
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
+    @threaded()
+    def f (self):
+        sleep(10)
+        self.zoom(2)
+        sleep(5)
+        self.zoom(0.5)
 
     def start_game(self, level='levels/tutorial.txt'):
         self.level = level
@@ -185,6 +193,7 @@ class Game:
         # e = 
         self.world.actors += [self.player, core.Actor(350, 600,40,40)]
         pg.mouse.set_cursor(*pg.cursors.diamond)
+        self.f()
         # pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
         # self.gameui = [pb, Button((20,422),'white','',1,img='game/content/ui/heart.png')]
         # self.ui.set_ui(self.gameui)
@@ -254,6 +263,15 @@ class Game:
             self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /40
         if self.player.rect.bottom > self.camera.bottom - ofsety:
             self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/40
+    
+    def process_zoom(self):
+        size = self.frame.get_size()
+        x,y=round((self.camera.w-size[0])/20), round((self.camera.h-size[1]) / 20)
+        # self.frame = pg.Surface((size[0]+x,size[1]+y))
+        self.frame =pg.transform.scale(self.frame, (size[0]+x,size[1]+y))
+
+    def zoom(self,val):
+        self.camera.size = (int(cfg.screen_h*val), int(cfg.screen_v*val))
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
@@ -297,8 +315,10 @@ class Game:
             d['shoot'] = False
         
         x,y = pg.mouse.get_pos()
+        w,h = self.frame.get_size()
+        x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
         x, y =x+camera.x - self.player.rect.centerx, self.player.rect.centery - y - camera.y
-        # print(x,y)
+        print(x,y)
         d['look_r'] = x>=0
         d['angle'] = angle((abs(x),y))
         # Python 3.10
@@ -352,7 +372,7 @@ class Game:
                 p.draw(self.frame, self.camera)
             
             # POST PROCESS
-            if not cfg.potato: self.frame.blit(self.tint, (0, 0))
+            if not cfg.potato: self.screen.blit(self.tint, (0, 0))
             if self.w< 854:
                 sf.fill('black')
                 pg.draw.circle(sf,'white', (self.player.rect.x-self.camera.x, self.player.rect.y-self.camera.y), self.w)
@@ -361,15 +381,21 @@ class Game:
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
             debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp}', self.frame,y = 30,)
-            debug(self.player.ammo, self.frame,y = 45,)
+            debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
         else:
             self.frame.fill('black')
-        if self.pause: self.frame.blit(self.tint2, (0, 0))
-        self.ui.draw(self.frame)
+        if self.pause: self.screen.blit(self.tint2, (0, 0))
+        self.ui.draw(self.screen)
 
     def event_loop(self):
         for event in pg.event.get():
             self.ui.update_buttons(event)
+            if hasattr(event, 'pos'):
+                x,y = self.frame.get_size()
+                # print(remap(event.pos[0], (0, x), (0,cfg.screen_h)), remap(event.pos[1], (0, y), (0,cfg.screen_v)))
+                setattr(event, 'pos', (remap(event.pos[0], (0, cfg.screen_h), (0,x)), remap(event.pos[1], (0, cfg.screen_v), (0,y))))
+                # print(event.pos)
+            
 
             # print(event, type(event))
             if event.type == pg.QUIT: exit()
@@ -414,9 +440,10 @@ class Game:
             # elif self.player.rect.x < 500 and self.n != 0:
             #     self.set_level(0)
             self.camera_update()
+            self.process_zoom()
             if self.clock.get_fps()<=35: self.fps_alert=True
 
-        self.screen.blit(self.frame, self.procces_camera_shake())
+        self.screen.blit(pg.transform.scale(self.frame, self.res), self.procces_camera_shake())
         self.draw()
         pg.display.update()
 

@@ -76,9 +76,15 @@ def write_stat(key, val):
     with open('stats.p','wb') as file:
         pickle.dump(d,file)
 
+def remap(val, in_boubds:Tuple[float,float], out_bounds:Tuple[float,float]=(0,1)):
+    x = (val - in_boubds[0]) * (out_bounds[1] - out_bounds[0]) / (in_boubds[1] - in_boubds[0]) + out_bounds[0]
+    # print(val, x, in_boubds,out_bounds)
+    return x
+
 
 @threaded(daemon=False)
 def timer(t):
     time.sleep(t)
     print(t)
 
+print(remap(500, (0,2000), (0,1000)))
