@@ -7,6 +7,9 @@ from typing import List
 
 import cfg
 
+os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
+pg.init()
+
 try:
     pg.mixer.init()
     sounds = True
@@ -26,19 +29,19 @@ with open('game/content/cursor.xbm') as c:
 AUTOSAVE_EVENT = pg.USEREVENT+1
 
 # curs = 
-sf = pg.Surface((854,480))
+sf = pg.Surface((854*3,480*3))
 sf.fill('black')
 pg.draw.circle(sf,'white',(427,240), 50)
 sf.set_colorkey('white')
 
+font = pg.font.Font(cfg.font,60)
 
 class Game:
     def __init__(self):
         global sound
         self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
         print(f'Server: {self.serv_ip}')
-        os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
-        pg.init()
+        
         
         # print(not pg.mixer.get_init()is No40)
 
@@ -220,26 +223,26 @@ class Game:
                            [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
 
         self.loop()
-
     def death(self):
-        self.playing = False
-        self.frame.fill('black')
-        pg.time.delay(500)
-        for i in range(256):
-            self.frame.fill('black')
-            self.ui.clear()
-            self.ui.set_ui([
-                Button((150, 100), (i, 0, 0), 'GAME OVER', 40, ),
-            ])
-            # self.draw()
-            self.ui.draw(self.frame)
-            pg.display.update()
-            pg.time.delay(10)
-        self.ui.set_ui([
-            Button((350, 200), 'white', 'Try again', 25, self.start_game, 'darkgrey'),
-            Button((350, 230), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
-            Button((350, 260), 'white', 'Exit', 25, exit, 'darkgrey'),
-        ])
+        # self.playing = False
+        # self.frame.fill('black')
+        # pg.time.delay(500)
+        # for i in range(256):
+        #     self.frame.fill('black')
+        #     self.ui.clear()
+        #     self.ui.set_ui([
+        #         Button((150, 100), (i, 0, 0), 'GAME OVER', 40, ),
+        #     ])
+        #     # self.draw()
+        #     self.ui.draw(self.frame)
+        #     pg.display.update()
+        #     pg.time.delay(10)
+        # self.ui.set_ui([
+        #     Button((350, 200), 'white', 'Try again', 25, self.start_game, 'darkgrey'),
+        #     Button((350, 230), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
+        #     Button((350, 260), 'white', 'Exit', 25, exit, 'darkgrey'),
+        # ])
+        self.zoom(1.5)
 
     @threaded(daemon=True)
     def set_level(self, floor=0, tpx=500):
@@ -396,10 +399,14 @@ class Game:
                     self.screen.blit(self.tint, (0, 0))
                 else:
                     self.screen.blit(self.tint_slow, (0, 0))
-            if self.w< 854:
+            if self.w< sf.get_width():
                 sf.fill('black')
                 pg.draw.circle(sf,'white', (self.player.rect.x-self.camera.x, self.player.rect.y-self.camera.y), self.w)
-                self.screen.blit(sf,(0,0))
+                if self.player.dead:
+                    text = font.render('Respawning...', False, (255,0,0))
+                    text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
+                    sf.blit(text, (500,200))
+                self.frame.blit(sf,(0,0))
             debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
@@ -442,7 +449,10 @@ class Game:
         if self.playing and not self.pause:
             
             if self.player._delete: self.start_game(self.level)
-            if self.w < 854: self.w *= 1.1
+            if self.player.dead and self.player.die_kd<=1500:
+                if self.w > 1: self.w /= 1.1
+            else:
+                if self.w < sf.get_width(): self.w *= 1.1
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
             self.world.update_actors(self.delta*self.world_tick, self.player)
             # self.gameui[0].value = self.player.hp/100

@@ -8,6 +8,7 @@ from random import randint as rd
 import cfg
 
 PLAYER_IMG = pg.image.load('game/content/player2/player.png')
+PLAYER_IMG_DEAD = pg.image.load('game/content/player2/player_dead.png')
 PLAYER_LEGS_IDLE = pg.image.load('game/content/player2/legs/idle.png')
 PLAYER_ARMS = pg.image.load('game/content/player2/arms.png')
 PLAYER_LEGS_AIR = pg.image.load('game/content/player/legs/air.png')
@@ -136,6 +137,9 @@ class Player(core.Actor):
         self.reload_kd = 0
         self.bullets = []
 
+        self.dead = False
+        self.dead_kd = 2000
+
         self.ui.set_ui([
             ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black'),
             Button((790,428),'yellow','', 20),
@@ -172,12 +176,20 @@ class Player(core.Actor):
 
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
-        if self.hp <= 0: self.delete()
-
+        if self.dead:
+            return
+        if self.hp <= 0: 
+            self.dead=True
+            self.autodel(3)
+            self.game.death()
+        
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
         self.ui.buttons[0].value = self.hp/100
         self.ui.buttons[1].text = f'{amm[0]}/{amm[1]}'
+
+        
+
         if self.reload_kd>0 and self._reload:
             self.ui.buttons[2].text = f'{self.reload_kd/1000:.2f}'
         else:
@@ -355,12 +367,13 @@ class Player(core.Actor):
         self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+37+offy))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
+        if self.dead: self.img = PLAYER_IMG_DEAD
         if not self.look_r: self.rotate()
-        if self.dmg_timer > 0:
-            self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
-        if self.inventory_kd>0:
-            self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
+        if not self.dead:
+            if self.dmg_timer > 0: self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
+            if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
+        
         screen.blit(self.img,
                     (self.rect.x - camera.x+off, self.rect.y - camera.y))
         self.ui.draw(self.game.screen)
