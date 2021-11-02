@@ -89,7 +89,7 @@ class Bullet(core.Actor):
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
             if not cfg.potato:
-                fx.blood(self.rect.center,self.parent.world, 5)
+                fx.blood(self.rect.center,self.parent.world, int(self.damage*1.5/10))
                 fx.damage(self.rect.center,-self.damage,self.parent.world)
             if sounds: SOUNDS['hurt'].play()
             self._delete = True
@@ -163,7 +163,7 @@ class Player(core.Actor):
         if d.get('reload') is not None:
             self.reload()
 
-    def update_control(self,delta, blocks, level):
+    def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
         if self.hp <= 0: self.delete()
 
@@ -238,7 +238,7 @@ class Player(core.Actor):
         #         self.xspeed -= 10
         #         print('r')
         # JUMP
-        self._jump()
+        self._jump(tick)
         # if self.jump and (self.on_ground or self.double):
         #     if not self.on_ground and self.double:
         #         self.double = False
@@ -250,7 +250,7 @@ class Player(core.Actor):
         if self.shoot and self.shoot_kd<=0: self._shoot()
         # self.update(delta, blocks, level.actors)
 
-    def _jump(self):
+    def _jump(self, tick):
         if self.jump:
             # if not self.on_ground and self.double:
             #     self.double = False

@@ -46,6 +46,7 @@ class Game:
         self.frame = pg.Surface(self.res)
         
         self.clock = pg.time.Clock()
+        self.world_tick = 1.0
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, -40, self.res[0], self.res[1])
         self.ui = Interface(sounds)
@@ -77,6 +78,7 @@ class Game:
         self.sock.settimeout(2.0)
         self.cat = pg.image.load('game/content/cat.png').convert_alpha()
         self.tint = pg.image.load('game/content/tint.png').convert_alpha()
+        self.tint_slow = pg.image.load('game/content/tint_slow.png').convert_alpha()
         self.tint2 = pg.image.load('game/content/tint2.png').convert_alpha()
 
     def main_menu(self, add=[]):
@@ -175,11 +177,10 @@ class Game:
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
     @threaded()
-    def f (self):
-        sleep(10)
-        self.zoom(2)
-        sleep(5)
-        self.zoom(0.5)
+    def start_zoom(self):
+        self.zoom(3)
+        sleep(0.75)
+        self.zoom(1)
 
     def start_game(self, level='levels/tutorial.txt'):
         self.level = level
@@ -193,10 +194,11 @@ class Game:
         # e = 
         self.world.actors += [self.player, core.Actor(350, 600,40,40)]
         pg.mouse.set_cursor(*pg.cursors.diamond)
-        self.f()
+        # self.f()
         # pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
         # self.gameui = [pb, Button((20,422),'white','',1,img='game/content/ui/heart.png')]
         # self.ui.set_ui(self.gameui)
+        self.start_zoom()
 
     def join_game(self):
         try:
@@ -254,15 +256,25 @@ class Game:
 
     def camera_update(self):
         ofsetx, ofsety = 930,450
-        if self.player.rect.x < self.camera.x + ofsetx:
-            self.camera.x -= (self.camera.x + ofsetx - self.player.rect.x) /40
-        if self.player.rect.right > self.camera.right - ofsetx:
-            self.camera.x += (self.player.rect.right - self.camera.right + ofsetx)/40
-        
-        if self.player.rect.y < self.camera.y + ofsety:
-            self.camera.y -= (self.camera.y + ofsety - self.player.rect.y) /40
-        if self.player.rect.bottom > self.camera.bottom - ofsety:
-            self.camera.y += (self.player.rect.bottom - self.camera.bottom + ofsety)/40
+        d = self.frame.get_height()/10
+        r = self.player.rect
+        self.world_tick = 1.0
+        if pg.mouse.get_pressed()[2]:
+            x,y = vec_to_speed(300, -self.player.angle)
+            x = x if self.player.look_r else -x
+            r = pg.Rect(r.x+x,r.y+y,1,1)
+            self.world_tick = 0.3
+        #     self.zoom(1.5)
+        # else: self.zoom(1)   
+        if r.x < self.camera.x + ofsetx:
+            self.camera.x -= (self.camera.x + ofsetx - r.x) /d
+        if r.right > self.camera.right - ofsetx:
+            self.camera.x += (r.right - self.camera.right + ofsetx)/d
+
+        if r.y < self.camera.y + ofsety:
+            self.camera.y -= (self.camera.y + ofsety - r.y) /d
+        if r.bottom > self.camera.bottom - ofsety:
+            self.camera.y += (r.bottom - self.camera.bottom + ofsety)/d
     
     def process_zoom(self):
         size = self.frame.get_size()
@@ -318,7 +330,7 @@ class Game:
         w,h = self.frame.get_size()
         x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
         x, y =x+camera.x - self.player.rect.centerx, self.player.rect.centery - y - camera.y
-        print(x,y)
+
         d['look_r'] = x>=0
         d['angle'] = angle((abs(x),y))
         # Python 3.10
@@ -372,11 +384,15 @@ class Game:
                 p.draw(self.frame, self.camera)
             
             # POST PROCESS
-            if not cfg.potato: self.screen.blit(self.tint, (0, 0))
+            if not cfg.potato:
+                if self.world_tick == 1.0:
+                    self.screen.blit(self.tint, (0, 0))
+                else:
+                    self.screen.blit(self.tint_slow, (0, 0))
             if self.w< 854:
                 sf.fill('black')
                 pg.draw.circle(sf,'white', (self.player.rect.x-self.camera.x, self.player.rect.y-self.camera.y), self.w)
-                self.frame.blit(sf,(0,0))
+                self.screen.blit(sf,(0,0))
             debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
@@ -420,8 +436,8 @@ class Game:
             
             if self.player._delete: self.start_game(self.level)
             if self.w < 854: self.w *= 1.1
-            self.player.update_control(self.delta,self.world.get_blocks(self.player.pre_rect), self.world)
-            self.world.update_actors(self.delta, self.player)
+            self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
+            self.world.update_actors(self.delta*self.world_tick, self.player)
             # self.gameui[0].value = self.player.hp/100
 
 
