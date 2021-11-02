@@ -42,7 +42,7 @@ class Game:
         
         # print(not pg.mixer.get_init()is No40)
 
-        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN | pg.HWSURFACE)
+        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN)
         self.frame = pg.Surface(self.res)
         
         self.clock = pg.time.Clock()
@@ -258,12 +258,12 @@ class Game:
         ofsetx, ofsety = 930,450
         d = self.frame.get_height()/10
         r = self.player.rect
-        self.world_tick = 1.0
-        if pg.mouse.get_pressed()[2]:
+        
+        if self.player.aiming:
             x,y = vec_to_speed(300, -self.player.angle)
             x = x if self.player.look_r else -x
             r = pg.Rect(r.x+x,r.y+y,1,1)
-            self.world_tick = 0.3
+            # self.world_tick = 0.3
         #     self.zoom(1.5)
         # else: self.zoom(1)   
         if r.x < self.camera.x + ofsetx:
@@ -323,8 +323,15 @@ class Game:
                 d['wheel'] = 1
             elif event.button == pg.BUTTON_WHEELDOWN:
                 d['wheel'] = -1
-        if event.type == pg.MOUSEBUTTONUP and event.button == pg.BUTTON_LEFT:
-            d['shoot'] = False
+            elif event.button == pg.BUTTON_RIGHT:
+                d['aim'] = True
+                self.world_tick = 0.3
+        if event.type == pg.MOUSEBUTTONUP:
+            if event.button == pg.BUTTON_LEFT:
+                d['shoot'] = False
+            elif event.button == pg.BUTTON_RIGHT:
+                d['aim'] = False
+                self.world_tick = 1.0
         
         x,y = pg.mouse.get_pos()
         w,h = self.frame.get_size()

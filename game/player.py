@@ -78,9 +78,13 @@ class Bullet(core.Actor):
             self.img = pg.transform.flip(self.img,True,False)
         if yv > 0:
             self.img = pg.transform.flip(self.img,False,True)
+        # self.trale = pg.Surface((20,20))
+        # pg.draw.circle(self.trale,'yellow',(10,10),20)
+        # self.trale.set_colorkey('black')
 
     def draw(self, screen: pg.Surface, camera):
         screen.blit(self.img, (self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
+        # screen.blit(self.trale, real(self.rect.center, camera), special_flags=pg.BLEND_RGB_ADD)
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
     def hit(self, actor):
         if actor == self.parent:
@@ -113,6 +117,7 @@ class Player(core.Actor):
         self.look_r = True
         self.r_leg = True
         self.double = True
+        self.aiming = False
         self.timer = 0
         self.angle = 0
         self.hp = 100
@@ -162,6 +167,8 @@ class Player(core.Actor):
             self._reload = False
         if d.get('reload') is not None:
             self.reload()
+        if d.get('aim') is not None:
+            self.aiming = d['aim']
 
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
@@ -258,16 +265,16 @@ class Player(core.Actor):
             if not self.on_ground:
                 if self.left and self.move_left and self.look_r:
                     self.move_left = False
-                    self.xspeed += WALL_JUMP_FORCE
+                    self.xspeed += WALL_JUMP_FORCE+WALL_JUMP_FORCE*abs(1-tick)
                     self.double = True
                 elif self.right and self.move_right and not self.look_r:
                     self.move_right = False
-                    self.xspeed -= WALL_JUMP_FORCE
+                    self.xspeed -= WALL_JUMP_FORCE+WALL_JUMP_FORCE*abs(1-tick)
                     self.double = True
                 elif self.double: self.double = False
                 else:return
             self.jump = False
-            self.yspeed = -JUMP_FORCE
+            self.yspeed = -(JUMP_FORCE+JUMP_FORCE*abs(1-tick)) 
             self.on_ground = False
             if sounds: SOUNDS['jump'].play()
     def reload(self):
@@ -284,7 +291,9 @@ class Player(core.Actor):
             self.reload()
             return
         gun = GUNS[self.guns[self.gun]]
-        xvel, yvel = vec_to_speed(gun['speed'], self.angle+rd(-gun['acc'], gun['acc']))
+        acc = gun['acc'] if self.aiming else gun['acc']*2
+        print(rd(-acc*5, acc*5)/5)
+        xvel, yvel = vec_to_speed(gun['speed'], self.angle+(rd(-acc*5, acc*5)/3))
         # b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
         #            self.rect.y + GUNS[self.gun]['pos'][1],
         #            xvel if self.look_r else -xvel,
@@ -337,12 +346,13 @@ class Player(core.Actor):
         #     self.img.blit(PLAYER_LEGS_AIR, (0, 53))
         # self.img.blit(PLAYER_LEGS_AIR, (0, 0))
         off = 0 if self.look_r else -30
+        offy = 0 if not self.aiming else -7
         if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
             self.img = pg.transform.rotate(self.img, -30)
             off = -10 if self.look_r else -60
         gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle)
         # debug(gun_img.get_rect().center, screen)
-        self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+30))
+        self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+37+offy))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if not self.look_r: self.rotate()
