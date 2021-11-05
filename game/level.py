@@ -42,7 +42,7 @@ class World:
         self.h, self.w = 0, 0
         self.blocks: List[Block] = []
         self.actors: List[core.Actor] = []
-        self.ais: List[enemies.AI] = []
+        self.ais: List[enemies.MeleeAI] = []
         self.images: List[pg.Surface] = []
         self.ignore_str = []
         self.spawn_pos = (40,40)
@@ -83,7 +83,7 @@ class World:
             elif line.startswith('ai'):
                 self.ignore_str.append(f'{line}\n')
                 _, x, y = line.split(' ')
-                ai = enemies.AI(int(x),int(y))
+                ai = enemies.ShoterAI(int(x),int(y))
                 self.ais.append(ai)
                 self.actors.append(ai)
             elif line.startswith('ps'):
@@ -109,6 +109,17 @@ class World:
             for b in self.blocks:
                 file.write(f'{b.__str__()}\n')
 
+    def get_nearest(self, obj_class, pos):
+        objcts = [a for a in self.actors if type(a) == obj_class]
+        if not objcts: return
+        act, min_dist = objcts[0], distanse(objcts[0].rect, pos)
+        for a in objcts:
+            d = distanse(a.rect, pos)
+            if d<min_dist:
+                min_dist = d
+                act = a
+        return act
+
     def get_blocks(self, rect:pg.Rect=None):
         if rect is None:
             return self.blocks
@@ -132,7 +143,7 @@ class World:
                 else:
                     a.update(delta, [], self.actors)
         if self.ais:
-            [ai.update_ai(player, delta) for ai in self.ais]
+            [ai.update_ai(delta, self) for ai in self.ais]
 
     def set_blocks(self, blocks):
         self.blocks = blocks

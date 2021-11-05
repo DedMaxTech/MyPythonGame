@@ -56,7 +56,7 @@ class Game:
         self.world = level.World()
         self.player: player.Player = None
         self.players:List[player.Player] = []
-        self.ais: List[enemies.AI] = []
+        self.ais: List[enemies.MeleeAI] = []
         self.shits: List[core.Actor] = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serv_port = 5001
@@ -105,7 +105,8 @@ class Game:
     def select_level_menu(self):
         levels = {
             'Tutorial':'levels/tutorial.txt',
-            'Portals':'levels/portals.txt'
+            'Portals':'levels/portals.txt',
+            'ShootAI':'levels/shootai.txt'
         }
         self.ui.set_ui([Button((50, 50), 'white', 'Select level:', 40, ),]+vertical(5,
             [Button((75,100),'white',name,20,self.start_game,'red', args=levels[name]) for name in levels]

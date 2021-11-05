@@ -99,9 +99,17 @@ class Bullet(core.Actor):
             if sounds: SOUNDS['hurt'].play()
             if self.parent.aim_time < self.parent.AIM_TIME_MAX: self.parent.aim_time+=self.damage*10
             self._delete = True
-        if isinstance(actor, level.Block):
-            if actor.type in [i for i in level.block_s if level.block_s[i]['dest']]: actor.set_type('0')
+        if isinstance(actor, Player):
+            actor.hp -= self.damage
+            write_stat('received damage', get_stat('received damage')+self.damage)
+            actor.dmg_timer = 100
             self._delete = True
+        if isinstance(actor, level.Block):
+            if actor.type in [i for i in level.block_s if level.block_s[i]['dest']]: 
+                actor.set_type('0')
+            else:
+                self._delete = True
+            
 
 
 class Player(core.Actor):
@@ -111,7 +119,6 @@ class Player(core.Actor):
         self.n = n
         self.s = {}
         self.game = game_inst
-        # pg.sprite.Sprite.__init__(self)
         self.img = PLAYER_IMG
         self.ui = Interface()
 
@@ -138,7 +145,6 @@ class Player(core.Actor):
         self.ammo = {'rifle': [30, 30], 'pistol': [10,50]}
         self._reload = False
         self.reload_kd = 0
-        self.bullets = []
 
         self.dead = False
         self.dead_kd = 2000
@@ -200,10 +206,6 @@ class Player(core.Actor):
             self.ui.buttons[3].text = f'{self.reload_kd/1000:.2f}'
         else:
             self.ui.buttons[3].text = ''
-            # max_amm = GUNS[self.guns[self.gun]]['mag']
-            # print(max_amm == amm[0])
-            # if max_amm == amm:self.ui.buttons[2].text = ''
-            # else: self.ui.buttons[2].text = 'R to reload'
         self.ui.buttons[4].text = self.guns[self.gun].title()
 
         # TIMERS
@@ -225,32 +227,22 @@ class Player(core.Actor):
                             break
                     self.ammo[self.guns[self.gun]] = [m, self.ammo[self.guns[self.gun]][1]-m]
                 self._reload = False
-        # self.on_ground = self.check_on_ground(blocks)
+
         if self.on_ground:
             self.double = True
         self.world = level
-        # self.
-        # багованый вариант с инерцией
-        # self.timer += delta
-        # if self.timer >=250:
-        #     self.timer = 0
-        #     if self.move_right and self.xspeed < PLAYER_MAX_SPEED: self.xspeed += PLAYER_ACCELERATION
-        #     if self.move_left and self.xspeed > -PLAYER_MAX_SPEED: self.xspeed -= PLAYER_ACCELERATION
-        #     if not self.move_right and not self.move_left:
-        #         if self.xspeed > 0: self.xspeed -= PLAYER_ACCELERATION * 2
-        #         if self.xspeed < 0: self.xspeed += PLAYER_ACCELERATION * 2
-        # MOVE R/L
-        # ACCEL = PLAYER_ACCELERATION if self.on_ground else PLAYER_AIR_ACCELERATION
+
+        # SIDE MOVE
         ACCEL = PLAYER_ACCELERATION
         if self.move_right and not self.right: self.xspeed += ACCEL -self.xspeed
         if self.move_left and not self.left: self.xspeed -= ACCEL+self.xspeed
-        # if not self.move_right and not self.move_left: self.xspeed = 0
-        # if (self.right and self.xspeed > 0) or (self.left and self.xspeed < 0): self.xspeed = 0
 
+        #AIM
         if self.aiming:
             if self.aim_time<=0:self.aiming=False
             else:   self.aim_time-=delta
 
+        # TELEPORT ABIL.
         if self.tp:
             self.tp = False
             # self.rect.center = self.get_point(level, 200)
@@ -258,27 +250,11 @@ class Player(core.Actor):
             self.xspeed += xv if self.look_r else -xv
             self.yspeed = yv
 
-        # if self.jump and not self.on_ground:
-        #     if self.left and self.move_left:
-        #         self.move_left = False
-        #         self.xspeed += 10
-        #         print('l')
-        #     if self.right and self.right:
-        #         self.move_right = False
-        #         self.xspeed -= 10
-        #         print('r')
         # JUMP
         self._jump(tick)
-        # if self.jump and (self.on_ground or self.double):
-        #     if not self.on_ground and self.double:
-        #         self.double = False
-        #         # self.xspeed = 0
-        #     self.jump = False
-        #     self.yspeed = -JUMP_FORCE
-        #     self.on_ground = False
-        # if not self.on_ground: self.yspeed += GRAVITY
+
+        # SHOOT
         if self.shoot and self.shoot_kd<=0: self._shoot()
-        # self.update(delta, blocks, level.actors)
 
     def _jump(self, tick):
         if self.jump:
@@ -315,15 +291,7 @@ class Player(core.Actor):
             return
         gun = GUNS[self.guns[self.gun]]
         acc = gun['acc'] if self.aiming else gun['acc']*2
-        print(rd(-acc*5, acc*5)/5)
         xvel, yvel = vec_to_speed(gun['speed'], self.angle+(rd(-acc*5, acc*5)/3))
-        # b = Bullet(self.rect.x + GUNS[self.gun]['pos'][0],
-        #            self.rect.y + GUNS[self.gun]['pos'][1],
-        #            xvel if self.look_r else -xvel,
-        #            yvel,
-        #            self.angle,
-        #            BULLET_IMG)
-        # self.bullets.append(b)
         d = gun['dmg']
         b = Bullet(self.rect.x + gun['pos'][0],
                   self.rect.y + gun['pos'][1],
@@ -388,5 +356,3 @@ class Player(core.Actor):
         screen.blit(self.img,
                     (self.rect.x - camera.x+off, self.rect.y - camera.y))
         self.ui.draw(self.game.screen)
-        for b in self.bullets:
-            screen.blit(b.img, (b.rect.x - camera.x, b.rect.y + camera.y))
