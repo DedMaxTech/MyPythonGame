@@ -328,13 +328,13 @@ class Game:
                 d['wheel'] = -1
             elif event.button == pg.BUTTON_RIGHT:
                 d['aim'] = True
-                self.world_tick = 0.3
+                # self.world_tick = 0.3
         if event.type == pg.MOUSEBUTTONUP:
             if event.button == pg.BUTTON_LEFT:
                 d['shoot'] = False
             elif event.button == pg.BUTTON_RIGHT:
                 d['aim'] = False
-                self.world_tick = 1.0
+                # self.world_tick = 1.0
         
         x,y = pg.mouse.get_pos()
         w,h = self.frame.get_size()
@@ -401,16 +401,18 @@ class Game:
                     self.screen.blit(self.tint_slow, (0, 0))
             if self.w< sf.get_width():
                 sf.fill('black')
-                pg.draw.circle(sf,'white', (self.player.rect.x-self.camera.x, self.player.rect.y-self.camera.y), self.w)
+                x,y = self.player.rect.centerx-self.camera.x, self.player.rect.centery-self.camera.y
+                x,y = remap(x, (0,1280),(0,cfg.screen_h)),remap(y, (0,720),(0,cfg.screen_v))
+                pg.draw.circle(sf,'white', (x,y), self.w)
                 if self.player.dead:
                     text = font.render('Respawning...', False, (255,0,0))
                     text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
-                    sf.blit(text, (500,200))
-                self.frame.blit(sf,(0,0))
+                    sf.blit(text, (300,100))
+                self.screen.blit(sf,(0,0))
             debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
-            debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp}', self.frame,y = 30,)
+            debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
             debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
         else:
             self.frame.fill('black')
@@ -453,6 +455,7 @@ class Game:
                 if self.w > 1: self.w /= 1.1
             else:
                 if self.w < sf.get_width(): self.w *= 1.1
+            self.world_tick = 0.3 if self.player.aiming else 1.0
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
             self.world.update_actors(self.delta*self.world_tick, self.player)
             # self.gameui[0].value = self.player.hp/100

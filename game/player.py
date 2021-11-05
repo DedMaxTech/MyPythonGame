@@ -73,7 +73,7 @@ class Bullet(core.Actor):
         self.autodel(20)
         self.parent = parent
         self.damage = dmg
-        self.img = pg.transform.rotate(img, abs(rot))
+        self.img = pg.transform.rotate(img, abs(rot)).convert_alpha()
         self.xspeed, self.yspeed = xv,yv
         if xv < 0:
             self.img = pg.transform.flip(self.img,True,False)
@@ -97,6 +97,7 @@ class Bullet(core.Actor):
                 fx.blood(self.rect.center,self.parent.world, int(self.damage*1.5/10))
                 fx.damage(self.rect.center,-self.damage,self.parent.world)
             if sounds: SOUNDS['hurt'].play()
+            if self.parent.aim_time < self.parent.AIM_TIME_MAX: self.parent.aim_time+=self.damage*10
             self._delete = True
         if isinstance(actor, level.Block):
             if actor.type in [i for i in level.block_s if level.block_s[i]['dest']]: actor.set_type('0')
@@ -104,6 +105,7 @@ class Bullet(core.Actor):
 
 
 class Player(core.Actor):
+    AIM_TIME_MAX=5000
     def __init__(self, x, y, n=0, game_inst=None):
         super().__init__(x, y, 35,80, friction=0.2)
         self.n = n
@@ -119,6 +121,7 @@ class Player(core.Actor):
         self.r_leg = True
         self.double = True
         self.aiming = False
+        self.aim_time=self.AIM_TIME_MAX
         self.timer = 0
         self.angle = 0
         self.hp = 100
@@ -142,11 +145,13 @@ class Player(core.Actor):
 
         self.ui.set_ui([
             ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black'),
+            ProgressBar((40,380), pg.image.load('game/content/ui/time_full.png').convert_alpha(), pg.image.load('game/content/ui/time_empty.png').convert_alpha(), colorkey='black'),
             Button((790,428),'yellow','', 20),
             Button((790,418),'red','', 15),
             Button((790,445),'white','', 15),
             Button((750,420),'white','',1,img='game/content/ui/ammo.png'),
             Button((20,422),'white','',1,img='game/content/ui/heart.png'),
+            Button((30,410),'white','',1,img='game/content/ui/clock.png'),
         ])
 
     def process_move(self, d: dict):
@@ -186,24 +191,26 @@ class Player(core.Actor):
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
         self.ui.buttons[0].value = self.hp/100
-        self.ui.buttons[1].text = f'{amm[0]}/{amm[1]}'
+        self.ui.buttons[1].value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
+        self.ui.buttons[2].text = f'{amm[0]}/{amm[1]}'
 
         
 
         if self.reload_kd>0 and self._reload:
-            self.ui.buttons[2].text = f'{self.reload_kd/1000:.2f}'
+            self.ui.buttons[3].text = f'{self.reload_kd/1000:.2f}'
         else:
-            self.ui.buttons[2].text = ''
+            self.ui.buttons[3].text = ''
             # max_amm = GUNS[self.guns[self.gun]]['mag']
             # print(max_amm == amm[0])
             # if max_amm == amm:self.ui.buttons[2].text = ''
             # else: self.ui.buttons[2].text = 'R to reload'
-        self.ui.buttons[3].text = self.guns[self.gun].title()
+        self.ui.buttons[4].text = self.guns[self.gun].title()
 
         # TIMERS
         if self.dmg_timer >0: self.dmg_timer-=delta
         if self.shoot_kd >0: self.shoot_kd -= delta
         if self.inventory_kd>0: self.inventory_kd -= delta
+        if not self.aiming and self.aim_time<self.AIM_TIME_MAX: self.aim_time += delta/30
 
         # RELOAD
         if self._reload:
@@ -239,6 +246,10 @@ class Player(core.Actor):
         if self.move_left and not self.left: self.xspeed -= ACCEL+self.xspeed
         # if not self.move_right and not self.move_left: self.xspeed = 0
         # if (self.right and self.xspeed > 0) or (self.left and self.xspeed < 0): self.xspeed = 0
+
+        if self.aiming:
+            if self.aim_time<=0:self.aiming=False
+            else:   self.aim_time-=delta
 
         if self.tp:
             self.tp = False
