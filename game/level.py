@@ -1,6 +1,6 @@
 from typing import List, Union
 import pygame as pg
-import importlib
+import sys,importlib
 from . import enemies,core, objects
 from . utils import *
 
@@ -76,21 +76,23 @@ class World:
         self.rect: pg.Rect = None
         if level: self.open_world(level)
 
-    def open_world(self, level, game_inst=None, video=True):
+    def open_world(self, levelname, game_inst=None, video=True):
         self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
-        with open(f'levels/{level}.py', 'r') as file:
+        with open(f'levels/{levelname}.py', 'r') as file:
             self.ignore_str, _ = ''.join(file.readlines()).split('####DONT TOUCH####')
-        
-        exec(f'from levels import {level}')
-        if video:self.bg = pg.image.load(eval(f'{level}.background')).convert()
-        else:self.bg = pg.image.load(eval(f'{level}.background'))
-        self.spawn_pos = eval(f'{level}.spawn_pos')
-        self.ais = get_copyes(eval(f'{level}.ais.copy()'))
-        self.actors = get_copyes(eval(f'{level}.actors.copy()'))
-        print([(a,a._delete) for a in self.actors])
+        level = importlib.import_module(f'levels.{levelname}')
+        if f'levels.{levelname}' in sys.modules:
+            importlib.reload(level)
+        # exec(f'from levels import {level}')
+        if video:self.bg = pg.image.load(level.background).convert()
+        else:self.bg = pg.image.load(level.background)
+        self.spawn_pos = level.spawn_pos
+        self.ais = level.ais.copy()
+        self.actors = level.actors.copy()
+        # print([(a,a._delete) for a in self.actors])
         for a in self.actors: 
             if isinstance(a, objects.BaseTriger): a.game = game_inst
-        self.blocks = eval(f'{level}.blocks.copy()')
+        self.blocks = level.blocks.copy()
         self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
         # print(f'Level opened: {level}')
         return self.spawn_pos
