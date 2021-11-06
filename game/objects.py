@@ -1,11 +1,12 @@
-from . import core
+from pygame import event
+from . import core, player
 from . utils import *
 
 def create_portals(pos1, pos2, size = (40,40)):
     p1 = Portal(pos1,size)
     p2 = Portal(pos2, size)
     p1.second, p2.second = p2,p1
-    return p1,p2
+    return [p1,p2]
 
 
 PORTAL_IMG = pg.image.load('game/content/portal2.png')
@@ -44,3 +45,32 @@ class Portal(core.Actor):
             actor.yspeed = -actor.yspeed
             # actor.xspeed = -actor.xspeed
             if sounds: sound.play()
+
+class BaseTriger(core.Actor):
+    def __init__(self, x, y, w, h):
+        super().__init__(x, y, w, h, bounce=0, gravity=0, static=False, friction=0, collision=True)
+        self.game = None
+        self.visible = False
+
+    def hit(self, actor):
+        if type(actor) == player.Player and self.game:
+            print('hited')
+            self.triggered(actor)
+    def triggered(self, actor):
+        pass
+
+class StopScreenTriger(BaseTriger):
+    BASE_IMG = pg.image.load('game/content/ui/trigger_base.png')
+    def __init__(self, x, y, w, h, image=None):
+        super().__init__(x, y, w, h)
+        self.image = self.BASE_IMG.blit(pg.image.load(image)) if image else self.BASE_IMG
+        self.visible=True
+    
+    def triggered(self, actor):
+        self.game.screen.blit(self.image,(0,0))
+        pg.display.update()
+        while True:
+            for e in pg.event.get():
+                if e.type == pg.KEYDOWN:
+                    self.delete()
+                    return

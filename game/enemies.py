@@ -15,7 +15,7 @@ AI_IMG_RIGHT = pg.image.load('game/content/ai/lookr.png')
 AI_IMG_LEFT = pg.transform.flip(AI_IMG_RIGHT, True, False)
 
 
-class AI(core.Actor):
+class BaseAI(core.Actor):
     def update_ai(self,delta, world):
         pass
     def hit(self, actor):
@@ -25,7 +25,7 @@ class AI(core.Actor):
             actor.hp -= dmg
             write_stat('received damage', get_stat('received damage')+dmg)
             actor.dmg_timer = 100
-class MeleeAI(AI):
+class MeleeAI(BaseAI):
     START_AGR = 250
     GO_R = 'r'
     GO_L = 'l'
@@ -59,7 +59,6 @@ class MeleeAI(AI):
             self.state = states[rd(0,len(states)-1)]
             self.timer = rd(1000,3000)
         target = world.get_nearest(player.Player, self.rect.center)
-        print(target)
         d = distanse(target.rect.center,self.rect.center)
         # if d < self.START_AGR and abs(player_pos[0]-self.rect.x):
         #     if player_pos[0]-self.rect.x>0:
@@ -118,7 +117,7 @@ class MeleeAI(AI):
             img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
 
-class ShoterAI(AI):
+class ShoterAI(BaseAI):
     START_AGR = 250
     GO_R = 'r'
     GO_L = 'l'
@@ -193,7 +192,6 @@ class ShoterAI(AI):
     def shoot(self, target,world):
         if self.shoot_kd >0: return
         self.angle = angle(target.rect.center, self.rect.center)-90
-        print(self.angle)
         gun = player.GUNS[self.gun]
         acc = gun['acc']*2
         ang = self.angle+(rd(-acc*5, acc*5)/3)

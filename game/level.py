@@ -1,6 +1,6 @@
 from typing import List, Union
 import pygame as pg
-
+import importlib
 from . import enemies,core, objects
 from . utils import *
 
@@ -20,6 +20,31 @@ block_s = {
     '/': {'img': img_glass, 'dest': True},
 }
 
+conf = '''# Auto-generated, can be edited
+from game import *
+
+spawn_pos = (40,40)
+background = '{bg}'
+
+ais = [
+
+]
+
+actors=[
+
+]+ais
+####DONT TOUCH####
+blocks = [
+
+]
+'''
+
+def write_list(name, arr):
+    separator = ',\n\t'
+    return f"{name} = [\n\t{separator.join(arr)}\n]"
+
+# def get_copyes(arr):
+#     return [copy(i) for i in arr]
 
 class Block(core.Actor):
     def __init__(self, x, y, t):
@@ -33,7 +58,7 @@ class Block(core.Actor):
         self.img = pg.image.load(block_s[t]['img']).convert_alpha()
 
     def __str__(self):
-        return f'b {self.type} {self.rect.x} {self.rect.y}'
+        return f'level.Block({self.rect.x},{self.rect.y},{repr(self.type)})'
 
 
 class World:
@@ -51,63 +76,31 @@ class World:
         self.rect: pg.Rect = None
         if level: self.open_world(level)
 
-    def open_world(self, level, prepared=False, video=True):
-        self.actors, self.images, self.ais, self.ignore_str = [],[], [], []
-        level = level
-        if not prepared:
-            with open(level, 'r') as file:
-                self.level = level
-                self.blocks = []
-                level = file.readlines()
-        self.bg_name = level[0][:-1]
-        print(f'{video=}')
-        if video:self.bg = pg.image.load(self.bg_name).convert()
-        else:self.bg = pg.image.load(self.bg_name)
-        level = level[1:]
-        self.h = len(level)
-        self.spawn_pos = (40,40)
-        for line in level:
-            line = line[:-1]
-            if line[0] == 'b':
-                _, t, x, y = line.split(' ')
-                x, y = int(x), int(y)
-                if self.w < x: self.w = x
-                b = Block(x, y, t)
-                self.blocks.append(b)
-            elif line[0] == 'i':
-                _, x, y, path = line.split(' ')
-                self.images.append((pg.image.load(path).convert_alpha(),path, (int(x), int(y))))
-            elif line.startswith('pl') == 'p':
-                _, x, y = line.split(' ')
-                self.spawn_pos = (int(x), int(y))
-            elif line.startswith('ai'):
-                self.ignore_str.append(f'{line}\n')
-                _, x, y = line.split(' ')
-                ai = enemies.ShoterAI(int(x),int(y))
-                self.ais.append(ai)
-                self.actors.append(ai)
-            elif line.startswith('ps'):
-                self.ignore_str.append(f'{line}\n')
-                _, x1,y1,x2,y2,w,h = line.split(' ')
-                self.actors += objects.create_portals((int(x1),int(y1)),(int(x2),int(y2)),(int(w),int(h)))
-            # t, x, y = line.split(' ')
-            # x, y = int(x), int(y)
-            # if self.w < x: self.w = x
-            # b = Block(x, y, t)
-            # self.blocks.append(b)
+    def open_world(self, level, game_inst=None, video=True):
+        self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
+        with open(f'levels/{level}.py', 'r') as file:
+            self.ignore_str, _ = ''.join(file.readlines()).split('####DONT TOUCH####')
+        
+        exec(f'from levels import {level}')
+        if video:self.bg = pg.image.load(eval(f'{level}.background')).convert()
+        else:self.bg = pg.image.load(eval(f'{level}.background'))
+        self.spawn_pos = eval(f'{level}.spawn_pos')
+        self.ais = get_copyes(eval(f'{level}.ais.copy()'))
+        self.actors = get_copyes(eval(f'{level}.actors.copy()'))
+        print([(a,a._delete) for a in self.actors])
+        for a in self.actors: 
+            if isinstance(a, objects.BaseTriger): a.game = game_inst
+        self.blocks = eval(f'{level}.blocks.copy()')
         self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
         # print(f'Level opened: {level}')
         return self.spawn_pos
 
     def save_world(self, levelname):
-        with open(levelname, 'w') as file:
-            file.write(f'{self.bg_name}\n')
-            file.write(f'p {self.spawn_pos[0]} {self.spawn_pos[1]}\n')
-            [file.write(l) for l in self.ignore_str]
-            for _,path, pos in self.images:
-                file.write(f'i {pos[0]} {pos[1]} {path}\n')
-            for b in self.blocks:
-                file.write(f'{b.__str__()}\n')
+        with open(f'levels/{levelname}.py', 'w') as file:
+            file.write(self.ignore_str)
+            file.write('####DONT TOUCH####\n# Auto-generated in '+__name__+'\n')
+            s = write_list('blocks', [b.__str__() for b in self.blocks])
+            file.write(s)
 
     def get_nearest(self, obj_class, pos):
         objcts = [a for a in self.actors if type(a) == obj_class]

@@ -90,7 +90,7 @@ class Bullet(core.Actor):
     def hit(self, actor):
         if actor == self.parent:
             return
-        if isinstance(actor, enemies.AI):
+        if isinstance(actor, enemies.BaseAI) and not isinstance(self.parent, enemies.BaseAI):
             actor.hp -= self.damage
             write_stat('done damage', get_stat('done damage')+self.damage)
             if not cfg.potato:

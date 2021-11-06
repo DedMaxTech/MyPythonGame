@@ -37,8 +37,8 @@ class Editor:
             Button((100,100), 'white', 'Levels:', 80, ),
             Button((1000,600), 'white', 'Create Level', 50,self.create_menu,'darkgrey')]
         a = 0
-        for i in glob('levels/*.txt'):
-            bs.append(Button((150, 200 + a * 45), 'white', i, 30, self.open_level, 'red', args=(i)));
+        for i in glob('levels/*.py'):
+            bs.append(Button((150, 200 + a * 45), 'white', i, 30, self.open_level, 'red', args=(i[i.index('\\')+1:-3])))
             a += 1
         a = 0
         bs.append(Button((1000,100), 'white', 'Blocks:', 80, ),)
@@ -56,7 +56,7 @@ class Editor:
             Button((100,400), 'white', 'Back', 50, self.main_menu, 'darkgrey'),Button((1000,400), 'white', 'Create', 50, self.create_level, 'darkgrey'),
         ]+add)
     def create_level(self):
-        path, bg = f'levels/{self.ui.buttons[2].text}.txt', f'game\content/{self.ui.buttons[4].text}.png'
+        path, bg = f'levels/{self.ui.buttons[2].text}.py', f'game\content/{self.ui.buttons[4].text}.png'
         print(path,bg)
         if os.path.isfile(path):
             self.create_menu([Button((1000,450), 'red', 'Already exists', 50)])
@@ -64,8 +64,8 @@ class Editor:
             self.create_menu([Button((1000,450), 'red', 'No such bg', 50)])
         else:
             with open(path,'w') as file:
-                file.write(f'{bg}\n')
-            self.open_level(path)
+                file.write(level.conf.format(bg=bg))
+            self.open_level(self.ui.buttons[2].text)
 
 
     def open_level(self, lvl):
@@ -86,6 +86,7 @@ class Editor:
 
     def save_level(self):
         self.editing = False
+        print(self.levelname)
         self.level.save_world(self.levelname)
         self.ui.clear()
         self.main_menu()
