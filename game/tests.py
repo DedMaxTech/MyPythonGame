@@ -1,10 +1,7 @@
-import pickle
-
-d = {
-    'time':640.137000000083,
-    'shoots':0,
-    'done damage':0,
-    'received damage':0,
-}
-pickle.dump(d, open('stats.p','wb'))
-print(pickle.load(open('stats.p','rb')))
+import keyboard, time
+time.sleep(5)
+while True:
+    keyboard.press('e')
+    time.sleep(0.001)
+    keyboard.release('e')
+    time.sleep(0.001)

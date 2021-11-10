@@ -19,7 +19,6 @@ class Button:
         self.rect = pg.Rect(self.x, self.y, self.size[0]+10, self.size[1])
         self.hover = False
         
-
     def nothing(self): pass
 
     def render(self, screen:pg.Surface):

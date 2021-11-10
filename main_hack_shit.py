@@ -1,7 +1,7 @@
 from time import sleep
 import pygame as pg
 
-import os, traceback, socket, pickle, math
+import os, traceback, socket, pickle, math, glob
 from random import randint as rd
 from typing import List
 
@@ -56,7 +56,7 @@ class Game:
         self.world = level.World()
         self.player: player.Player = None
         self.players:List[player.Player] = []
-        self.ais: List[enemies.AI] = []
+        self.ais: List[enemies.MeleeAI] = []
         self.shits: List[core.Actor] = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serv_port = 5001
@@ -103,10 +103,14 @@ class Game:
         ])+add)
     
     def select_level_menu(self):
-        levels = {
-            'Tutorial':'levels/tutorial.txt',
-            'Portals':'levels/portals.txt'
-        }
+        # levels = {
+        #     'Tutorial':'levels/tutorial.txt',
+        #     'Portals':'levels/portals.txt',
+        #     'ShootAI':'levels/shootai.txt'
+        # }
+        levels = dict()
+        for i in glob.glob('levels/*.py'):
+            i = i[i.index('\\')+1:-3]; levels[i.title()]=i
         self.ui.set_ui([Button((50, 50), 'white', 'Select level:', 40, ),]+vertical(5,
             [Button((75,100),'white',name,20,self.start_game,'red', args=levels[name]) for name in levels]
         ))
@@ -188,14 +192,14 @@ class Game:
     def start_game(self, level='levels/tutorial.txt'):
         self.level = level
         self.ui.clear()
-        x, y =self.world.open_world(level)
+        x, y =self.world.open_world(level, game_inst=self)
         self.w = 2
         self.playing = True
         if self.pause: self.pause = False
         self.player = player.Player(x, y, 0, self)
         self.camera.x = 0
         # e = 
-        self.world.actors += [self.player, core.Actor(350, 600,40,40)]
+        self.world.actors += [self.player]
         pg.mouse.set_cursor(*pg.cursors.diamond)
         # self.f()
         # pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')

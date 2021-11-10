@@ -1,11 +1,12 @@
-from . import core
+from pygame import event
+from . import core, player
 from . utils import *
 
 def create_portals(pos1, pos2, size = (40,40)):
     p1 = Portal(pos1,size)
     p2 = Portal(pos2, size)
     p1.second, p2.second = p2,p1
-    return p1,p2
+    return [p1,p2]
 
 
 PORTAL_IMG = pg.image.load('game/content/portal2.png')
@@ -44,3 +45,59 @@ class Portal(core.Actor):
             actor.yspeed = -actor.yspeed
             # actor.xspeed = -actor.xspeed
             if sounds: sound.play()
+
+class BaseTriger(core.Actor):
+    def __init__(self, x, y, w, h):
+        super().__init__(x, y, w, h, bounce=0, gravity=0, static=False, friction=0, collision=True)
+        self.game = None
+        self.visible = False
+
+    def hit(self, actor):
+        if type(actor) == player.Player and self.game:
+            self.triggered(actor)
+    def triggered(self, actor):
+        pass
+
+class ScreenTriger(BaseTriger):
+    BASE_IMG = pg.image.load('game/content/ui/trigger_base.png')
+    def __init__(self, x, y, w, h, image, timer=3000):
+        super().__init__(x, y, w, h)
+        self.image = pg.image.load(image)
+        # self.visible=True
+        self.timer = timer
+    
+    def update(self, delta, blocks, actors):
+        if self.visible and self.timer >0: self.timer-=delta
+        if self.timer<=0: self.delete()
+        self._collide_actors(actors)
+
+    def triggered(self, actor):
+        self.visible=True
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        if self.visible: self.game.screen.blit(self.image, (0,0))
+
+class ScreenConditionTriger(BaseTriger):
+    OK_IMG = pg.image.load('game/content/ui/screen_ok.png')
+    def __init__(self, x, y, w, h, image,condition):
+        super().__init__(x, y, w, h)
+        self.image = pg.image.load(image)
+        self.condition = condition
+        self.ok = False
+        # self.visible=True
+        self.timer = 1000
+    
+    def update(self, delta, blocks, actors):
+        if self.ok and self.timer >0: self.timer-=delta
+        if self.visible and self.condition(self.game):
+            self.ok=True
+        if self.timer<=0: self.delete()
+        self._collide_actors(actors)
+
+    def triggered(self, actor):
+        self.visible=True
+        if self.ok: return
+        
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        if self.visible: 
+            if not self.ok:self.game.screen.blit(self.image, (0,0))
+            else: self.game.screen.blit(self.OK_IMG, (0,0))
