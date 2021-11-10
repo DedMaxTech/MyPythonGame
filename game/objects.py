@@ -54,23 +54,50 @@ class BaseTriger(core.Actor):
 
     def hit(self, actor):
         if type(actor) == player.Player and self.game:
-            print('hited')
             self.triggered(actor)
     def triggered(self, actor):
         pass
 
-class StopScreenTriger(BaseTriger):
+class ScreenTriger(BaseTriger):
     BASE_IMG = pg.image.load('game/content/ui/trigger_base.png')
-    def __init__(self, x, y, w, h, image=None):
+    def __init__(self, x, y, w, h, image, timer=3000):
         super().__init__(x, y, w, h)
-        self.image = self.BASE_IMG.blit(pg.image.load(image)) if image else self.BASE_IMG
-        self.visible=True
+        self.image = pg.image.load(image)
+        # self.visible=True
+        self.timer = timer
     
+    def update(self, delta, blocks, actors):
+        if self.visible and self.timer >0: self.timer-=delta
+        if self.timer<=0: self.delete()
+        self._collide_actors(actors)
+
     def triggered(self, actor):
-        self.game.screen.blit(self.image,(0,0))
-        pg.display.update()
-        while True:
-            for e in pg.event.get():
-                if e.type == pg.KEYDOWN:
-                    self.delete()
-                    return
+        self.visible=True
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        if self.visible: self.game.screen.blit(self.image, (0,0))
+
+class ScreenConditionTriger(BaseTriger):
+    OK_IMG = pg.image.load('game/content/ui/screen_ok.png')
+    def __init__(self, x, y, w, h, image,condition):
+        super().__init__(x, y, w, h)
+        self.image = pg.image.load(image)
+        self.condition = condition
+        self.ok = False
+        # self.visible=True
+        self.timer = 1000
+    
+    def update(self, delta, blocks, actors):
+        if self.ok and self.timer >0: self.timer-=delta
+        if self.visible and self.condition(self.game):
+            self.ok=True
+        if self.timer<=0: self.delete()
+        self._collide_actors(actors)
+
+    def triggered(self, actor):
+        self.visible=True
+        if self.ok: return
+        
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        if self.visible: 
+            if not self.ok:self.game.screen.blit(self.image, (0,0))
+            else: self.game.screen.blit(self.OK_IMG, (0,0))

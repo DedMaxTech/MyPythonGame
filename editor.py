@@ -115,8 +115,9 @@ class Editor:
             pg.draw.line(self.screen, 'red', (0,-self.camera.y-40),(self.camera.w,-self.camera.y-40),1)
             pg.draw.line(self.screen, 'red', (0,-self.camera.y+self.camera.h-40),(self.camera.w,-self.camera.y+self.camera.h-40),1)
         self.ui.draw(self.screen)
-        utils.debug(f'{self.camera.x} {self.camera.y}', self.screen, y=50)
-
+        x,y= pg.mouse.get_pos()
+        x,y=utils.real((-x,-y-40), self.camera)
+        utils.debug(f'x: {-x} y: {-y}', self.screen, y=50)
 
     def event_loop(self):
         for event in pg.event.get():
