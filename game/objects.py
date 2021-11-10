@@ -77,12 +77,12 @@ class ScreenTriger(BaseTriger):
         if self.visible: self.game.screen.blit(self.image, (0,0))
 
 class ScreenConditionTriger(BaseTriger):
-    OK_IMG = pg.image.load('game/content/ui/screen_ok.png')
     def __init__(self, x, y, w, h, image,condition):
         super().__init__(x, y, w, h)
-        self.image = pg.image.load(image)
+        self.image = pg.image.load(image).convert_alpha()
         self.condition = condition
         self.ok = False
+        self.OK_IMG = pg.image.load('game/content/ui/screen_ok.png').convert_alpha()
         # self.visible=True
         self.timer = 1000
     

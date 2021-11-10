@@ -1,7 +1,7 @@
 from typing import Union, List
 import pygame as pg
 from .utils import *
-
+import cfg
 
 
 class Button:
@@ -99,10 +99,12 @@ class ProgressBar:
         screen.blit(sf,self.rect.topleft)
 
 class Interface:
-    def __init__(self, sounds:bool=False):
+    def __init__(self, sounds:bool=False, anims=True):
         self.buttons:List[Button] = []
         self.pos = 0,0
-        self.sounds = sounds
+        self.w=0
+        self.sounds, self.anims = sounds, anims
+        self.last_frame = pg.Surface(cfg.res)
         if self.sounds:
             self.sound = pg.mixer.Sound('game/content/sounds/menu2.wav')
             self.sound.set_volume(0.2)
@@ -110,12 +112,24 @@ class Interface:
     def clear(self):
         self.buttons = []
 
-    def set_ui(self, buttons: list):
+    def set_ui(self, buttons: list, anim=True):
+        self.draw(self.last_frame)
         self.buttons = buttons
+        if anim: self.w = 0
 
     def draw(self, screen: pg.Surface, offset=(0,0)):
+        if self.w<cfg.screen_h: self.w+=10
         for b in self.buttons:
             b.render(screen)
+        if self.anims and self.w<cfg.screen_h:
+            sf=pg.Surface(cfg.res)
+            sf.blit(self.last_frame,(0,0))
+            sf.fill('green',(0,0,self.w,cfg.screen_v))
+            sf.set_colorkey('green')    
+            screen.blit(sf,(0,0))
+            
+            
+        
 
     def update_buttons(self, event):
         if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:

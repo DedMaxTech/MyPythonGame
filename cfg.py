@@ -1,4 +1,4 @@
-screen_h, screen_v = 854,480
+res=screen_h, screen_v = 854,480
 fps = 60
 
 potato = False

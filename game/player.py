@@ -120,7 +120,7 @@ class Player(core.Actor):
         self.s = {}
         self.game = game_inst
         self.img = PLAYER_IMG
-        self.ui = Interface()
+        self.ui = Interface(anims=False)
 
         self.move_left, self.move_right, self.jump, self.tp = False, False, False, False
         self.move_speed = 0

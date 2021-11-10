@@ -111,7 +111,7 @@ class Game:
         levels = dict()
         for i in glob.glob('levels/*.py'):
             i = i[i.index('\\')+1:-3]; levels[i.title()]=i
-        self.ui.set_ui([Button((50, 50), 'white', 'Select level:', 40, ),]+vertical(5,
+        self.ui.set_ui([Button((50, 50), 'white', 'Select level:', 40, ),Button((75, 400), 'white', 'Back', 25, self.main_menu, 'darkgrey'),]+vertical(5,
             [Button((75,100),'white',name,20,self.start_game,'red', args=levels[name]) for name in levels]
         ))
     
@@ -132,7 +132,7 @@ class Game:
                 Button((400, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey', args=(self.level)),
                 Button((400, 260), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
                 Button((400, 290), 'white', 'Exit', 25, exit, 'darkgrey'),
-            ])
+            ], anim=False)
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
             # self.ui.set_ui(self.gameui)

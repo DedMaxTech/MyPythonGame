@@ -84,6 +84,7 @@ class World:
         if f'levels.{levelname}' in sys.modules:
             importlib.reload(level)
         # exec(f'from levels import {level}')
+        print(f'{video=}')
         if video:self.bg = pg.image.load(level.background).convert()
         else:self.bg = pg.image.load(level.background)
         self.spawn_pos = level.spawn_pos
