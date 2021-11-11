@@ -41,9 +41,6 @@ class Game:
         global sound
         self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
         print(f'Server: {self.serv_ip}')
-        
-        
-        # print(not pg.mixer.get_init()is No40)
 
         self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN)
         self.frame = pg.Surface(self.res)
@@ -103,11 +100,6 @@ class Game:
         ])+add)
     
     def select_level_menu(self):
-        # levels = {
-        #     'Tutorial':'levels/tutorial.txt',
-        #     'Portals':'levels/portals.txt',
-        #     'ShootAI':'levels/shootai.txt'
-        # }
         levels = dict()
         for i in glob.glob('levels/*.py'):
             i = i[i.index('\\')+1:-3]; levels[i.title()]=i
@@ -189,7 +181,7 @@ class Game:
         sleep(0.75)
         self.zoom(1)
 
-    def start_game(self, level='levels/tutorial.txt'):
+    def start_game(self, level='tutorial'):
         self.level = level
         self.ui.clear()
         x, y =self.world.open_world(level, game_inst=self)
@@ -197,14 +189,10 @@ class Game:
         self.playing = True
         if self.pause: self.pause = False
         self.player = player.Player(x, y, 0, self)
-        self.camera.x = 0
-        # e = 
+        self.camera.center = (x,y)
         self.world.actors += [self.player]
         pg.mouse.set_cursor(*pg.cursors.diamond)
-        # self.f()
-        # pb = ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
-        # self.gameui = [pb, Button((20,422),'white','',1,img='game/content/ui/heart.png')]
-        # self.ui.set_ui(self.gameui)
+
         self.start_zoom()
 
     def join_game(self):
@@ -228,24 +216,6 @@ class Game:
 
         self.loop()
     def death(self):
-        # self.playing = False
-        # self.frame.fill('black')
-        # pg.time.delay(500)
-        # for i in range(256):
-        #     self.frame.fill('black')
-        #     self.ui.clear()
-        #     self.ui.set_ui([
-        #         Button((150, 100), (i, 0, 0), 'GAME OVER', 40, ),
-        #     ])
-        #     # self.draw()
-        #     self.ui.draw(self.frame)
-        #     pg.display.update()
-        #     pg.time.delay(10)
-        # self.ui.set_ui([
-        #     Button((350, 200), 'white', 'Try again', 25, self.start_game, 'darkgrey'),
-        #     Button((350, 230), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
-        #     Button((350, 260), 'white', 'Exit', 25, exit, 'darkgrey'),
-        # ])
         self.zoom(1.5)
 
     @threaded(daemon=True)
@@ -318,12 +288,6 @@ class Game:
             self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN:
             if event.button == pg.BUTTON_LEFT:
-
-                # for i in range(1):
-                #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-                #     s.yspeed = -rd(6, 10)
-                #     s.xspeed = (rd(0, 100) -50) / 10
-                #     self.world.actors.append(s)
                 d['shoot'] = True
                 # self.shake = 5
             elif event.button == pg.BUTTON_WHEELUP:
@@ -347,37 +311,6 @@ class Game:
 
         d['look_r'] = x>=0
         d['angle'] = angle((abs(x),y))
-        # Python 3.10
-        # match event.type:
-        #     case pg.KEYDOWN:
-        #         match event.key:
-        #             case pg.K_d: d['right'] = True
-        #             case pg.K_a: d['left'] = True
-        #             case pg.K_SPACE: d['up'] = True
-        #     case pg.KEYUP:
-        #         match event.key:
-        #             case pg.K_d: d['right'] = False
-        #             case pg.K_a: d['left'] = False
-        #             case pg.K_SPACE: d['up'] = False
-        #     case pg.MOUSEMOTION:
-        #         if self.player.rect.centerx <= event.pos[0] + camera.x:
-        #             d['look_r'] = True
-        #         else:
-        #             d['look_r'] = False
-        #         x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25) - camera.y
-        #         if x == 0: x = 1
-        #         ang = int(math.degrees(math.atan(y / abs(x))))
-        #         d['angle'] = ang
-        #     case pg.USEREVENT:
-        #         self.player.r_leg = not self.player.r_leg
-        #     case pg.MOUSEBUTTONDOWN if event.button == pg.BUTTON_LEFT:
-        #         # for i in range(1):
-        #         #     s = core.Actor(event.pos[0],event.pos[1],40,40, bounce=0.4, friction=0.9)
-        #         #     s.yspeed = -rd(6, 10)
-        #         #     s.xspeed = (rd(0, 100) -50) / 10
-        #         #     self.world.actors.append(s)
-        #         d['shoot'] = True
-        #         self.shake = 5
         return d
 
     def procces_camera_shake(self):
@@ -428,14 +361,9 @@ class Game:
             self.ui.update_buttons(event)
             if hasattr(event, 'pos'):
                 x,y = self.frame.get_size()
-                # print(remap(event.pos[0], (0, x), (0,cfg.screen_h)), remap(event.pos[1], (0, y), (0,cfg.screen_v)))
                 setattr(event, 'pos', (remap(event.pos[0], (0, cfg.screen_h), (0,x)), remap(event.pos[1], (0, cfg.screen_v), (0,y))))
-                # print(event.pos)
-            
 
-            # print(event, type(event))
             if event.type == pg.QUIT: exit()
-            
             if self.playing and event.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN,pg.MOUSEBUTTONUP, pg.MOUSEWHEEL, pg.USEREVENT]:
                 self.player.process_move(self.update_control(event, self.camera))
 
@@ -443,11 +371,6 @@ class Game:
             if event.type == AUTOSAVE_EVENT:
                 write_stat('time', self.millis)
 
-            # match event.type:
-            #     case pg.QUIT: exit()
-            #     case pg.KEYDOWN if event.key == pg.K_ESCAPE: self.pause_menu()
-            #     case pg.KEYUP | pg.KEYDOWN | pg.MOUSEMOTION | pg.MOUSEBUTTONDOWN | pg.USEREVENT if self.playing:
-            #         self.player.process_move(self.update_control(event, self.camera))
                 
     def loop(self):
         self.event_loop()
@@ -462,8 +385,6 @@ class Game:
             self.world_tick = 0.3 if self.player.aiming else 1.0
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
             self.world.update_actors(self.delta*self.world_tick, self.player)
-            # self.gameui[0].value = self.player.hp/100
-
 
             if self.online:
                 try:
@@ -475,10 +396,6 @@ class Game:
                     print('conn err')
                     self.online = self.playing= False
                     self.main_menu([Button((75, 290), 'white', 'Connection error', 30,bg='darkgrey'),])
-            # if self.player.rect.x > 1000 and self.n != 1:
-            #     self.set_level(1)
-            # elif self.player.rect.x < 500 and self.n != 0:
-            #     self.set_level(0)
             self.camera_update()
             self.process_zoom()
             if self.clock.get_fps()<=35: self.fps_alert=True
