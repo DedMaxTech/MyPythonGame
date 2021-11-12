@@ -118,7 +118,7 @@ class MeleeAI(BaseAI):
         screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
 
 class ShoterAI(BaseAI):
-    START_AGR = 250
+    START_AGR = 350
     GO_R = 'r'
     GO_L = 'l'
     WAIT = 'w'
@@ -156,11 +156,16 @@ class ShoterAI(BaseAI):
 
         target = world.get_nearest(player.Player, self.rect.center)
         d = distanse(target.rect.center,self.rect.center)
-
+        x,y = real(self.rect.center,target.rect)
+        x,y = -x,y-40
+        self.look_r=x>0
+        ang = angle((-x,y if x<0 else -y))
+        self.angle = ang if x>0 else -ang+180
+        print(self.look_r)
+        self.d = d
         if target is not None and d < self.START_AGR:
             self.state = self.ATTACK
         else: self.pick_state()
-
         if self.state == self.WAIT:
             self.xspeed = 0
         elif self.state == self.GO_R:
@@ -191,14 +196,14 @@ class ShoterAI(BaseAI):
     
     def shoot(self, target,world):
         if self.shoot_kd >0: return
-        self.angle = angle(target.rect.center, self.rect.center)-90
+        
         gun = player.GUNS[self.gun]
         acc = gun['acc']*2
-        ang = self.angle+(rd(-acc*5, acc*5)/3)
+        ang = self.angle+(rd(-acc*5, acc*5)/2)
         xvel, yvel = vec_to_speed(gun['speed'],ang)
         b = player.Bullet(
             self.rect.centerx, self.rect.centery,
-            xvel, yvel, gun['bull_img'], ang, gun['dmg']/2, self
+            xvel, yvel, gun['bull_img'], ang, gun['dmg']/3, self
         )
         world.actors.append(b)
 
@@ -226,6 +231,11 @@ class ShoterAI(BaseAI):
             else:img,off = AI_IMG_LEFT.copy(), (-30,0)
         # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+(30*self.hp/100),self.rect.y-camera.y),4)
+        gun_img = pg.transform.rotate(player.GUNS[self.gun]['img'].copy(), -self.angle)
+        # if not self.look_r: gun_img=pg.transform.flip(gun_img, False,True)
+        # debug(gun_img.get_rect().center, screen)
+        img.blit(gun_img, (gun_img.get_rect().x, gun_img.get_rect().y+25))
         if self.dmg_timer > 0:
             img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
+

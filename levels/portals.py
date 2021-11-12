@@ -5,8 +5,8 @@ spawn_pos = (40,40)
 background = 'game\content/bg2.png'
 
 ais = [
-	enemies.MeleeAI(600,800),
-	enemies.ShoterAI(650,800, 'pistol')
+	# enemies.MeleeAI(600,800),
+	enemies.ShoterAI(650,800, 'rifle')
 ]
 
 actors=[

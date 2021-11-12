@@ -310,7 +310,7 @@ class Game:
         x, y =x+camera.x - self.player.rect.centerx, self.player.rect.centery - y - camera.y
 
         d['look_r'] = x>=0
-        d['angle'] = angle((abs(x),y))
+        d['angle'] = angle((abs(x),-y))
         return d
 
     def procces_camera_shake(self):

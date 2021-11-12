@@ -44,14 +44,17 @@ def distanse(pos1, pos2):
     return (x*x+y*y)**0.5
 
 def angle(pos1,pos2=(0,0)):
-    x,y = pos1[0] - pos2[0], pos2[1]+pos1[1]
-    if x == 0: x = 0.01
-    return int(math.degrees(math.atan(y/x)))  
+    x,y = pos1[0] - pos2[0], pos2[1]-pos1[1]
+    if x == 0: x = 0.0001
+    return math.degrees(math.atan(y/x))
 
 def vec_to_speed(vec, angle):
     xvel = vec * math.cos(math.radians(angle))
     yvel = vec * math.sin(math.radians(angle))
     return xvel, yvel
+
+def vec_sum(vec1,vec2):
+    return (vec1[0]+vec2[0],vec1[1]+vec2[1],)
 
 def real(pos:Union[Tuple[int,int], pg.Rect], camera:pg.Rect):
     if type(pos)==pg.Rect:
