@@ -4,6 +4,7 @@ from typing import List
 import cfg
 from game import player, level
 servers = []
+import orangetool as ot
 
 class User:
     def __init__(self, addr, player=None, **data):
@@ -98,7 +99,8 @@ class Server:
             self.clock.tick(240)
 
 if __name__ == '__main__':
-    port = sys.argv[1]
-    server = Server(int(port), 15)
-    server.run()
+    # port = sys.argv[1]
+    # server = Server(int(port), 15)
+    # server.run()
+    print(ot.get_temp(),ot.global_ip(),ot.ram_percent())
 
