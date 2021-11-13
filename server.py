@@ -30,8 +30,7 @@ class Server:
         self.clock = pg.time.Clock()
         self.level = level.World()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind((cfg.addr[0], port))
-        print((cfg.addr[0], port))
+        self.sock.bind((ot.global_ip(), port))
 
         self.name = f'[SERVER at {port}]:'
         self.levelname = 'levels/level.txt' 
@@ -100,16 +99,16 @@ class Server:
             self.clock.tick(240)
 
 @threaded()
-def res_monitor():
-    print(f'IP: {ot.global_ip()}')
+def res_monitor(port):
+    print(f'IP: {ot.global_ip()} at PORT: {port}')
     while True:
         time.sleep(5)
         print(f'CPU: {psutil.cpu_percent()}% CPU_TEMP: {ot.get_temp()/1000:.1f} C RAM: {ot.ram_percent()}%')
         
 
 if __name__ == '__main__':
-    res_monitor()
     port = sys.argv[1]
+    res_monitor(port)
     server = Server(int(port), 15)
     server.run()
     
