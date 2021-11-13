@@ -3,8 +3,10 @@ import socket, pickle, threading, sys
 from typing import List
 import cfg
 from game import player, level
+from game.utils import threaded
 servers = []
 import orangetool as ot
+import psutil, time
 
 class User:
     def __init__(self, addr, player=None, **data):
@@ -98,9 +100,18 @@ class Server:
             self.loop()
             self.clock.tick(240)
 
+@threaded()
+def res_monitor():
+    print(f'IP: {ot.global_ip()}')
+    while True:
+        time.sleep(5)
+        print(f'CPU: {psutil.cpu_percent()}% CPU_TEMP: {ot.get_temp()/1000:.1f} C RAM: {ot.ram_percent()}%')
+        
+
 if __name__ == '__main__':
-    # port = sys.argv[1]
-    # server = Server(int(port), 15)
-    # server.run()
-    print(ot.get_temp(),ot.global_ip(),ot.ram_percent())
+    res_monitor()
+    port = sys.argv[1]
+    server = Server(int(port), 15)
+    server.run()
+    
 
