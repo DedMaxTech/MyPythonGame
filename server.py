@@ -24,7 +24,6 @@ class Server:
         self.max_players = max_players
         self.running = True
         pg.init()
-        pg.display.set_mode((20,20))
         self.t = threading.Timer(20, self.stop)
         self.pr = threading.Thread(target=self.awaiting_conn)
         self.workers_pool = []
