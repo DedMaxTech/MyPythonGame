@@ -109,6 +109,7 @@ def res_monitor(port):
 if __name__ == '__main__':
     port = sys.argv[1]
     res_monitor(port)
+    input()
     # server = Server(int(port), 15)
     # server.run()
     
