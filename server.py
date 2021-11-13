@@ -103,7 +103,7 @@ def res_monitor(port):
     print(f'IP: {ot.global_ip()} at PORT: {port}')
     while True:
         time.sleep(5)
-        print(f'CPU: {psutil.cpu_percent()}% CPU_TEMP: {ot.get_temp()/1000:.1f} C RAM: {ot.ram_percent()}%')
+        print(f'CPU: {psutil.cpu_percent()}% CPU_TEMP: {int(ot.get_temp())/1000:.1f} C RAM: {ot.ram_percent()}%')
         
 
 if __name__ == '__main__':
