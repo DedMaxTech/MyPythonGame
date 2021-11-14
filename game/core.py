@@ -3,6 +3,7 @@ from time import sleep
 from . utils import *
 import cfg
 
+def_tick=1/cfg.fps*1000
 class Actor:
     def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True):
         self.rect = pg.Rect(x,y,w,h)
@@ -30,6 +31,7 @@ class Actor:
             self.on_ground = self.check_on_ground(blocks)
             if self.need_sides: self.right, self.left = self.check_right(blocks), self.check_left(blocks)
 
+        k=delta/def_tick
         if self.die:
             if self.die_kd >0: self.die_kd -= delta
             else: self.delete()

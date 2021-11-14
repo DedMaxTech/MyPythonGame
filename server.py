@@ -18,8 +18,9 @@ class User:
         return f'User at {self.addr}'
 
 class Server:
-    def __init__(self, port=None, max_players=4):
+    def __init__(self,ip, port=None, max_players=4):
         self.users: List[User] = []
+        self.ip = ip
         self.port = port if port else cfg.addr[1]+1
         self.max_players = max_players
         self.running = True
@@ -30,10 +31,10 @@ class Server:
         self.clock = pg.time.Clock()
         self.level = level.World()
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind((ot.global_ip(), port))
+        self.sock.bind((ip, port))
 
         self.name = f'[SERVER at {port}]:'
-        self.levelname = 'levels/level.txt' 
+        self.levelname = 'portals' 
         print(f'{self.name} started...')
         self.level.open_world(self.levelname, video=False)
 
@@ -92,25 +93,26 @@ class Server:
         self.running = False
         print(f'{self.name} commited suicide with no players :(')
 
+    @threaded()
+    def res_monitor(self):
+        print(f'IP: {self.ip} at PORT: {self.port}')
+        while True:
+            time.sleep(10)
+            print(f'CPU: {psutil.cpu_percent()}% CPU_TEMP: {int(ot.get_temp())/1000:.1f} C RAM: {ot.ram_percent()}')
+    
     def run(self):
         self.pr.start()
+        self.res_monitor()
         while self.running:
             self.loop()
             self.clock.tick(240)
-
-@threaded()
-def res_monitor(port):
-    print(f'IP: {ot.global_ip()} at PORT: {port}')
-    while True:
-        time.sleep(5)
-        print(f'CPU: {psutil.cpu_percent()}% CPU_TEMP: {int(ot.get_temp())/1000:.1f} C RAM: {ot.ram_percent()}%')
         
 
 if __name__ == '__main__':
-    port = sys.argv[1]
-    res_monitor(port)
-    input()
-    # server = Server(int(port), 15)
-    # server.run()
+    ip = ot.global_ip() if sys.argv[1]=='g' else ot.local_ip()
+    port = sys.argv[2]
+    print(ip,port)
+    server = Server(ip, int(port), 15)
+    server.run()
     
 
