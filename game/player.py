@@ -4,10 +4,10 @@ from . import enemies, core, fx, level
 from .UI import Interface, Button,ProgressBar
 from . utils import *
 from random import randint as rd
-
 import cfg
 
 PLAYER_IMG = pg.image.load('game/content/player2/player.png')
+BACK_IMG = pg.image.load('game/content/player2/back.png')
 PLAYER_IMG_DEAD = pg.image.load('game/content/player2/player_dead.png')
 PLAYER_LEGS_IDLE = pg.image.load('game/content/player2/legs/idle.png')
 PLAYER_ARMS = pg.image.load('game/content/player2/arms.png')
@@ -15,6 +15,11 @@ PLAYER_LEGS_AIR = pg.image.load('game/content/player/legs/air.png')
 PLAYER_LEGS_L = pg.image.load('game/content/player/legs/left.png')
 PLAYER_LEGS_R = pg.image.load('game/content/player/legs/right.png')
 BULLET_IMG = pg.image.load('game/content/player/guns/bullet.png')
+
+# parts
+PART_BACK = pg.image.load('game/content/player2/died/back.png')
+PART_HEAD = pg.image.load('game/content/player2/died/head.png')
+PART_LEGS = pg.image.load('game/content/player2/died/legs.png')
 
 PLAYER_ACCELERATION = 5
 PLAYER_AIR_ACCELERATION = 3
@@ -121,7 +126,7 @@ class Bullet(core.Actor):
 class Player(core.Actor):
     AIM_TIME_MAX=5000
     def __init__(self, x, y, n=0, game_inst=None):
-        super().__init__(x, y, 35,80, friction=0.2)
+        super().__init__(x, y, 35,63, friction=0.2)
         self.n = n
         self.s = {}
         self.game = game_inst
@@ -199,6 +204,15 @@ class Player(core.Actor):
             self.dead=True
             self.autodel(3)
             self.game.death()
+            # prts = [
+            #     core.Actor(self.rect.centerx, self.rect.centery, 40,40,0.5,friction=0.1, image=PART_BACK),
+            #     core.Actor(self.rect.centerx, self.rect.centery, 40,40,0.5,friction=0.1, image=PART_HEAD),
+            #     core.Actor(self.rect.centerx, self.rect.centery, 40,40,0.5,friction=0.1, image=PART_LEGS),
+            # ]
+            # for i in prts:
+            #     i.xspeed = rd(-3,3)
+            #     i.yspeed = 8
+            # level.actors += prts
         
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
@@ -333,7 +347,8 @@ class Player(core.Actor):
         self.img = pg.transform.flip(self.img, True, False)
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
-        self.img = PLAYER_IMG.copy()
+        self.img = BACK_IMG.copy()
+        self.img.blit(PLAYER_IMG.copy(), (0,0))
         # if self.on_ground:
         #     if self.xspeed == 0:
         #         self.img.blit(PLAYER_LEGS_IDLE, (0, 53))
@@ -349,14 +364,14 @@ class Player(core.Actor):
             off = -10 if self.look_r else -60
         gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle)
         # debug(gun_img.get_rect().center, screen)
-        self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+37+offy))
+        self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+27+offy))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if self.dead: self.img = PLAYER_IMG_DEAD
         if not self.look_r: self.rotate()
         if not self.dead:
             if self.dmg_timer > 0: self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
-            if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
+            # if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         
         screen.blit(self.img,

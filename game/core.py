@@ -5,7 +5,7 @@ import cfg
 
 def_tick=1/cfg.fps*1000
 class Actor:
-    def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True):
+    def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True, image=None):
         self.rect = pg.Rect(x,y,w,h)
         self.pre_rect = pg.Rect(x-30,y-30,w+30,h+30)
         self.xspeed, self.yspeed = 0.0, 0.0
@@ -16,7 +16,7 @@ class Actor:
         self._delete = False
         self.die = False
         self.die_kd = 0
-        self.img = None
+        self.img = image
         self.visible = True
         # self.autodel()
     
