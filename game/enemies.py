@@ -161,7 +161,6 @@ class ShoterAI(BaseAI):
         self.look_r=x>0
         ang = angle((-x,y if x<0 else -y))
         self.angle = ang if x>0 else -ang+180
-        print(self.look_r)
         self.d = d
         if target is not None and d < self.START_AGR:
             self.state = self.ATTACK
@@ -203,7 +202,7 @@ class ShoterAI(BaseAI):
         xvel, yvel = vec_to_speed(gun['speed'],ang)
         b = player.Bullet(
             self.rect.centerx, self.rect.centery,
-            xvel, yvel, gun['bull_img'], ang, gun['dmg']/3, self
+            xvel, yvel, gun['bull_img'], ang, gun['dmg']/4, self
         )
         world.actors.append(b)
 

@@ -32,12 +32,12 @@ class Actor:
             if self.need_sides: self.right, self.left = self.check_right(blocks), self.check_left(blocks)
 
         k=delta/def_tick
-        print(k)
+        # print(k)
         if self.die:
             if self.die_kd >0: self.die_kd -= delta
             else: self.delete()
         if not self.on_ground:
-            self.yspeed += self.gravity
+            self.yspeed += self.gravity*k
             
         else:
             if abs(self.xspeed) > 0.1:

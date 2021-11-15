@@ -89,5 +89,3 @@ def remap(val, in_boubds:Tuple[float,float], out_bounds:Tuple[float,float]=(0,1)
 def timer(t):
     time.sleep(t)
     print(t)
-
-print(remap(500, (0,2000), (0,1000)))

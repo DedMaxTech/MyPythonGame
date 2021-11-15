@@ -11,7 +11,6 @@ def create_portals(pos1, pos2, size = (40,40)):
 
 PORTAL_IMG = pg.image.load('game/content/portal2.png')
 sounds = not pg.mixer.get_init() is None
-print('sound',sounds)
 if sounds:
     sound = pg.mixer.Sound('game/content/sounds/portal.wav')
     sound.set_volume(0.2)

@@ -79,16 +79,22 @@ class Bullet(core.Actor):
             self.img = pg.transform.flip(self.img,True,False)
         if yv > 0:
             self.img = pg.transform.flip(self.img,False,True)
+        self.ignore_tmr = 200
         # self.trale = pg.Surface((20,20))
         # pg.draw.circle(self.trale,'yellow',(10,10),20)
         # self.trale.set_colorkey('black')
 
+    def update(self, delta, blocks, actors):
+        if self.ignore_tmr>0: self.ignore_tmr-=delta
+        return super().update(delta, blocks, actors)
+    
     def draw(self, screen: pg.Surface, camera):
         screen.blit(self.img, (self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         # screen.blit(self.trale, real(self.rect.center, camera), special_flags=pg.BLEND_RGB_ADD)
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
     def hit(self, actor):
-        if actor == self.parent:
+        print(self.ignore_tmr)
+        if actor == self.parent and self.ignore_tmr>0:
             return
         if isinstance(actor, enemies.BaseAI) and not isinstance(self.parent, enemies.BaseAI):
             actor.hp -= self.damage
@@ -264,16 +270,16 @@ class Player(core.Actor):
             if not self.on_ground:
                 if self.left and self.move_left and self.look_r:
                     self.move_left = False
-                    self.xspeed += WALL_JUMP_FORCE+WALL_JUMP_FORCE*abs(1-tick)
+                    self.xspeed += WALL_JUMP_FORCE
                     self.double = True
                 elif self.right and self.move_right and not self.look_r:
                     self.move_right = False
-                    self.xspeed -= WALL_JUMP_FORCE+WALL_JUMP_FORCE*abs(1-tick)
+                    self.xspeed -= WALL_JUMP_FORCE
                     self.double = True
                 elif self.double: self.double = False
                 else:return
             self.jump = False
-            self.yspeed = -(JUMP_FORCE+JUMP_FORCE*abs(1-tick)) 
+            self.yspeed = -JUMP_FORCE
             self.on_ground = False
             if sounds: SOUNDS['jump'].play()
     def reload(self):
