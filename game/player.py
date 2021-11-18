@@ -97,7 +97,7 @@ GUNS = {
             'acc':1,
             'auto': False,
             'shake':15,
-            'back':15},
+            'back':10},
     'minigun': {'img': pg.image.load('game/content/player2/guns/minigun.png'),
             'hold_img': 0,
             'pos': (29, 29),
@@ -196,6 +196,7 @@ class Player(core.Actor):
         self.timer = 0
         self.angle = 0
         self.hp = 100
+        self.max_hp = 100
         self.dmg_timer = 0
         self.world = None
         self.shoot = False

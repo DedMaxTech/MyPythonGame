@@ -59,6 +59,31 @@ class BaseTriger(core.Actor):
     def triggered(self, actor):
         pass
 
+class Aid(BaseTriger):
+    def __init__(self, x, y, hp):
+        super().__init__(x, y, 25,25)
+        self.visible=True
+        self.img = pg.image.load('game/content/objects/aid.png').convert_alpha()
+        self.hp = hp
+    
+    def triggered(self, actor):
+        if actor.hp+self.hp>actor.max_hp: actor.hp = actor.max_hp
+        else: actor.hp+=self.hp
+        self.delete()
+
+class Ammo(BaseTriger):
+    def __init__(self, x, y, ammo:dict):
+        super().__init__(x, y, 25,25)
+        self.visible=True
+        self.img = pg.transform.scale(pg.image.load('game/content/ui/ammo.png'),(25,25)).convert_alpha()
+        self.ammo = ammo
+    
+    def triggered(self, actor):
+        for key, val in self.ammo.items():
+            if actor.ammo.get(key):actor.ammo[key][1]+=val
+            else: actor.ammo[key] = [0, val]
+        self.delete()
+
 class ScreenTriger(BaseTriger):
     BASE_IMG = pg.image.load('game/content/ui/trigger_base.png')
     def __init__(self, x, y, w, h, image, timer=3000):

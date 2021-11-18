@@ -164,7 +164,7 @@ class ShoterAI(BaseAI):
         self.d = d
         if target is not None and d < self.START_AGR:
             self.state = self.ATTACK
-        else: self.pick_state()
+        else: pass
         if self.state == self.WAIT:
             self.xspeed = 0
         elif self.state == self.GO_R:
