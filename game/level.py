@@ -135,7 +135,7 @@ class World:
                 del self.actors[self.actors.index(a)]
             else:
                 if not a.static and a.collision:
-                    a.update(delta, self.get_blocks(a.pre_rect), self.actors)
+                    a.update(delta, self.get_blocks(a.pre_rect), self.get_actors(a.pre_rect))
                 else:
                     a.update(delta, [], self.actors)
         if self.ais:
@@ -162,7 +162,7 @@ class World:
     
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.bg, (0,0))
-        for i in self.get_blocks():
+        for i in self.get_blocks(camera):
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y - camera.y))
         for sf,_, pos in self.images: screen.blit(sf, real(pos, camera))
         [a.draw(screen, camera) for a in self.actors]

@@ -320,9 +320,7 @@ class Game:
             x = rd(-self.shake, self.shake)
             y = rd(-self.shake, self.shake)
         return x, y
-
     def draw(self):
-        
         if self.playing:
             self.world.draw(self.frame, self.camera)
             # self.player.draw(self.frame, self.camera)

@@ -6,6 +6,11 @@ from . utils import *
 from random import randint as rd
 import cfg
 
+IMGS = {
+    'PLAYER':pg.image.load('game/content/player2/player.png'),
+    'BACK':pg.image.load('game/content/player2/back.png')
+}
+
 PLAYER_IMG = pg.image.load('game/content/player2/player.png')
 BACK_IMG = pg.image.load('game/content/player2/back.png')
 PLAYER_IMG_DEAD = pg.image.load('game/content/player2/player_dead.png')
@@ -33,6 +38,7 @@ RED_TINT.fill('red')
 
 
 
+
 sounds = not pg.mixer.get_init() is None
 print('sound',sounds)
 if sounds:
@@ -47,30 +53,75 @@ GUNS = {
     'rifle': {'img': pg.image.load('game/content/player/guns/rifle.png'),
               'hold_img': 0,
               'pos': (29, 29),
+              'offy':0,
               'bull_pos': (0, 0),
               'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
               'speed': 30,
               'mag': 30,
+              'amount': 1,
               'reload':2000,
               'dmg':15,
               'kd':100,
               'acc':2,
-              'auto': True},
+              'auto': True,
+              'shake':7,
+              'back':1},
     'pistol': {'img': pg.image.load('game/content/player2/guns/pistol.png'),
                'hold_img': 0,
                'pos': (29, 29),
+               'offy':0,
                'bull_pos': (0, 0),
                'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
                'speed': 30,
                'mag': 10,
+               'amount': 1,
                'reload': 1000,
                'dmg':35,
                'kd':300,
                'acc':1,
-               'auto': False},
+               'auto': False,
+               'shake':9,
+               'back':2},
+    'shootgun': {'img': pg.image.load('game/content/player2/guns/shootgun.png'),
+            'hold_img': 0,
+            'pos': (29, 29),
+            'offy':-5,
+            'bull_pos': (0, 0),
+            'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
+            'speed': 30,
+            'mag': 5,
+            'amount': 3,
+            'reload': 3000,
+            'dmg':20,
+            'kd':500,
+            'acc':1,
+            'auto': False,
+            'shake':15,
+            'back':7},
+    'minigun': {'img': pg.image.load('game/content/player2/guns/minigun.png'),
+            'hold_img': 0,
+            'pos': (29, 29),
+            'offy':-5,
+            'bull_pos': (0, 0),
+            'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
+            'speed': 25,
+            'mag': 100,
+            'amount': 1,
+            'reload': 3000,
+            'dmg':7,
+            'kd':50,
+            'acc':1,
+            'auto': True,
+            'shake':7,
+            'back':1},
 }
 
-
+def convert():
+    for key, val in IMGS.items():
+        IMGS[key] = val.convert_alpha()
+    for d in GUNS.values():
+        d['img'] = d['img'].convert_alpha()
+        d['bull_img'] = d['bull_img'].convert_alpha()
 class Bullet(core.Actor):
     def __init__(self, x, y, xv,yv, img, rot, dmg, parent):
         w,h = img.get_size()
@@ -85,6 +136,7 @@ class Bullet(core.Actor):
         if yv > 0:
             self.img = pg.transform.flip(self.img,False,True)
         self.ignore_tmr = 200
+        self.pre_rect = pg.Rect(x-50,y-50,w+50,h+50)
         # self.trale = pg.Surface((20,20))
         # pg.draw.circle(self.trale,'yellow',(10,10),20)
         # self.trale.set_colorkey('black')
@@ -132,7 +184,8 @@ class Player(core.Actor):
         self.game = game_inst
         self.img = PLAYER_IMG
         self.ui = Interface(anims=False)
-
+        convert()
+        
         self.move_left, self.move_right, self.jump, self.tp = False, False, False, False
         self.move_speed = 0
         self.look_r = True
@@ -150,10 +203,11 @@ class Player(core.Actor):
         self.inventory_kd = 1000
         self.font = pg.font.Font(cfg.font, 14)
         self.need_sides = True
+        self.to_ang=0
 
         self.gun = 0
-        self.guns = ['pistol', 'rifle']
-        self.ammo = {'rifle': [30, 30], 'pistol': [10,50]}
+        self.guns = ['pistol', 'rifle', 'shootgun','minigun']
+        self.ammo = {'rifle': [30, 30], 'pistol': [10,50],'shootgun':[5,10], 'minigun':[100,200]}
         self._reload = False
         self.reload_kd = 0
 
@@ -204,15 +258,15 @@ class Player(core.Actor):
             self.dead=True
             self.autodel(3)
             self.game.death()
-            # prts = [
-            #     core.Actor(self.rect.centerx, self.rect.centery, 40,40,0.5,friction=0.1, image=PART_BACK),
-            #     core.Actor(self.rect.centerx, self.rect.centery, 40,40,0.5,friction=0.1, image=PART_HEAD),
-            #     core.Actor(self.rect.centerx, self.rect.centery, 40,40,0.5,friction=0.1, image=PART_LEGS),
-            # ]
-            # for i in prts:
-            #     i.xspeed = rd(-3,3)
-            #     i.yspeed = 8
-            # level.actors += prts
+            prts = [
+                core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_BACK),
+                core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_HEAD),
+                core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_LEGS),
+            ]
+            for i in prts:
+                i.xspeed = rd(-3,3)
+                i.yspeed = 8
+            level.actors += prts
         
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
@@ -236,7 +290,9 @@ class Player(core.Actor):
 
         # RELOAD
         if self._reload:
-            if self.reload_kd>0: self.reload_kd -= delta
+            if self.reload_kd>0: 
+                self.reload_kd -= delta
+                self.to_ang = remap(self.reload_kd, (0, GUNS[self.guns[self.gun]]['reload']/GUNS[self.guns[self.gun]]['amount']), (0,360))
             else:
                 amm = self.ammo[self.guns[self.gun]]
                 if amm[1]>0:
@@ -247,6 +303,7 @@ class Player(core.Actor):
                             break
                     self.ammo[self.guns[self.gun]] = [m, self.ammo[self.guns[self.gun]][1]-m]
                 self._reload = False
+        else:self.to_ang=0
 
         if self.on_ground:
             self.double = True
@@ -311,19 +368,21 @@ class Player(core.Actor):
             return
         gun = GUNS[self.guns[self.gun]]
         acc = gun['acc'] if self.aiming else gun['acc']*2
-        xvel, yvel = vec_to_speed(gun['speed'], self.angle+(rd(-acc*5, acc*5)/3))
-        d = gun['dmg']
-        b = Bullet(self.rect.x + gun['pos'][0],
-                  self.rect.y + gun['pos'][1],
-                  xvel if self.look_r else -xvel,
-                  -yvel,
-                  gun['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self
-        )
-        self.game.world.actors.append(b)
+        for i in range(gun['amount']):
+            xvel, yvel = vec_to_speed(gun['speed'], self.angle+(rd(-acc*5, acc*5)/3))
+            d = gun['dmg']
+            b = Bullet(self.rect.x + gun['pos'][0],
+                    self.rect.y + gun['pos'][1],
+                    xvel if self.look_r else -xvel,
+                    -yvel,
+                    gun['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self
+            )
+            self.game.world.actors.append(b)
 
         self.ammo[self.guns[self.gun]][0] -= 1
-
-        if self.shoot and self.game: self.game.shake = 5
+        xv,yv=vec_to_speed(gun['back'], self.angle-180)
+        self.xspeed, self.yspeed = self.xspeed+(xv if self.look_r else-xv), self.yspeed-yv
+        if self.shoot and self.game: self.game.shake = gun['shake']
 
         self.shoot_kd = gun['kd']
         self.shoot = gun['auto']
@@ -347,8 +406,8 @@ class Player(core.Actor):
         self.img = pg.transform.flip(self.img, True, False)
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
-        self.img = BACK_IMG.copy()
-        self.img.blit(PLAYER_IMG.copy(), (0,0))
+        self.img = IMGS['BACK'].copy()
+        self.img.blit(IMGS['PLAYER'].copy(), (0,0))
         # if self.on_ground:
         #     if self.xspeed == 0:
         #         self.img.blit(PLAYER_LEGS_IDLE, (0, 53))
@@ -362,9 +421,9 @@ class Player(core.Actor):
         if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
             self.img = pg.transform.rotate(self.img, -30)
             off = -10 if self.look_r else -60
-        gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle)
+        gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang)
         # debug(gun_img.get_rect().center, screen)
-        self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+27+offy))
+        self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+27+offy+GUNS[self.guns[self.gun]]['offy']))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if self.dead: self.img = PLAYER_IMG_DEAD
@@ -374,6 +433,6 @@ class Player(core.Actor):
             # if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         
-        screen.blit(self.img,
-                    (self.rect.x - camera.x+off, self.rect.y - camera.y))
+        if not self.dead:
+            screen.blit(self.img, (self.rect.x - camera.x+off, self.rect.y - camera.y))
         self.ui.draw(self.game.screen)

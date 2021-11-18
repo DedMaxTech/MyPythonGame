@@ -1,5 +1,5 @@
 /.idea
-/__pycache__
-/game/__pycache__
-/game/fx/__pycache__
-/levels/__pycache__
+# /__pycache__
+# /game/__pycache__
+# /game/fx/__pycache__
+*.pyc
