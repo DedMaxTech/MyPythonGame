@@ -12,6 +12,7 @@ ais = [
 actors=[
 	*objects.create_portals((280, 1000), (720, 1000),(120,40)),
 	core.Actor(350, 600,40,40),
+	objects.LevelTravelTriger(1000,800,40,80,'tutorial')
 	# objects.ScreenConditionTriger(0,200,300,100,'game/content/ui/to_move.png',lambda game: game.player.xspeed!=0),
 	# objects.ScreenConditionTriger(300,0,40,1000,'game/content/ui/to_jump.png',lambda game: not game.player.on_ground),
 	# objects.ScreenConditionTriger(600,0,40,1000,'game/content/ui/to_double.png',lambda game: not game.player.double)

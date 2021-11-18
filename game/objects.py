@@ -16,16 +16,18 @@ if sounds:
     sound.set_volume(0.2)
 class Portal(core.Actor):
     def __init__(self, pos,size = (40,40), second = None):
+        global PORTAL_IMG
         x,y = pos; w,h = size
         super().__init__(x, y, w,h, static=True)
         self.second = second
         self.ignore = []
+        PORTAL_IMG = PORTAL_IMG.convert_alpha()
         self.img = pg.transform.scale(PORTAL_IMG.copy(), size)
         self.r = 0
     def update(self, delta, blocks, actors):
-        self.r += 10
-        self.r = self.r%360
-        self.img = pg.transform.rotate(PORTAL_IMG.copy(),self.r//90)
+        self.r += 1
+        # self.r = self.r%360
+        self.img = pg.transform.rotate(PORTAL_IMG.copy(),self.r)
         self.img = pg.transform.scale(self.img, (self.rect.w,self.rect.h))
         for i in self.ignore:
             i[0] -= delta
@@ -74,6 +76,23 @@ class ScreenTriger(BaseTriger):
         self.visible=True
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         if self.visible: self.game.screen.blit(self.image, (0,0))
+
+class LevelTravelTriger(BaseTriger):
+    def __init__(self, x, y, w, h, levelname):
+        super().__init__(x, y, w, h)
+        self.visible=True
+        self.img = pg.transform.scale(PORTAL_IMG.copy(), (w,h))
+        self.level = levelname
+        self.r=0
+    
+    def update(self, delta, blocks, actors):
+        self.r+=1
+        self.img = pg.transform.rotate(PORTAL_IMG.copy(),self.r)
+        self.img = pg.transform.scale(self.img, (self.rect.w,self.rect.h))
+        return super().update(delta, blocks, actors)
+    
+    def triggered(self, actor):
+        self.game.start_game(self.level)
 
 class ScreenConditionTriger(BaseTriger):
     def __init__(self, x, y, w, h, image,condition):

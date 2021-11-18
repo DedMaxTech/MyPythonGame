@@ -59,7 +59,7 @@ GUNS = {
               'speed': 30,
               'mag': 30,
               'amount': 1,
-              'reload':2000,
+              'reload':1500,
               'dmg':15,
               'kd':100,
               'acc':2,
@@ -423,7 +423,8 @@ class Player(core.Actor):
             off = -10 if self.look_r else -60
         gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang)
         # debug(gun_img.get_rect().center, screen)
-        self.img.blit(gun_img, (gun_img.get_rect().x+20, gun_img.get_rect().y+27+offy+GUNS[self.guns[self.gun]]['offy']))
+        w,h=gun_img.get_width()/2,gun_img.get_height()/2
+        self.img.blit(gun_img, (gun_img.get_rect().x+30-w, gun_img.get_rect().y+35+offy+GUNS[self.guns[self.gun]]['offy']-h))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if self.dead: self.img = PLAYER_IMG_DEAD
