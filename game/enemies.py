@@ -198,13 +198,14 @@ class ShoterAI(BaseAI):
         
         gun = player.GUNS[self.gun]
         acc = gun['acc']*2
-        ang = self.angle+(rd(-acc*5, acc*5)/2)
-        xvel, yvel = vec_to_speed(gun['speed'],ang)
-        b = player.Bullet(
-            self.rect.centerx, self.rect.centery,
-            xvel, yvel, gun['bull_img'], ang, gun['dmg']/4, self
-        )
-        world.actors.append(b)
+        for i in range(gun['amount']):
+            ang = self.angle+(rd(-acc*5, acc*5)/2)
+            xvel, yvel = vec_to_speed(gun['speed'],ang)
+            b = player.Bullet(
+                self.rect.centerx, self.rect.centery,
+                xvel, yvel, gun['bull_img'], ang, gun['dmg']/4, self
+            )
+            world.actors.append(b)
 
         self.shoot_kd = gun['kd']*1.5
 
