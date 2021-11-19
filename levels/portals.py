@@ -11,10 +11,14 @@ ais = [
 
 actors=[
 	*objects.create_portals((280, 1000), (720, 1000),(120,40)),
+	*objects.create_portals((40,920),(600,920),(40,80)),
 	core.Actor(350, 600,40,40),
 	# objects.LevelTravelTriger(1000,800,40,80,'tutorial'),
-	objects.Aid(1200,1000-25,50),
-	objects.Ammo(1240,1000-25,{'minigun':100, 'shootgun':5, 'rifle':90})
+
+	*objects.create_zoom_zone(1260,0,220,1000,0.5),
+	objects.Aid(1400,1000-25,50),
+	objects.Ammo(1440,1000-25,{'minigun':100, 'shootgun':5, 'rifle':90}),
+
 	# objects.ScreenConditionTriger(0,200,300,100,'game/content/ui/to_move.png',lambda game: game.player.xspeed!=0),
 	# objects.ScreenConditionTriger(300,0,40,1000,'game/content/ui/to_jump.png',lambda game: not game.player.on_ground),
 	# objects.ScreenConditionTriger(600,0,40,1000,'game/content/ui/to_double.png',lambda game: not game.player.double)
@@ -173,5 +177,12 @@ blocks = [
 	level.Block(800,1040,'-'),
 	level.Block(840,1040,'-'),
 	level.Block(280,240,'='),
-	level.Block(240,240,'=')
+	level.Block(240,240,'='),
+	level.Block(1280,880,'='),
+	level.Block(1320,880,'='),
+	level.Block(1360,880,'='),
+	level.Block(1400,880,'='),
+	level.Block(1440,880,'='),
+	level.Block(1480,880,'='),
+	level.Block(1520,880,'=')
 ]

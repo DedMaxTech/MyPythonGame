@@ -56,7 +56,7 @@ GUNS = {
               'offy':0,
               'bull_pos': (0, 0),
               'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
-              'speed': 25,
+              'speed': 20,
               'mag': 30,
               'amount': 1,
               'reload':1500,
@@ -421,7 +421,7 @@ class Player(core.Actor):
         offy = 0 if not self.aiming else -7
         if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
             self.img = pg.transform.rotate(self.img, -30)
-            off = -10 if self.look_r else -60
+            off = 0 if self.look_r else -60
         gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang)
         # debug(gun_img.get_rect().center, screen)
         w,h=gun_img.get_width()/2,gun_img.get_height()/2
@@ -436,5 +436,5 @@ class Player(core.Actor):
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         
         if not self.dead:
-            screen.blit(self.img, (self.rect.x - camera.x+off, self.rect.y - camera.y))
+            screen.blit(self.img, (self.rect.x - camera.x+off-3, self.rect.y - camera.y))
         self.ui.draw(self.game.screen)

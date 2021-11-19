@@ -450,8 +450,15 @@ class Game:
         self.draw()
         pg.display.update()
 
+    @threaded()
+    def resize(self):
+        while True:
+            x,y = input().split(' ')
+            self.screen = pg.display.set_mode(size=(int(x), int(y)), flags=pg.SCALED | pg.FULLSCREEN)
+
     def run(self):
         print(repr(get_stat()))
+        self.resize()
         while True:
             self.loop()
             self.delta = self.clock.tick(cfg.fps)

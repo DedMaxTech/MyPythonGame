@@ -59,6 +59,17 @@ class BaseTriger(core.Actor):
     def triggered(self, actor):
         pass
 
+
+def create_zoom_zone(x,y,w,h,zoom, defoult=1):
+    return Trigger(x,y,20,h, lambda game: game.zoom(defoult)),Trigger(x+20,y,20,h, lambda game: game.zoom(zoom)),Trigger(x+w,y,20,h, lambda game: game.zoom(zoom)),Trigger(x+w+20,y,20,h, lambda game: game.zoom(defoult)),
+class Trigger(BaseTriger):
+    def __init__(self, x, y, w, h, func):
+        super().__init__(x, y, w, h)
+        self.func = func
+    
+    def triggered(self, actor):
+        self.func(self.game)
+
 class Aid(BaseTriger):
     def __init__(self, x, y, hp):
         super().__init__(x, y, 25,25)
