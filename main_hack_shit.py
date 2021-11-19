@@ -56,11 +56,11 @@ class Game:
         self.ais: List[enemies.MeleeAI] = []
         self.shits: List[core.Actor] = []
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serv_port = 5001
+        self.port = 5001
         self.n = 0
 
         self.playing = False  # TODO: меню
-        self.online = False
+        self.online,self.host = False,False
         self.pause = False
         self.searching = False
         self.shake = 0
@@ -89,15 +89,16 @@ class Game:
         self.pause = False
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
+        tf = TextField((220,195+36), 'black', 'Code:',30,bg='white')
         self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),]+
             vertical(5,[
             Button((75, 120), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
             Button((75, 155), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
             Button((75, 190), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
-            Button((75, 200), 'white', 'Join game', 30, self.join_game, 'darkgrey'),
+            Button((75, 200), 'white', 'Join game', 30, self.join_game, 'darkgrey',textfield=tf),
             Button((75, 260), 'white', 'Statistics', 30, self.stats_menu, 'darkgrey'),
             Button((75, 295), 'white', 'Exit', 30, exit, 'darkgrey'),
-        ])+add)
+        ])+add+[tf])
     
     def select_level_menu(self):
         levels = dict()
@@ -122,9 +123,10 @@ class Game:
             self.ui.set_ui([
                 Button((400, 200), 'white', 'Continue', 25, self.pause_menu, 'darkgrey'),
                 Button((400, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey', args=(self.level)),
-                Button((400, 260), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
-                Button((400, 290), 'white', 'Exit', 25, exit, 'darkgrey'),
-            ], anim=False)
+                Button((400, 290), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
+                Button((400, 320), 'white', 'Exit', 25, exit, 'darkgrey'),
+            ] + [Button((400, 260), 'white', 'Online', 25, self.create_game, 'darkgrey', ),] if not self.online else horizontal(5, [Button((400, 260), 'white', 'Offline', 25, self.close_game, 'darkgrey', ), Button((400, 260), 'white', f'Code to cennect: {self.ip.split(".")[-1]}', 25),]), anim=False)
+            
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
             # self.ui.set_ui(self.gameui)
@@ -163,6 +165,20 @@ class Game:
                 self.main_menu([Button((75, 290), 'white', 'Connection error', 30,bg='darkgrey'),])
             except Exception as e:
                 print(traceback.format_exc())
+    @threaded()
+    def awaiting_conn(self):
+        try:
+            self.sock.listen()
+            while self.host:
+                conn, addr = self.sock.accept()
+                print('new player ', addr)
+
+        except Exception as e:
+            print(e)
+
+    @threaded()
+    def awaiting_player_data(self,conn,addr):
+        pass
 
     def join_menu(self, text, add=[]):
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -195,9 +211,30 @@ class Game:
 
         self.start_zoom()
 
-    def join_game(self):
+    # def join_game(self):
+    #     try:
+    #         self.sock.connect((self.serv_ip, self.port))
+    #         data = pickle.loads(self.sock.recv(1024 * 4))
+    #         self.world.open_world(data.get('level'))
+    #         self.ui.clear()
+    #         self.camera.x = 0
+    #         self.player = player.Player(50, 0, data.get('n'), self)  # TODO: ONLINEEEEEE
+    #         self.playing = True
+    #         self.online = True
+    #         self.pr.start()
+    #     except socket.timeout:
+    #         self.join_menu('Servers dont answer...',
+    #                        [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
+    #     except Exception as e:
+    #         print(e)
+    #         self.join_menu('Cant connect to servers:(',
+    #                        [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
+
+    #     self.loop()
+    def join_game(self, port):
         try:
-            self.sock.connect((self.serv_ip, self.serv_port))
+            ip = socket.gethostbyname(socket.getservbyname()).split('.')
+            self.sock.connect(('.'.join(ip[:-1])+'.'+port, cfg.addr[1]))
             data = pickle.loads(self.sock.recv(1024 * 4))
             self.world.open_world(data.get('level'))
             self.ui.clear()
@@ -215,6 +252,17 @@ class Game:
                            [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
 
         self.loop()
+    
+    def create_game(self):
+        self.ip = socket.gethostbyname(socket.getservbyname())
+        self.port = cfg.addr[1]
+        self.sock.bind((self.ip, self.port))
+        self.host = True
+    
+    def close_game(self):
+        self.host=False
+        self.sock.close()
+
     def death(self):
         self.zoom(1.5)
 
@@ -411,6 +459,7 @@ class Game:
 
 
 if __name__ == '__main__':
+    print(socket.gethostbyname(socket.gethostname()))
     game = Game()
     try:
         game.run()

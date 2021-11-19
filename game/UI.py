@@ -6,7 +6,7 @@ import cfg
 
 class Button:
     def __init__(self, pos, color, text, font: Union[int, pg.font.Font], callback_f=None, bg=None,bg_hover=None, img=None, size=None,
-                 args: tuple = None):
+                 args: tuple = None, textfield=None):
         self.pos = self.x, self.y = pos
         self.color = pg.Color(color)
         self.font: pg.font.Font = font if type(font) == pg.font.Font else pg.font.Font('game/content/pixel_font.ttf', font)
@@ -18,6 +18,7 @@ class Button:
         self.args = args
         self.rect = pg.Rect(self.x, self.y, self.size[0]+10, self.size[1])
         self.hover = False
+        self.texfield=textfield
         
     def nothing(self): pass
 
@@ -78,7 +79,7 @@ class TextField:
                 off = 50
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
         # if self.img: screen.blit(pg.image.load(self.img), self.pos)
-        screen.blit(self.font.render(self.text + "|" if self.active else self.text, True, self.color), self.pos)
+        screen.blit(self.font.render(self.text + "|" if self.active else self.text, False, self.color), self.pos)
     
 class ProgressBar:
     def __init__(self, pos, img_full, img_empty=None, value=1, colorkey='black'):
@@ -140,8 +141,9 @@ class Interface:
                     if self.sounds:
                         self.sound.play()
                     if type(b) == Button:
-                        if b.args: b.func(b.args)
-                        else: b.func()
+                        add = () if not b.texfield else (b.texfield.text)
+                        if b.args: b.func(*((b.args,) + add))
+                        else: b.func(*add)
                     elif type(b)==TextField:
                         b.active = True 
                         b.text = ''

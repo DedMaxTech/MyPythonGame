@@ -5,19 +5,13 @@ spawn_pos = (40,40)
 background = 'game\content/bg2.png'
 
 ais = [
-	# enemies.MeleeAI(600,800),
-	enemies.ShoterAI(650,800, 'rifle', True)
+	enemies.MeleeAI(600,600),
+	enemies.ShoterAI(600,600,moving=True),
+	enemies.ShoterAI(600,600,'shootgun', True)
 ]
 
 actors=[
-	*objects.create_portals((280, 1000), (720, 1000),(120,40)),
-	core.Actor(350, 600,40,40),
-	# objects.LevelTravelTriger(1000,800,40,80,'tutorial'),
-	objects.Aid(1200,1000-25,50),
-	objects.Ammo(1240,1000-25,{'minigun':100, 'shootgun':5, 'rifle':90})
-	# objects.ScreenConditionTriger(0,200,300,100,'game/content/ui/to_move.png',lambda game: game.player.xspeed!=0),
-	# objects.ScreenConditionTriger(300,0,40,1000,'game/content/ui/to_jump.png',lambda game: not game.player.on_ground),
-	# objects.ScreenConditionTriger(600,0,40,1000,'game/content/ui/to_double.png',lambda game: not game.player.double)
+
 ]+ais
 ####DONT TOUCH####
 # Auto-generated in game.level
@@ -34,12 +28,12 @@ blocks = [
 	level.Block(0,320,'-'),
 	level.Block(0,360,'-'),
 	level.Block(0,400,'-'),
-	level.Block(0,600,'-'),
-	level.Block(0,640,'-'),
-	level.Block(0,560,'-'),
-	level.Block(0,520,'-'),
 	level.Block(0,440,'-'),
 	level.Block(0,480,'-'),
+	level.Block(0,520,'-'),
+	level.Block(0,560,'-'),
+	level.Block(0,600,'-'),
+	level.Block(0,640,'-'),
 	level.Block(0,680,'-'),
 	level.Block(0,720,'-'),
 	level.Block(0,760,'-'),
@@ -55,6 +49,9 @@ blocks = [
 	level.Block(160,1000,'-'),
 	level.Block(200,1000,'-'),
 	level.Block(240,1000,'-'),
+	level.Block(280,1000,'-'),
+	level.Block(320,1000,'-'),
+	level.Block(360,1000,'-'),
 	level.Block(400,1000,'-'),
 	level.Block(440,1000,'-'),
 	level.Block(480,1000,'-'),
@@ -63,6 +60,9 @@ blocks = [
 	level.Block(600,1000,'-'),
 	level.Block(640,1000,'-'),
 	level.Block(680,1000,'-'),
+	level.Block(720,1000,'-'),
+	level.Block(760,1000,'-'),
+	level.Block(800,1000,'-'),
 	level.Block(840,1000,'-'),
 	level.Block(880,1000,'-'),
 	level.Block(920,1000,'-'),
@@ -146,12 +146,12 @@ blocks = [
 	level.Block(760,-40,'-'),
 	level.Block(720,-40,'-'),
 	level.Block(680,-40,'-'),
+	level.Block(640,-40,'-'),
 	level.Block(600,-40,'-'),
 	level.Block(560,-40,'-'),
 	level.Block(520,-40,'-'),
 	level.Block(480,-40,'-'),
 	level.Block(440,-40,'-'),
-	level.Block(640,-40,'-'),
 	level.Block(400,-40,'-'),
 	level.Block(360,-40,'-'),
 	level.Block(320,-40,'-'),
@@ -162,16 +162,28 @@ blocks = [
 	level.Block(120,-40,'-'),
 	level.Block(80,-40,'-'),
 	level.Block(40,-40,'-'),
-	level.Block(240,1040,'-'),
-	level.Block(280,1040,'-'),
-	level.Block(320,1040,'-'),
-	level.Block(360,1040,'-'),
-	level.Block(400,1040,'-'),
-	level.Block(680,1040,'-'),
-	level.Block(720,1040,'-'),
-	level.Block(760,1040,'-'),
-	level.Block(800,1040,'-'),
-	level.Block(840,1040,'-'),
-	level.Block(280,240,'='),
-	level.Block(240,240,'=')
+	level.Block(840,840,'='),
+	level.Block(880,840,'='),
+	level.Block(920,840,'='),
+	level.Block(960,840,'='),
+	level.Block(1000,840,'='),
+	level.Block(1040,840,'='),
+	level.Block(1080,840,'='),
+	level.Block(1120,840,'='),
+	level.Block(1160,840,'='),
+	level.Block(480,880,'|'),
+	level.Block(480,920,'|'),
+	level.Block(480,960,'|'),
+	level.Block(40,560,'='),
+	level.Block(80,560,'='),
+	level.Block(480,840,'+'),
+	level.Block(480,800,'+'),
+	level.Block(480,760,'+'),
+	level.Block(1400,960,'/'),
+	level.Block(1400,920,'/'),
+	level.Block(1400,880,'/'),
+	level.Block(1400,840,'/'),
+	level.Block(1400,800,'/'),
+	level.Block(1400,760,'/'),
+	level.Block(1400,720,'/')
 ]

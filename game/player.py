@@ -56,7 +56,7 @@ GUNS = {
               'offy':0,
               'bull_pos': (0, 0),
               'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
-              'speed': 30,
+              'speed': 25,
               'mag': 30,
               'amount': 1,
               'reload':1500,
@@ -72,7 +72,7 @@ GUNS = {
                'offy':0,
                'bull_pos': (0, 0),
                'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
-               'speed': 30,
+               'speed': 25,
                'mag': 10,
                'amount': 1,
                'reload': 1000,
@@ -88,7 +88,7 @@ GUNS = {
             'offy':-5,
             'bull_pos': (0, 0),
             'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
-            'speed': 30,
+            'speed': 25,
             'mag': 5,
             'amount': 3,
             'reload': 3000,
@@ -150,7 +150,6 @@ class Bullet(core.Actor):
         # screen.blit(self.trale, real(self.rect.center, camera), special_flags=pg.BLEND_RGB_ADD)
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
     def hit(self, actor):
-        print(self.ignore_tmr)
         if actor == self.parent and self.ignore_tmr>0:
             return
         if isinstance(actor, enemies.BaseAI) and not isinstance(self.parent, enemies.BaseAI):
@@ -170,6 +169,7 @@ class Bullet(core.Actor):
         if isinstance(actor, level.Block):
             if actor.type in [i for i in level.block_s if level.block_s[i]['dest']]: 
                 actor.set_type('0')
+                self.delete()
             else:
                 self._delete = True
             

@@ -11,7 +11,8 @@ ais = [
 actors=[
 	objects.ScreenConditionTriger(0,800,300,100,'game/content/ui/to_move.png',lambda game: game.player.xspeed!=0),
 	objects.ScreenConditionTriger(400,0,40,1000,'game/content/ui/to_jump.png',lambda game: not game.player.on_ground),
-	objects.ScreenConditionTriger(1100,0,40,1000,'game/content/ui/to_double.png',lambda game: not game.player.double)
+	objects.ScreenConditionTriger(1100,0,40,1000,'game/content/ui/to_double.png',lambda game: not game.player.double),
+	objects.LevelTravelTriger(2560,920,40,80, 'portals'),
 ]+ais
 ####DONT TOUCH####
 # Auto-generated in game.level

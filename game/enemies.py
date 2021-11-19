@@ -202,7 +202,7 @@ class ShoterAI(BaseAI):
             ang = self.angle+(rd(-acc*5, acc*5)/2)
             xvel, yvel = vec_to_speed(gun['speed'],ang)
             b = player.Bullet(
-                self.rect.centerx, self.rect.centery,
+                self.rect.centerx, self.rect.centery-15,
                 xvel, yvel, gun['bull_img'], ang, gun['dmg']/4, self
             )
             world.actors.append(b)
