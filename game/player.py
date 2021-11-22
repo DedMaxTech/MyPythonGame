@@ -443,7 +443,7 @@ class Player(core.Actor):
         if self.grenades<=0: return
         self.grenades-=1
         xv,yv = vec_to_speed(20 if self.aiming else 15, self.angle)
-        self.game.world.actors.append(Grenade(self.rect.x,self.rect.y,xv if self.look_r else -xv, -yv, self.game.world))
+        self.game.world.actors.append(Grenade(self.rect.centerx,self.rect.y+10,xv if self.look_r else -xv, -yv, self.game.world))
         
 
     def get_point(self, world, rad, ang=None):
