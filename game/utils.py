@@ -12,9 +12,8 @@ def threaded(daemon=True):
         return wrapper
     return decor
 
-
+font = pg.font.SysFont('Arial',size=14)
 def debug(var, screen:pg.Surface, x=0, y=0):
-    font = pg.font.SysFont('Arial',size=14)
     screen.blit(font.render(str(var), True, 'red'), (x, y))
 
 def glow(img:pg.Surface):

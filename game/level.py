@@ -128,7 +128,7 @@ class World:
 
     def update_actors(self, delta, player = None):
         for b in self.blocks:
-            if b.type == '0':
+            if b._delete:
                 del self.blocks[self.blocks.index(b)]
         for a in self.actors:
             if a._delete:

@@ -1,6 +1,6 @@
 from time import sleep
 import pygame as pg
-
+import cProfile, pstats
 import os, traceback, socket, pickle, math, glob
 from random import randint as rd
 from typing import List
@@ -35,7 +35,7 @@ pg.draw.circle(sf,'white',(427,240), 50)
 sf.set_colorkey('white')
 
 font = pg.font.Font(cfg.font,60)
-
+writing = False
 class Game:
     def __init__(self):
         global sound
@@ -403,6 +403,8 @@ class Game:
         self.ui.draw(self.screen)
 
     def event_loop(self):
+        global writing
+        writing = pg.key.get_pressed()[pg.K_m]
         for event in pg.event.get():
             self.ui.update_buttons(event)
             if hasattr(event, 'pos'):
@@ -458,9 +460,15 @@ class Game:
 
     def run(self):
         print(repr(get_stat()))
-        self.resize()
+        # self.resize()
         while True:
-            self.loop()
+            if writing:
+                with cProfile.Profile() as pr:
+                    self.loop()
+                stats = pstats.Stats(pr)
+                stats.sort_stats(pstats.SortKey.TIME)
+                stats.dump_stats('stat.prof')
+            else: self.loop()
             self.delta = self.clock.tick(cfg.fps)
        
 

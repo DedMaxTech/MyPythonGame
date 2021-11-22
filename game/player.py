@@ -168,7 +168,8 @@ class Bullet(core.Actor):
             self._delete = True
         if isinstance(actor, level.Block):
             if actor.type in [i for i in level.block_s if level.block_s[i]['dest']]: 
-                actor.set_type('0')
+                # actor.set_type('0')
+                actor.delete()
                 self.delete()
             else:
                 self._delete = True
