@@ -1,3 +1,3 @@
-from .fxs import blood, damage
+from .fxs import blood, damage, explosion
 
 play = False

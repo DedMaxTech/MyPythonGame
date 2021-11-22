@@ -8,7 +8,8 @@ import cfg
 
 IMGS = {
     'PLAYER':pg.image.load('game/content/player2/player.png'),
-    'BACK':pg.image.load('game/content/player2/back.png')
+    'BACK':pg.image.load('game/content/player2/back.png'),
+    'GRENADE':pg.image.load('game/content/player2/guns/grenade.png')
 }
 
 PLAYER_IMG = pg.image.load('game/content/player2/player.png')
@@ -40,13 +41,14 @@ RED_TINT.fill('red')
 
 
 sounds = not pg.mixer.get_init() is None
-print('sound',sounds)
+# print('sound',sounds)
 if sounds:
     print('load sound')
     SOUNDS = {
         'jump':pg.mixer.Sound('game/content/sounds/jump.wav'),
         'hurt':pg.mixer.Sound('game/content/sounds/hurt.wav'),
         'shoot':pg.mixer.Sound('game/content/sounds/shoot.wav'),
+        'expl':pg.mixer.Sound('game/content/sounds/explosion.wav'),
     }
 
 GUNS = {
@@ -174,7 +176,38 @@ class Bullet(core.Actor):
             else:
                 self._delete = True
             
-
+class Grenade(core.Actor):
+    def __init__(self, x, y, xv,yv, world):
+        super().__init__(x, y, 9,11, bounce=0.3, friction=0.1,image=IMGS['GRENADE'])
+        self.xspeed, self.yspeed = xv,yv
+        self.explose_tmr = 3500
+        self.world =world
+        self.pre_rect = pg.Rect(x-80,y-80, 160,160)
+        
+    def update(self, delta, blocks, actors):
+        self.explose_tmr-=delta
+        if self.explose_tmr<=0: self.explose(blocks,actors)
+        return super().update(delta, blocks, actors)
+    
+    def explose(self,blocks, actors):
+        r = 260
+        dest = [key for key, val in level.block_s.items() if val['dest']]
+        for a in actors+blocks:
+            if isinstance(a, core.Actor):
+                d = distanse(self.rect.center, a.rect.center)
+                if d<r:
+                    dmg=int(remap(r-d, (0,r), (20,120)))
+                    xv,yv = vec_to_speed(dmg/5, 180-angle(a.rect.center,self.rect.center,))
+                    a.xspeed, a.yspeed = xv if self.rect.x>a.rect.x else -xv,yv if self.rect.x>a.rect.x else -yv
+                    if isinstance(a, Player) or isinstance(a, enemies.BaseAI):
+                        a.hp -= dmg
+                        if not cfg.potato: fx.damage(a.rect.center, dmg, self.world)
+            if isinstance(a, level.Block) and a.type in dest:
+                a.delete()
+        if sounds: SOUNDS['expl'].play()
+        if not cfg.potato: fx.explosion(self.rect.center,self.world, 30)
+        self.delete()
+        
 
 class Player(core.Actor):
     AIM_TIME_MAX=5000
@@ -210,6 +243,8 @@ class Player(core.Actor):
         self.gun = 0
         self.guns = ['pistol', 'rifle', 'shootgun','minigun']
         self.ammo = {'rifle': [30, 30], 'pistol': [10,50],'shootgun':[5,10], 'minigun':[100,200]}
+        self.grenades = 40
+        self.grenade=False
         self._reload = False
         self.reload_kd = 0
 
@@ -222,9 +257,11 @@ class Player(core.Actor):
             Button((790,428),'yellow','', 20),
             Button((790,418),'red','', 15),
             Button((790,445),'white','', 15),
+            Button((760,460),'white','', 15),
             Button((750,420),'white','',1,img='game/content/ui/ammo.png'),
             Button((20,422),'white','',1,img='game/content/ui/heart.png'),
             Button((30,410),'white','',1,img='game/content/ui/clock.png'),
+            Button((750,463),'white','',1,img='game/content/ui/grenade.png'),
         ])
 
     def process_move(self, d: dict):
@@ -242,6 +279,8 @@ class Player(core.Actor):
             self.shoot = d['shoot']
         if d.get('tp') is not None:
             self.tp = d['tp']
+        if d.get('grenade') is not None:
+            self.grenade = d['grenade']
         if d.get('wheel') is not None:
             self.gun += d['wheel']
             self.gun = self.gun % len(self.guns)
@@ -269,8 +308,8 @@ class Player(core.Actor):
                 core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_LEGS),
             ]
             for i in prts:
-                i.xspeed = rd(-3,3)
-                i.yspeed = 8
+                i.xspeed = self.xspeed+rd(-3,3)
+                i.yspeed = self.yspeed-5
             level.actors += prts
         
         #UI UPDATE
@@ -278,6 +317,7 @@ class Player(core.Actor):
         self.ui.buttons[0].value = self.hp/100
         self.ui.buttons[1].value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
         self.ui.buttons[2].text = f'{amm[0]}/{amm[1]}'
+        self.ui.buttons[5].text = str(self.grenades)
 
         
 
@@ -338,6 +378,8 @@ class Player(core.Actor):
         # SHOOT
         if self.shoot and self.shoot_kd<=0: self._shoot()
         
+        # grenades
+        if self.grenade: self.throw_genade()
         
 
     def _jump(self, tick):
@@ -395,6 +437,14 @@ class Player(core.Actor):
         self.shoot = gun['auto']
         if sounds: SOUNDS['shoot'].play()
         write_stat('shoots', get_stat('shoots')+1)
+    
+    def throw_genade(self):
+        self.grenade=False
+        if self.grenades<=0: return
+        self.grenades-=1
+        xv,yv = vec_to_speed(20 if self.aiming else 15, self.angle)
+        self.game.world.actors.append(Grenade(self.rect.x,self.rect.y,xv if self.look_r else -xv, -yv, self.game.world))
+        
 
     def get_point(self, world, rad, ang=None):
         r = rad

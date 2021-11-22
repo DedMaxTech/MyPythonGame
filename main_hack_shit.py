@@ -318,6 +318,7 @@ class Game:
             if event.key == pg.K_SPACE: d['up'] = True
             if event.key == pg.K_q: d['tp'] = True
             if event.key == pg.K_r: d['reload'] = True
+            if event.key == pg.K_g: d['grenade']=True
         if event.type == pg.KEYUP:
             if event.key == pg.K_d: d['right'] = False
             if event.key == pg.K_a: d['left'] = False
