@@ -82,7 +82,7 @@ def write_stat(key, val):
 def remap(val, in_boubds:Tuple[float,float], out_bounds:Tuple[float,float]=(0,1)):
     return (val - in_boubds[0]) * (out_bounds[1] - out_bounds[0]) / (in_boubds[1] - in_boubds[0]) + out_bounds[0]
 
-
+remap(50, (0,100), (500,1280))
 @threaded(daemon=False)
 def timer(t):
     time.sleep(t)

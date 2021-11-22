@@ -6,7 +6,7 @@ background = 'game\content/bg2.png'
 
 ais = [
 	# enemies.MeleeAI(600,800),
-	enemies.ShoterAI(650,800, 'rifle', True)
+	enemies.ShoterAI(650,800, 'minigun', True)
 ]
 
 actors=[

@@ -86,9 +86,14 @@ class ProgressBar:
         self.img = img_full
         self.empty_img = img_empty
         self.value = value
+        self.cur_val = value
         self.rect = img_full.get_rect()
         self.rect.topleft = pos
         self.key = colorkey
+    
+    def update(self):
+        self.cur_val += (self.value - self.cur_val) / 20
+        # self.cur_val += 1 if self.cur_val>self.value else
     
     def render(self, screen):
         if self.empty_img: screen.blit(self.empty_img, self.rect.topleft)
@@ -96,7 +101,7 @@ class ProgressBar:
         sf.fill(self.key)
         sf.set_colorkey(self.key)
         sf.blit(self.img, (0,0))
-        sf.fill(self.key, (self.rect.w*self.value, 0, self.rect.w, self.rect.h))
+        sf.fill(self.key, (self.rect.w*self.cur_val, 0, self.rect.w, self.rect.h))
         screen.blit(sf,self.rect.topleft)
 
 class Interface:
@@ -132,8 +137,8 @@ class Interface:
             
         
 
-    def update_buttons(self, event):
-        if event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
+    def update_buttons(self, event=None):
+        if event and event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
             for b in self.buttons:
                 if type(b)==TextField: b.active = False
                 collide = pg.Rect.collidepoint(b.rect, event.pos)
@@ -147,13 +152,14 @@ class Interface:
                     elif type(b)==TextField:
                         b.active = True 
                         b.text = ''
-        if event.type == pg.MOUSEMOTION:
+        if event and event.type == pg.MOUSEMOTION:
             for b in self.buttons:
                 collide = pg.Rect.collidepoint(b.rect, event.pos)
                 if collide and self.sounds and not b.hover:
                     self.sound.play()
                 b.hover = collide
                     
-        elif event.type == pg.MOUSEMOTION: self.pos = event.pos
-        [b.update(event) for b in self.buttons if type(b)==TextField and b.active]
+        elif event and event.type == pg.MOUSEMOTION: self.pos = event.pos
+        [b.update(event) for b in self.buttons if event and type(b)==TextField and b.active]
+        [i.update() for i in self.buttons if type(i)==ProgressBar]
 

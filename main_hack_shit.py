@@ -462,8 +462,7 @@ class Game:
         while True:
             self.loop()
             self.delta = self.clock.tick(cfg.fps)
-            
-
+       
 
 if __name__ == '__main__':
     print(socket.gethostbyname(socket.gethostname()))

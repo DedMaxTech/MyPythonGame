@@ -253,6 +253,9 @@ class Player(core.Actor):
 
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
+        # UI
+        self.ui.update_buttons()
+        
         if self.dead:
             return
         if self.hp <= 0: 
@@ -333,6 +336,8 @@ class Player(core.Actor):
 
         # SHOOT
         if self.shoot and self.shoot_kd<=0: self._shoot()
+        
+        
 
     def _jump(self, tick):
         if self.jump:
