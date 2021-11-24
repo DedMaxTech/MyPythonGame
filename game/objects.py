@@ -37,6 +37,7 @@ class Portal(core.Actor):
         self._collide_actors(actors)
         self.pre_rect.center = self.rect.center
     def hit(self, actor):
+        if not self.second: return
         ignore = [a for kd, a in self.ignore]
         if isinstance(actor, core.Actor) and self.second and actor not in ignore:
             x,y = real(actor.rect.topleft, self.rect)

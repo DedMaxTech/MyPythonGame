@@ -282,7 +282,8 @@ class Game:
 
     def camera_update(self):
         ofsetx, ofsety = 930,450
-        d = self.frame.get_height()/10
+        k = self.delta/core.def_tick
+        d = self.frame.get_height()/10/k
         r = self.player.rect
         
         if self.player.aiming:
@@ -462,6 +463,7 @@ class Game:
 
     def run(self):
         print(repr(get_stat()))
+        print(self.__class__.__name__, self.__class__.__qualname__)
         # self.resize()
         while True:
             if writing:

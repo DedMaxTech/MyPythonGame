@@ -3,7 +3,13 @@ from time import sleep
 from . utils import *
 import cfg
 
-def_tick=1/cfg.fps*1000
+def_tick=1/60*1000
+
+class SavingYourAnus:
+    slots = []
+    def save(self):
+        return f'objects.{self.__class__.__name__}()'
+
 class Actor:
     def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True, image=None):
         self.rect = pg.Rect(x,y,w,h)
@@ -44,9 +50,9 @@ class Actor:
                 self.xspeed = self.xspeed * (1 - self.friction)
             else: self.xspeed =0
 
-        if self.yspeed: self.rect.y += self.yspeed *delta/1000*cfg.fps
+        if self.yspeed: self.rect.y += self.yspeed *k
         if blocks and self.collision: self._collide_y(blocks)
-        if self.xspeed: self.rect.x += self.xspeed *delta/1000*cfg.fps
+        if self.xspeed: self.rect.x += self.xspeed *k
         if blocks and self.collision: self._collide_x(blocks)
         if self.collision: self._collide_actors(actors)
         self.pre_rect.center = self.rect.center

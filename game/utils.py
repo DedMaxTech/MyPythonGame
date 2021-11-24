@@ -67,9 +67,6 @@ def get_stat(key=None):
         d = pickle.load(open('stats.p', 'rb'))
     except EOFError:
         d = dict()
-    # with open('stats.p', 'rb') as file:
-    #     d = dict() if not file.readlines() else pickle.load(file)
-    #     print(d)
     return d if key is None else d.get(key)
 
 def write_stat(key, val):
@@ -80,6 +77,7 @@ def write_stat(key, val):
 
 def remap(val, in_boubds:Tuple[float,float], out_bounds:Tuple[float,float]=(0,1)):
     return (val - in_boubds[0]) * (out_bounds[1] - out_bounds[0]) / (in_boubds[1] - in_boubds[0]) + out_bounds[0]
+
 
 
 @threaded(daemon=False)
