@@ -1,3 +1,4 @@
+from types import FunctionType
 from typing import List
 from pygame import event
 from . import core, player
@@ -16,10 +17,18 @@ if sounds:
     sound = pg.mixer.Sound('game/content/sounds/portal.wav')
     sound.set_volume(0.2)
 
-class Portal(core.Actor):
-    def __init__(self, pos1,pos2,size = (40,40), second = None):
+class Portal(core.Actor, core.Saving):
+    slots = {
+        'x1':['rect.x', int],
+        'y1':['rect.y', int],
+        'x2':['second.rect.x', int],
+        'y2':['second.rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+    }
+    def __init__(self, x1=0,y1=0,x2=40,y2=0,w=40,h=40):
         global PORTAL_IMG
-        x1,y1 = pos1;x2,y2 = pos2; w,h = size
+        size=(w,h)
         super().__init__(x1, y1, w,h, static=True)
         self.ignore = []
         PORTAL_IMG = PORTAL_IMG.convert_alpha()
@@ -78,8 +87,14 @@ class Portal(core.Actor):
             if sounds: sound.play()
 
 
-class BaseTriger(core.Actor):
-    def __init__(self, x, y, w, h):
+class BaseTriger(core.Actor, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+    }
+    def __init__(self, x=0, y=0, w=40, h=40):
         super().__init__(x, y, w, h, bounce=0, gravity=0, static=False, friction=0, collision=True)
         self.game = None
         self.visible = False
@@ -93,21 +108,28 @@ class BaseTriger(core.Actor):
 
 def create_zoom_zone(x,y,w,h,zoom, defoult=1):
     return Trigger(x,y,20,h, lambda game: game.zoom(defoult)),Trigger(x+20,y,20,h, lambda game: game.zoom(zoom)),Trigger(x+w,y,20,h, lambda game: game.zoom(zoom)),Trigger(x+w+20,y,20,h, lambda game: game.zoom(defoult)),
-class Trigger(BaseTriger):
-    def __init__(self, x, y, w, h, func):
+class Trigger(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'function':['func', FunctionType]
+    }
+    def __init__(self, x=0, y=0, w=40, h=40, function=lambda x: True):
         super().__init__(x, y, w, h)
-        self.func = func
+        self.func = function
     
     def triggered(self, actor):
         self.func(self.game)
 
-class Aid(BaseTriger, core.SavingYourAnus):
+class Aid(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],
         'y':['rect.y', int],
         'hp':['hp', int]
     }
-    def __init__(self, x, y, hp):
+    def __init__(self, x=0, y=0, hp=50):
         super().__init__(x, y, 25,25)
         self.visible=True
         self.gravity=0.4
@@ -119,8 +141,13 @@ class Aid(BaseTriger, core.SavingYourAnus):
         else: actor.hp+=self.hp
         self.delete()
 
-class Ammo(BaseTriger):
-    def __init__(self, x, y, ammo:dict):
+class Ammo(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'ammo':['ammo', dict]
+    }
+    def __init__(self, x=0, y=0, ammo:dict={}):
         super().__init__(x, y, 25,25)
         self.visible=True
         self.gravity=0.4
@@ -133,8 +160,13 @@ class Ammo(BaseTriger):
             else: actor.ammo[key] = [0, val]
         self.delete()
 
-class GunsCase(BaseTriger):
-    def __init__(self, x, y, guns:List[str]):
+class GunsCase(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'guns':['guns', list]
+    }
+    def __init__(self, x=0, y=0, guns:List[str]=[]):
         super().__init__(x, y, 25,25)
         self.visible=True
         self.gravity=0.4
@@ -145,9 +177,17 @@ class GunsCase(BaseTriger):
         actor.guns = list(set(actor.guns+self.guns))
         self.delete()
 
-class ScreenTriger(BaseTriger):
+class ScreenTriger(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'timer':['timer', int],
+        'image':['image', str]
+    }
     BASE_IMG = pg.image.load('game/content/ui/trigger_base.png')
-    def __init__(self, x, y, w, h, image, timer=3000):
+    def __init__(self, x=0, y=0, w=40, h=40, image='game/content/ui/trigger_base.png', timer=3000):
         super().__init__(x, y, w, h)
         self.image = pg.image.load(image)
         # self.visible=True
@@ -163,8 +203,15 @@ class ScreenTriger(BaseTriger):
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         if self.visible: self.game.screen.blit(self.image, (0,0))
 
-class LevelTravelTriger(BaseTriger):
-    def __init__(self, x, y, w, h, levelname):
+class LevelTravelTriger(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'levelname':['level', int],
+    }
+    def __init__(self, x=0, y=0, w=40, h=40, levelname='tutorial'):
         super().__init__(x, y, w, h)
         self.visible=True
         self.img = pg.transform.scale(PORTAL_IMG.copy(), (w,h))
@@ -180,8 +227,16 @@ class LevelTravelTriger(BaseTriger):
     def triggered(self, actor):
         self.game.start_game(self.level)
 
-class ScreenConditionTriger(BaseTriger):
-    def __init__(self, x, y, w, h, image,condition):
+class ScreenConditionTriger(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'condition':['condition', FunctionType],
+        'image':['image', str]
+    }
+    def __init__(self, x=0, y=0, w=40, h=40, image='game/content/ui/screen_ok.png',condition=lambda x: True):
         super().__init__(x, y, w, h)
         self.image = pg.image.load(image).convert_alpha()
         self.condition = condition

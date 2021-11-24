@@ -25,15 +25,19 @@ class BaseAI(core.Actor):
             actor.hp -= dmg
             write_stat('received damage', get_stat('received damage')+dmg)
             actor.dmg_timer = 100
-class MeleeAI(BaseAI):
+class MeleeAI(BaseAI,core.Saving):
     START_AGR = 250
     GO_R = 'r'
     GO_L = 'l'
     WAIT = 'w'
     FOLLOW = 'f'
     ATTACK = 'a'
-
-    def __init__(self, x, y):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+    }
+    module='enemies'
+    def __init__(self, x=0, y=0):
         super().__init__(x, y, 30,80, friction=0)
         self.look_r = True
         self.jump = False
@@ -117,14 +121,19 @@ class MeleeAI(BaseAI):
             img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
 
-class ShoterAI(BaseAI):
+class ShoterAI(BaseAI, core.Saving):
     START_AGR = 350
     GO_R = 'r'
     GO_L = 'l'
     WAIT = 'w'
     ATTACK = 'a'
-
-    def __init__(self, x, y, gun='rifle', moving=False):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'gun':['gun', str],
+    }
+    module='enemies'
+    def __init__(self, x, y, gun='rifle', moving=True):
         super().__init__(x, y, 30,80, friction=0)
         self.look_r = True
         self.jump = False

@@ -27,14 +27,15 @@ spawn_pos = (40,40)
 background = '{bg}'
 guns = []
 
+####DONT TOUCH####
 ais = [
 
 ]
 
 actors=[
 
-]+ais
-####DONT TOUCH####
+]
+
 blocks = [
 
 ]
@@ -42,7 +43,7 @@ blocks = [
 
 def write_list(name, arr):
     separator = ',\n\t'
-    return f"{name} = [\n\t{separator.join(arr)}\n]"
+    return f"{name} = [\n\t{separator.join(arr)}\n]\n"
 
 # def get_copyes(arr):
 #     return [copy(i) for i in arr]
@@ -90,7 +91,7 @@ class World:
         else:self.bg = pg.image.load(level.background)
         self.spawn_pos = level.spawn_pos
         self.ais = level.ais.copy()
-        self.actors = level.actors.copy()
+        self.actors = level.actors.copy()+self.ais
         [a.set_game(game_inst) for a in self.actors]
         # print([(a,a._delete) for a in self.actors])
         for a in self.actors: 
@@ -104,8 +105,12 @@ class World:
         with open(f'levels/{levelname}.py', 'w') as file:
             file.write(self.ignore_str)
             file.write('####DONT TOUCH####\n# Auto-generated in '+__name__+'\n')
-            s = write_list('blocks', [b.__str__() for b in self.blocks])
-            file.write(s)
+            ais = write_list('ais',[i.save() for i in self.ais if isinstance(i,core.Saving)])
+            acts = write_list('actors',[i.save() for i in self.actors if isinstance(i,core.Saving) and not isinstance(i, enemies.BaseAI)])
+            bs = write_list('blocks', [b.__str__() for b in self.blocks])
+            file.write(ais)
+            file.write(acts)
+            file.write(bs)
 
     def get_nearest(self, obj_class, pos):
         objcts = [a for a in self.actors if type(a) == obj_class]

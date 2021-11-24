@@ -1,5 +1,7 @@
-class A:
-    def __init__(self) -> None:
-        a = 5
+def count(self, a,b):
+    return a+b
 
-print()
+A = object
+A.count = count
+a = A()
+print(a.count())
