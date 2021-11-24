@@ -3,6 +3,7 @@ from game import *
 
 spawn_pos = (40,40)
 background = 'game\content/bg2.png'
+guns = []
 
 ais = [
 
@@ -13,6 +14,7 @@ actors=[
 	objects.ScreenConditionTriger(400,0,40,1000,'game/content/ui/to_jump.png',lambda game: not game.player.on_ground),
 	objects.ScreenConditionTriger(1100,0,40,1000,'game/content/ui/to_double.png',lambda game: not game.player.double),
 	objects.LevelTravelTriger(2560,920,40,80, 'portals'),
+	objects.GunsCase(1800,960,['shootgun','rifle'])
 ]+ais
 ####DONT TOUCH####
 # Auto-generated in game.level

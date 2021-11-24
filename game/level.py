@@ -25,6 +25,7 @@ from game import *
 
 spawn_pos = (40,40)
 background = '{bg}'
+guns = []
 
 ais = [
 
@@ -96,7 +97,7 @@ class World:
         self.blocks = level.blocks.copy()
         self.rect = pg.Rect(0, 0, self.get_size()[0], self.get_size()[1])
         # print(f'Level opened: {level}')
-        return self.spawn_pos
+        return self.spawn_pos, level.guns.copy()
 
     def save_world(self, levelname):
         with open(f'levels/{levelname}.py', 'w') as file:

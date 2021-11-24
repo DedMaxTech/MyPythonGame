@@ -3,7 +3,8 @@ from glob import glob
 import os
 
 import cfg
-from game import  level, utils
+pg.init()
+from game import  *
 from game.UI import Interface, Button, TextField
 
 
@@ -11,7 +12,7 @@ class Editor:
     def __init__(self):
         self.res, self.fps = (1920,1080), cfg.fps
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
-        pg.init()
+        
 
         self.screen: pg.Surface = pg.display.set_mode((self.res[0], self.res[1] + 40))
         self.clock = pg.time.Clock()

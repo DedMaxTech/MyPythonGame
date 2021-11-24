@@ -182,7 +182,8 @@ class Grenade(core.Actor):
         self.xspeed, self.yspeed = xv,yv
         self.explose_tmr = 3500
         self.world =world
-        self.pre_rect = pg.Rect(x-80,y-80, 160,160)
+        r=120
+        self.pre_rect = pg.Rect(x-r,y-r, r*2,r*2)
         
     def update(self, delta, blocks, actors):
         self.explose_tmr-=delta
@@ -190,7 +191,7 @@ class Grenade(core.Actor):
         return super().update(delta, blocks, actors)
     
     def explose(self,blocks, actors):
-        r = 260
+        r = 200
         dest = [key for key, val in level.block_s.items() if val['dest']]
         for a in actors+blocks:
             if isinstance(a, core.Actor):
@@ -241,7 +242,7 @@ class Player(core.Actor):
         self.to_ang=0
 
         self.gun = 0
-        self.guns = ['pistol', 'rifle', 'shootgun','minigun']
+        self.guns = ['pistol']
         self.ammo = {'rifle': [30, 30], 'pistol': [10,50],'shootgun':[5,10], 'minigun':[100,200]}
         self.grenades = 40
         self.grenade=False

@@ -200,12 +200,13 @@ class Game:
     def start_game(self, level='tutorial'):
         self.level = level
         self.ui.clear()
-        x, y =self.world.open_world(level, game_inst=self)
+        pos, guns =self.world.open_world(level, game_inst=self)
         self.w = 2
         self.playing = True
         if self.pause: self.pause = False
-        self.player = player.Player(x, y, 0, self)
-        self.camera.center = (x,y)
+        self.player = player.Player(*pos, 0, self)
+        self.player.guns = list(set(self.player.guns+guns))
+        self.camera.center = pos
         self.world.actors += [self.player]
         pg.mouse.set_cursor(*pg.cursors.diamond)
 

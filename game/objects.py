@@ -1,3 +1,4 @@
+from typing import List
 from pygame import event
 from . import core, player
 from . utils import *
@@ -74,6 +75,7 @@ class Aid(BaseTriger):
     def __init__(self, x, y, hp):
         super().__init__(x, y, 25,25)
         self.visible=True
+        self.gravity=0.4
         self.img = pg.image.load('game/content/objects/aid.png').convert_alpha()
         self.hp = hp
     
@@ -86,6 +88,7 @@ class Ammo(BaseTriger):
     def __init__(self, x, y, ammo:dict):
         super().__init__(x, y, 25,25)
         self.visible=True
+        self.gravity=0.4
         self.img = pg.transform.scale(pg.image.load('game/content/ui/ammo.png'),(25,25)).convert_alpha()
         self.ammo = ammo
     
@@ -93,6 +96,18 @@ class Ammo(BaseTriger):
         for key, val in self.ammo.items():
             if actor.ammo.get(key):actor.ammo[key][1]+=val
             else: actor.ammo[key] = [0, val]
+        self.delete()
+
+class GunsCase(BaseTriger):
+    def __init__(self, x, y, guns:List[str]):
+        super().__init__(x, y, 25,25)
+        self.visible=True
+        self.gravity=0.4
+        self.img = pg.image.load('game/content/objects/guns.png').convert_alpha()
+        self.guns = guns
+    
+    def triggered(self, actor):
+        actor.guns = list(set(actor.guns+self.guns))
         self.delete()
 
 class ScreenTriger(BaseTriger):
