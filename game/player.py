@@ -198,7 +198,7 @@ class Grenade(core.Actor):
                 if d<r:
                     dmg=int(remap(r-d, (0,r), (20,120)))
                     xv,yv = vec_to_speed(dmg/5, 180-angle(a.rect.center,self.rect.center,))
-                    a.xspeed, a.yspeed = xv if self.rect.x>a.rect.x else -xv,yv if self.rect.x>a.rect.x else -yv
+                    a.xspeed, a.yspeed = xv if self.rect.x>a.rect.x else -xv,(yv if self.rect.x>a.rect.x else -yv)-1 
                     if isinstance(a, Player) or isinstance(a, enemies.BaseAI):
                         a.hp -= dmg
                         if not cfg.potato: fx.damage(a.rect.center, dmg, self.world)

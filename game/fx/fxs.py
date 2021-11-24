@@ -13,6 +13,6 @@ def damage(pos, dmg, world):
 
 def explosion(pos, world, amount=20):
     for i in range(amount):
-        x,y = pos[0]+rd(-amount*4,amount*4),pos[1]-rd(0,amount*2)
+        x,y = pos[0]+rd(-amount*4,amount*4),pos[1]-rd(0,amount*4)
         world.actors.append(ExploseParticle(x,y,rd(5,20)))
 
