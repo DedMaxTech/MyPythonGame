@@ -15,16 +15,30 @@ sounds = not pg.mixer.get_init() is None
 if sounds:
     sound = pg.mixer.Sound('game/content/sounds/portal.wav')
     sound.set_volume(0.2)
+
 class Portal(core.Actor):
-    def __init__(self, pos,size = (40,40), second = None):
+    def __init__(self, pos1,pos2,size = (40,40), second = None):
         global PORTAL_IMG
-        x,y = pos; w,h = size
-        super().__init__(x, y, w,h, static=True)
-        self.second = second
+        x1,y1 = pos1;x2,y2 = pos2; w,h = size
+        super().__init__(x1, y1, w,h, static=True)
         self.ignore = []
         PORTAL_IMG = PORTAL_IMG.convert_alpha()
         self.img = pg.transform.scale(PORTAL_IMG.copy(), size)
         self.r = 0
+
+        self.second = core.Actor(x2, y2, w,h, static=True)
+        self.second.second=self
+        self.second.ignore = []
+        self.second.img = pg.transform.scale(PORTAL_IMG.copy(), size)
+        self.second.r = 0
+        self.second.update = self.nothing
+        self.second.hit = self.second_hit
+    
+    
+    def set_game(self, game):
+        super().set_game(game)
+        self.spawn(self.second)
+
     def update(self, delta, blocks, actors):
         self.r += 1
         # self.r = self.r%360
@@ -36,18 +50,33 @@ class Portal(core.Actor):
                 del self.ignore[self.ignore.index(i)]
         self._collide_actors(actors)
         self.pre_rect.center = self.rect.center
+
+        self.second.img=self.img
+        self.second._collide_actors(actors)
+        self.second.pre_rect.center = self.second.rect.center
+    
     def hit(self, actor):
-        if not self.second: return
         ignore = [a for kd, a in self.ignore]
         if isinstance(actor, core.Actor) and self.second and actor not in ignore:
+            self.ignore.append([500,actor])
             x,y = real(actor.rect.topleft, self.rect)
-            self.second.ignore.append([500,actor])
             actor.rect.y = self.second.rect.y+y
             actor.rect.centerx = self.second.rect.centerx
 
             actor.yspeed = -actor.yspeed
             # actor.xspeed = -actor.xspeed
             if sounds: sound.play()
+    
+    def second_hit(self,actor):
+        ignore = [a for kd, a in self.ignore]
+        if isinstance(actor, core.Actor) and actor not in ignore:
+            self.ignore.append([500,actor])
+            x,y = real(actor.rect.topleft, self.second.rect)
+            actor.rect.y = self.rect.y+y
+            actor.rect.centerx = self.rect.centerx
+            actor.yspeed = -actor.yspeed
+            if sounds: sound.play()
+
 
 class BaseTriger(core.Actor):
     def __init__(self, x, y, w, h):
@@ -72,7 +101,12 @@ class Trigger(BaseTriger):
     def triggered(self, actor):
         self.func(self.game)
 
-class Aid(BaseTriger):
+class Aid(BaseTriger, core.SavingYourAnus):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'hp':['hp', int]
+    }
     def __init__(self, x, y, hp):
         super().__init__(x, y, 25,25)
         self.visible=True

@@ -91,6 +91,7 @@ class World:
         self.spawn_pos = level.spawn_pos
         self.ais = level.ais.copy()
         self.actors = level.actors.copy()
+        [a.set_game(game_inst) for a in self.actors]
         # print([(a,a._delete) for a in self.actors])
         for a in self.actors: 
             if isinstance(a, objects.BaseTriger): a.game = game_inst

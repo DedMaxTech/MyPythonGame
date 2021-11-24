@@ -1,2 +1,5 @@
-a = 8
-a -= a*0.9
+class A:
+    def __init__(self) -> None:
+        a = 5
+
+print()

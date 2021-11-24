@@ -11,8 +11,9 @@ ais = [
 ]
 
 actors=[
-	*objects.create_portals((280, 1000), (720, 1000),(120,40)),
-	*objects.create_portals((40,920),(600,920),(40,80)),
+	# *objects.create_portals((280, 1000), (720, 1000),(120,40)),
+	# *objects.create_portals((40,920),(600,920),(40,80)),
+	objects.Portal((280, 1000), (720, 1000),(120,40)),
 	core.Actor(350, 600,40,40),
 	# objects.LevelTravelTriger(1000,800,40,80,'tutorial'),
 

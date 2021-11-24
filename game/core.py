@@ -1,3 +1,4 @@
+from typing import Dict
 import pygame as pg
 from time import sleep
 from . utils import *
@@ -6,9 +7,25 @@ import cfg
 def_tick=1/60*1000
 
 class SavingYourAnus:
-    slots = []
+    slots = {}
+    def _get_att_val(self,text):
+        vals = text.split('.')
+        if len(vals)==1: return getattr(self,text)
+        last=getattr(self, vals[0])
+        for i in text.split('.')[1:]:
+            last = getattr(last, i)
+        return last
+    
+    def _set_att_val(self, att, val):
+        atts = att.split('.')
+        if len(atts)==1: setattr(self, att, val)
+        setattr(self._get_att_val('.'.join(atts[:-1])), atts[-1], val)
+
+    def edit(self, attr, val):
+        self._set_att_val(self.slots[attr][0],self.slots[attr][1](val))
+
     def save(self):
-        return f'objects.{self.__class__.__name__}()'
+        return f'objects.{self.__class__.__name__}({", ".join(["{key}={val}".format(key=key, val=self._get_att_val(val[0])) for key,val in self.slots.items()])})'
 
 class Actor:
     def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True, image=None):
@@ -24,11 +41,19 @@ class Actor:
         self.die_kd = 0
         self.img = image
         self.visible = True
+        self.game=None
         # self.autodel()
     
     def autodel(self, secs):
         self.die = True
         self.die_kd = secs*1000
+    
+    def set_game(self, game):
+        self.game=game
+    
+    def spawn(self, actor):
+        if self.game:
+            self.game.world.actors.append(actor)
 
     def update(self, delta, blocks, actors):
         if self.static:
@@ -129,4 +154,7 @@ class Actor:
             screen.blit(self.img, real(self.rect.topleft, camera))
         else:
             screen.fill('red',real(self.rect,camera))
+    
+    def nothing(self,*args,**kwargs):
+        pass
 
