@@ -47,7 +47,7 @@ def horizontal(margin, buttons:List[Button]):
     return buttons
 
 class TextField:
-    def __init__(self, pos, color, text, font: Union[int, pg.font.Font], bg=None, size=None, callback_f=None, args: tuple = None):
+    def __init__(self, pos, color, text, font: Union[int, pg.font.Font], bg=None, size=None, callback_f=None, args: tuple = None, add_text=False):
         self.pos = self.x, self.y = pos
         self.color = pg.Color(color)
         self.font: pg.font.Font = font if type(font) == pg.font.Font else pg.font.Font('game/content/pixel_font.ttf', font)
@@ -59,13 +59,15 @@ class TextField:
         self.rect = pg.Rect(self.x-5, self.y, self.size[0]+5, self.size[1])
         self.hover = False
         self.active = False
+        self.add = add_text
     
     def update(self, event):
         if self.active and event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE: self.active = False
             elif event.key == pg.K_RETURN:
                 self.active = False
-                if self.func: self.func()
+                add = (self.text,) if self.add else ()
+                if self.func: self.func(*((*self.args,) + add))
             elif event.key == pg.K_BACKSPACE:
                     if len(self.text) >= 1: self.text = self.text[:-1]
             else:
@@ -79,7 +81,7 @@ class TextField:
                 off = 50
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
         # if self.img: screen.blit(pg.image.load(self.img), self.pos)
-        screen.blit(self.font.render(self.text + "|" if self.active else self.text, False, self.color), self.pos)
+        screen.blit(self.font.render(self.text + "|" if self.active else self.text, False, self.color), self.rect.topleft)
     
 class ProgressBar:
     def __init__(self, pos, img_full, img_empty=None, value=1, colorkey='black'):
@@ -134,8 +136,6 @@ class Interface:
             sf.set_colorkey('green')    
             screen.blit(sf,(0,0))
             
-            
-        
 
     def update_buttons(self, event=None):
         if event and event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:

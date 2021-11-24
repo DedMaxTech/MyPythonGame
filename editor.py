@@ -16,7 +16,8 @@ class Editor:
 
         self.screen: pg.Surface = pg.display.set_mode((self.res[0], self.res[1] + 40))
         self.clock = pg.time.Clock()
-        self.ui = Interface()
+        self.ui = Interface(anims=False)
+        self.info_ui = Interface(anims=False)
         self.level = level.World()
         self.levelname = ''
         self.camera = pg.Rect(0,40,self.res[0], self.res[1])
@@ -116,20 +117,32 @@ class Editor:
             pg.draw.line(self.screen, 'red', (0,-self.camera.y-40),(self.camera.w,-self.camera.y-40),1)
             pg.draw.line(self.screen, 'red', (0,-self.camera.y+self.camera.h-40),(self.camera.w,-self.camera.y+self.camera.h-40),1)
         self.ui.draw(self.screen)
+        self.info_ui.draw(self.screen)
         x,y= pg.mouse.get_pos()
         x,y=utils.real((-x,-y-40), self.camera)
         utils.debug(f'x: {-x} y: {-y}', self.screen, y=50)
 
     def event_loop(self):
+        w=1400
         for event in pg.event.get():
             if event.type == pg.QUIT: exit()
             self.ui.update_buttons(event)
+            self.info_ui.update_buttons(event)
             if self.editing:
                 if event.type == pg.MOUSEBUTTONDOWN:
+                    if event.pos[0]>w: continue
                     if event.button == pg.BUTTON_RIGHT:
                         self.drawing = True
                     if event.button == pg.BUTTON_LEFT:
                         self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]+self.camera.y), self.brush)
+                    if event.button == pg.BUTTON_MIDDLE:
+                        x,y = event.pos
+                        obj = self.level.get_nearest(core.Saving, real((-x,-y-40),self.camera))
+                        self.info_ui.set_ui([
+                            Button((w+30,50),'white','Object info:',50),
+                            *vertical(3,[Button((w+30,120),'white',str(i).title(),30) for i in obj.slots]),
+                            *vertical(3, [TextField((w+150, 120),'black', str(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit, args=(key,), add_text=True) for key,i in obj.slots.items()]),
+                        ])
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == pg.BUTTON_RIGHT: self.drawing = False
                 if event.type == pg.MOUSEMOTION and self.drawing: self.level.set_block(

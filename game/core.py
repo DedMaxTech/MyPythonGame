@@ -18,16 +18,17 @@ class Saving:
         return last
     
     def _set_att_val(self, att, val):
+        print(att,val, type(val))
         atts = att.split('.')
-        if len(atts)==1: setattr(self, att, val)
+        if len(atts)==1: setattr(self, att, val);return
         setattr(self._get_att_val('.'.join(atts[:-1])), atts[-1], val)
 
     def edit(self, attr, val:str):
         tip = self.slots[attr][1]
-        if type(tip)==dict:val = json.loads(val)
-        if type(tip)==list:val = [i.strip() for i in val.split(',')]
-        if type(tip)==FunctionType:val = lambda game: eval(val)
-        else: val = self.slots[attr][1](val)
+        if tip==dict:val = json.loads(val.replace("'",'"'))
+        elif tip==list:val = [i.strip() for i in val.split(',')]
+        elif tip==FunctionType:val = lambda game: eval(val)
+        elif tip==int: val=int(val)
         self._set_att_val(self.slots[attr][0],val)
 
     def save(self):

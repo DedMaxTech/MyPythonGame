@@ -113,7 +113,7 @@ class World:
             file.write(bs)
 
     def get_nearest(self, obj_class, pos):
-        objcts = [a for a in self.actors if type(a) == obj_class]
+        objcts = [a for a in self.actors if isinstance(a,obj_class)]
         if not objcts: return
         act, min_dist = objcts[0], distanse(objcts[0].rect, pos)
         for a in objcts:
