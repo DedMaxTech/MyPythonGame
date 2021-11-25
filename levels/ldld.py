@@ -8,7 +8,7 @@ guns = []
 ####DONT TOUCH####
 # Auto-generated in game.level
 ais = [
-	enemies.ShoterAI(x=550, y=800, gun='rifle')
+	enemies.ShoterAI(x=500, y=800, gun='minigun')
 ]
 actors = [
 	objects.Aid(x=1400, y=975, hp=50),
@@ -100,5 +100,6 @@ blocks = [
 	level.Block(600,400,'='),
 	level.Block(600,360,'='),
 	level.Block(280,280,'='),
-	level.Block(240,280,'=')
+	level.Block(240,280,'='),
+	level.Block(-160,600,'=')
 ]

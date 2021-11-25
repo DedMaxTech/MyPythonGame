@@ -137,7 +137,7 @@ class Editor:
                         self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]+self.camera.y), self.brush)
                     if event.button == pg.BUTTON_MIDDLE:
                         x,y = event.pos
-                        obj = self.level.get_nearest(core.Saving, real((-x,-y-40),self.camera))
+                        obj = self.level.get_nearest(core.Saving, real(event.pos,self.camera, True))
                         self.info_ui.set_ui([
                             Button((w+30,50),'white','Object info:',50),
                             *vertical(3,[Button((w+30,120),'white',str(i).title(),30) for i in obj.slots]),

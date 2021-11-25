@@ -27,7 +27,7 @@ class Saving:
         tip = self.slots[attr][1]
         if tip==dict:val = json.loads(val.replace("'",'"'))
         elif tip==list:val = [i.strip() for i in val.split(',')]
-        elif tip==FunctionType:val = lambda game: eval(val)
+        elif tip==FunctionType:val = eval(f'lambda game: {val}')
         elif tip==int: val=int(val)
         self._set_att_val(self.slots[attr][0],val)
 
