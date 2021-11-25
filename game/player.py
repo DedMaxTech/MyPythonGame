@@ -292,6 +292,21 @@ class Player(core.Actor):
         if d.get('aim') is not None:
             self.aiming = d['aim']
 
+
+    def death(self):
+        self.dead=True
+        self.autodel(3)
+        self.game.death()
+        prts = [
+            core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_BACK),
+            core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_HEAD),
+            core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_LEGS),
+        ]
+        for i in prts:
+            i.xspeed = self.xspeed+rd(-3,3)
+            i.yspeed = self.yspeed-5
+        self.game.world.actors += prts
+        fx.blood(self.rect.center, self.game.world, 50)
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
         # UI
@@ -300,18 +315,7 @@ class Player(core.Actor):
         if self.dead:
             return
         if self.hp <= 0: 
-            self.dead=True
-            self.autodel(3)
-            self.game.death()
-            prts = [
-                core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_BACK),
-                core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_HEAD),
-                core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_LEGS),
-            ]
-            for i in prts:
-                i.xspeed = self.xspeed+rd(-3,3)
-                i.yspeed = self.yspeed-5
-            level.actors += prts
+            self.death()
         
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]

@@ -116,12 +116,13 @@ class Trigger(BaseTriger, core.Saving):
         'h':['rect.h', int],
         'function':['func', FunctionType]
     }
-    def __init__(self, x=0, y=0, w=40, h=40, function=lambda x: True):
+    def __init__(self, x=0, y=0, w=40, h=40, function='1==1'):
         super().__init__(x, y, w, h)
         self.func = function
     
     def triggered(self, actor):
-        self.func(self.game)
+        eval(f'lambda game: {self.func}')(self.game)
+        self.delete()
 
 class Aid(BaseTriger, core.Saving):
     slots = {
@@ -184,11 +185,12 @@ class ScreenTriger(BaseTriger, core.Saving):
         'w':['rect.w', int],
         'h':['rect.h', int],
         'timer':['timer', int],
-        'image':['image', str]
+        'image':['img_name', str]
     }
     BASE_IMG = pg.image.load('game/content/ui/trigger_base.png')
     def __init__(self, x=0, y=0, w=40, h=40, image='game/content/ui/trigger_base.png', timer=3000):
         super().__init__(x, y, w, h)
+        self.img_name=image
         self.image = pg.image.load(image)
         # self.visible=True
         self.timer = timer
@@ -209,7 +211,7 @@ class LevelTravelTriger(BaseTriger, core.Saving):
         'y':['rect.y', int],
         'w':['rect.w', int],
         'h':['rect.h', int],
-        'levelname':['level', int],
+        'levelname':['level', str],
     }
     def __init__(self, x=0, y=0, w=40, h=40, levelname='tutorial'):
         super().__init__(x, y, w, h)
@@ -234,20 +236,23 @@ class ScreenConditionTriger(BaseTriger, core.Saving):
         'w':['rect.w', int],
         'h':['rect.h', int],
         'condition':['condition', FunctionType],
-        'image':['image', str]
+        'image':['img_name', str]
     }
-    def __init__(self, x=0, y=0, w=40, h=40, image='game/content/ui/screen_ok.png',condition=lambda x: True):
+    def __init__(self, x=0, y=0, w=40, h=40, image='game/content/ui/screen_ok.png',condition='1==1'):
         super().__init__(x, y, w, h)
+        self.img_name=image
         self.image = pg.image.load(image).convert_alpha()
         self.condition = condition
+        self.func = eval(f'lambda game: {condition}')
         self.ok = False
         self.OK_IMG = pg.image.load('game/content/ui/screen_ok.png').convert_alpha()
         # self.visible=True
         self.timer = 1000
     
     def update(self, delta, blocks, actors):
+        print(repr(self.condition))
         if self.ok and self.timer >0: self.timer-=delta
-        if self.visible and self.condition(self.game):
+        if not self.ok and self.visible and self.func(self.game):
             self.ok=True
         if self.timer<=0: self.delete()
         self._collide_actors(actors)

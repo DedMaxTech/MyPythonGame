@@ -14,11 +14,13 @@ class Editor:
         os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
         
 
-        self.screen: pg.Surface = pg.display.set_mode((self.res[0], self.res[1] + 40))
+        self.frame: pg.Surface = pg.Surface(self.res)
+        self.screen=pg.display.set_mode((self.res[0], self.res[1] + 40))
         self.clock = pg.time.Clock()
         self.ui = Interface(anims=False)
         self.info_ui = Interface(anims=False)
-        self.level = level.World()
+        self.info_ui.set_ui([Button((1400+30,50),'white','Press MMB to select obj',50),])
+        self.world = level.World()
         self.levelname = ''
         self.camera = pg.Rect(0,40,self.res[0], self.res[1])
 
@@ -26,6 +28,7 @@ class Editor:
         self.drawing = False
         self.brush = '='
         self.last_brush = None
+        self.zoom=1
 
         pg.display.set_caption('Editor')
 
@@ -72,7 +75,7 @@ class Editor:
 
     def open_level(self, lvl):
         self.ui.clear()
-        self.level.open_world(lvl)
+        self.world.open_world(lvl, self)
         self.levelname = lvl
         bs = [];
         a = 0
@@ -82,6 +85,9 @@ class Editor:
             bs.append(Button((200 + a * 45, 0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
                              img=level.block_s[i]['img'], args=(i)))
             a += 1
+        objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
+            objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,]
+        bs+=vertical(3, [Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs])
         self.ui.set_ui(bs)
         # self.camera
         self.editing = True
@@ -89,7 +95,7 @@ class Editor:
     def save_level(self):
         self.editing = False
         print(self.levelname)
-        self.level.save_world(self.levelname)
+        self.world.save_world(self.levelname)
         self.ui.clear()
         self.main_menu()
 
@@ -110,17 +116,23 @@ class Editor:
 
 
     def draw(self):
-        self.screen.fill('black', [0,0,self.res[0], self.res[1]+40])
+        self.frame.fill('black', [0,0,self.res[0], self.res[1]+40])
         if self.editing:
-            self.level.draw(self.screen, self.camera)
-            pg.draw.rect(self.screen, 'red', (-self.camera.x,-self.camera.y-40,self.camera.w,self.camera.h),1)
-            pg.draw.line(self.screen, 'red', (0,-self.camera.y-40),(self.camera.w,-self.camera.y-40),1)
-            pg.draw.line(self.screen, 'red', (0,-self.camera.y+self.camera.h-40),(self.camera.w,-self.camera.y+self.camera.h-40),1)
-        self.ui.draw(self.screen)
-        self.info_ui.draw(self.screen)
+            self.world.draw(self.frame, self.camera)
+            for a in self.world.actors:
+                a.debug_draw(self.frame, self.camera)
+            pg.draw.rect(self.frame, 'red', (-self.camera.x,-self.camera.y-40,self.camera.w,self.camera.h),1)
+            pg.draw.line(self.frame, 'red', (0,-self.camera.y-40),(self.camera.w,-self.camera.y-40),1)
+            pg.draw.line(self.frame, 'red', (0,-self.camera.y+self.camera.h-40),(self.camera.w,-self.camera.y+self.camera.h-40),1)
         x,y= pg.mouse.get_pos()
         x,y=utils.real((-x,-y-40), self.camera)
+        
+
+        self.screen.blit(pg.transform.scale(self.frame, (int(self.res[0]/self.zoom),int(self.res[1]/self.zoom),)),(0,0))
+        self.ui.draw(self.screen)
+        if self.editing: self.info_ui.draw(self.screen)
         utils.debug(f'x: {-x} y: {-y}', self.screen, y=50)
+        utils.debug(self.zoom, self.screen, y=100)
 
     def event_loop(self):
         w=1400
@@ -129,23 +141,27 @@ class Editor:
             self.ui.update_buttons(event)
             self.info_ui.update_buttons(event)
             if self.editing:
+                # if hasattr(event, 'pos'):
+                #     setattr(event, 'pos', (remap(event.pos[0], (0, self.res[0]), (0,self.res[0]/self.zoom)), remap(event.pos[1], (0, self.res[1]), (0,self.res[1]/self.zoom))))
                 if event.type == pg.MOUSEBUTTONDOWN:
-                    if event.pos[0]>w: continue
+                    if event.pos[0]>w or event.pos[1]<40: continue
                     if event.button == pg.BUTTON_RIGHT:
                         self.drawing = True
                     if event.button == pg.BUTTON_LEFT:
-                        self.level.set_block((event.pos[0] + self.camera.x, event.pos[1]+self.camera.y), self.brush)
+                        self.world.set_block((event.pos[0] + self.camera.x, event.pos[1]+self.camera.y), self.brush)
                     if event.button == pg.BUTTON_MIDDLE:
                         x,y = event.pos
-                        obj = self.level.get_nearest(core.Saving, real(event.pos,self.camera, True))
-                        self.info_ui.set_ui([
-                            Button((w+30,50),'white','Object info:',50),
-                            *vertical(3,[Button((w+30,120),'white',str(i).title(),30) for i in obj.slots]),
-                            *vertical(3, [TextField((w+150, 120),'black', str(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit, args=(key,), add_text=True) for key,i in obj.slots.items()]),
-                        ])
+                        obj = self.world.get_nearest(core.Saving, real(event.pos,self.camera, True))
+                        self.obj_info(obj)
+                    if event.button==pg.BUTTON_WHEELDOWN:
+                        self.zoom/=1.2
+                        if self.zoom<0.3:self.zoom=0.3
+                    if event.button==pg.BUTTON_WHEELUP:
+                        self.zoom*=1.2
+                        if self.zoom>1:self.zoom=1
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == pg.BUTTON_RIGHT: self.drawing = False
-                if event.type == pg.MOUSEMOTION and self.drawing: self.level.set_block(
+                if event.type == pg.MOUSEMOTION and self.drawing: self.world.set_block(
                     (event.pos[0] + self.camera.x, event.pos[1] +self.camera.y),
                     self.brush)
                 if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT:
@@ -153,8 +169,28 @@ class Editor:
                     self.brush = '0'
                 if event.type == pg.KEYUP and event.key == pg.K_LSHIFT: self.brush = self.last_brush
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE: self.set_brush(self.last_brush)
+    def create_obj(self, obj):
+        a = obj()
+        a.rect.x,a.rect.y=real((self.camera.x+(1920/2), self.camera.y+(1080/2),), self.camera, invert=True)
+        if isinstance(a, enemies.BaseAI): self.world.ais.append(a)
+        self.world.actors.append(a)
+
+    def obj_info(self, obj):
+        w=1400
+        self.info_ui.set_ui([
+            Button((w+30,50),'white','Object info:',50),
+            Button((w+30,110),'white',f'{obj.module}.{obj.__class__.__name__}',40),
+            *vertical(3,[Button((w+30,160),'white',str(i).title(),30) for i in obj.slots]+[Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj))]),
+            *vertical(3, [TextField((w+150, 160),'black', str(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit, args=(key,), add_text=True) for key,i in obj.slots.items()]),
+            
+        ])
+    def del_obj(self, obj):
+        print(self.world.actors)
+        self.info_ui.set_ui([Button((1400+30,50),'white','Press MMB to select obj',50),])
+        del self.world.actors[self.world.actors.index(obj)]
 
     def loop(self):
+
         self.event_loop()
 
         self.camera_update(pg.key.get_pressed())

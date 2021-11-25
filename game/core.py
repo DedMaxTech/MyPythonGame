@@ -27,13 +27,15 @@ class Saving:
         tip = self.slots[attr][1]
         if tip==dict:val = json.loads(val.replace("'",'"'))
         elif tip==list:val = [i.strip() for i in val.split(',')]
-        elif tip==FunctionType:val = eval(f'lambda game: {val}')
+        elif tip==FunctionType:val = val
         elif tip==int: val=int(val)
         self._set_att_val(self.slots[attr][0],val)
 
     def save(self):
         return f'{self.module}.{self.__class__.__name__}({", ".join(["{key}={val}".format(key=key, val=repr(self._get_att_val(val[0]))) for key,val in self.slots.items()])})'
 
+font = pg.font.SysFont('Arial',size=40)
+font.bold=True
 class Actor:
     def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True, image=None):
         self.rect = pg.Rect(x,y,w,h)
@@ -49,6 +51,12 @@ class Actor:
         self.img = image
         self.visible = True
         self.game=None
+        text = font.render(self.__class__.__name__, False, 'red')
+        sf = pg.transform.scale(pg.transform.rotate(text.copy(), 45),(w,h))
+        sf.blit(pg.transform.scale(pg.transform.rotate(text.copy(), -45),(w,h)), (0,0))
+        pg.draw.rect(sf,'red',(0,0,w,h), 2)
+        sf.set_alpha(100)
+        self.debug_img = sf
         # self.autodel()
     
     def autodel(self, secs):
@@ -162,6 +170,8 @@ class Actor:
         else:
             screen.fill('red',real(self.rect,camera))
     
-    def nothing(self,*args,**kwargs):
-        pass
+    def debug_draw(self,screen, camera):
+        screen.blit(pg.transform.scale(self.debug_img, self.rect.size), real(self.rect.topleft, camera))
+
+    def nothing(self,*args,**kwargs): pass
 

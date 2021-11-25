@@ -5,7 +5,7 @@ from . import *
 def blood(pos,world, amount=10):
     x,y = pos
     for i in range(amount):
-        world.actors.append(BloodParticle(x,y,3,rd(-1,1),rd(0,3)))
+        world.actors.append(BloodParticle(x,y,3,rd(-10,10)/3,rd(0,40)/10))
 
 def damage(pos, dmg, world):
     x,y = pos

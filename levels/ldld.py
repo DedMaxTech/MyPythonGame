@@ -8,15 +8,19 @@ guns = []
 ####DONT TOUCH####
 # Auto-generated in game.level
 ais = [
-	enemies.ShoterAI(x=500, y=800, gun='minigun')
+	enemies.ShoterAI(x=500, y=800, gun='minigun'),
+	enemies.ShoterAI(x=550, y=620, gun='rifle')
 ]
 actors = [
+	objects.Portal(x1=40, y1=880, x2=300, y2=840, w=120, h=40),
+	objects.ScreenConditionTriger(x=0, y=800, w=300, h=80, condition='game.player.xspeed!=0', image='game/content/ui/to_move.png'),
 	objects.Aid(x=1400, y=975, hp=50),
 	objects.Ammo(x=500, y=900, ammo={'shootgun': 20, 'rifle': 60}),
-	objects.GunsCase(x=80, y=940, guns=['shootgun', 'rifle'])
+	objects.GunsCase(x=80, y=940, guns=['rifle', 'shootgun']),
+	objects.Ammo(x=40, y=320, ammo={}),
+	objects.LevelTravelTriger(x=560, y=840, w=40, h=120, levelname='ldld')
 ]
 blocks = [
-	level.Block(1200,440,'='),
 	level.Block(0,-40,'='),
 	level.Block(0,0,'='),
 	level.Block(0,40,'='),
@@ -101,5 +105,11 @@ blocks = [
 	level.Block(600,360,'='),
 	level.Block(280,280,'='),
 	level.Block(240,280,'='),
-	level.Block(-160,600,'=')
+	level.Block(-160,600,'='),
+	level.Block(40,480,'='),
+	level.Block(440,280,'='),
+	level.Block(-40,600,'='),
+	level.Block(-200,120,'='),
+	level.Block(-240,120,'='),
+	level.Block(360,280,'=')
 ]

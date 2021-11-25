@@ -133,7 +133,7 @@ class ShoterAI(BaseAI, core.Saving):
         'gun':['gun', str],
     }
     module='enemies'
-    def __init__(self, x, y, gun='rifle', moving=True):
+    def __init__(self, x=0, y=0, gun='rifle', moving=True):
         super().__init__(x, y, 30,80, friction=0)
         self.look_r = True
         self.jump = False
