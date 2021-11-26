@@ -15,10 +15,11 @@ class DamageParticle(core.Actor):
         self.xspeed, self.yspeed = xv,yv
         # self.autodel(2)
         self.text = f'{dmg}hp'
-        # self.font = 
+        # self.font =   
+        self.font=pg.font.Font(cfg.font, self.rect.w)
     
     def draw(self, screen: pg.Surface, camera: pg.Rect):
-        screen.blit(pg.font.Font(cfg.font, self.rect.w).render(self.text,False,'red'), (self.rect.x - camera.x, self.rect.y - camera.y,))
+        screen.blit(self.font.render(self.text,False,'red'), (self.rect.x - camera.x, self.rect.y - camera.y,))
         self.rect.w-=0.5
         if self.rect.w<=0: self.delete()
 

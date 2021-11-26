@@ -1,12 +1,12 @@
 import pygame as pg
 from glob import glob
 import os
-
+import database
 import cfg
 pg.init()
 from game import  *
 from game.UI import Interface, Button, TextField
-
+d  = database.DB()
 
 class Editor:
     def __init__(self):
@@ -171,7 +171,7 @@ class Editor:
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE: self.set_brush(self.last_brush)
     def create_obj(self, obj):
         a = obj()
-        a.rect.x,a.rect.y=real((self.camera.x+(1920/2), self.camera.y+(1080/2),), self.camera, invert=True)
+        a.rect.x,a.rect.y=real((1920/2,1080/2), self.camera, invert=True)
         if isinstance(a, enemies.BaseAI): self.world.ais.append(a)
         self.world.actors.append(a)
 
@@ -185,7 +185,6 @@ class Editor:
             
         ])
     def del_obj(self, obj):
-        print(self.world.actors)
         self.info_ui.set_ui([Button((1400+30,50),'white','Press MMB to select obj',50),])
         del self.world.actors[self.world.actors.index(obj)]
 

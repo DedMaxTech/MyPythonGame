@@ -187,7 +187,7 @@ class Game:
 
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
-        pg.display.toggle_fullscreen()
+        pg.display.toggle_fullscreen()  
         os.system('python editor.py')
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
@@ -305,9 +305,7 @@ class Game:
     
     def process_zoom(self):
         size = self.frame.get_size()
-        x,y=round((self.camera.w-size[0])/20), round((self.camera.h-size[1]) / 20)
-        # self.frame = pg.Surface((size[0]+x,size[1]+y))
-        self.frame =pg.transform.scale(self.frame, (size[0]+x,size[1]+y))
+        self.frame =pg.transform.scale(self.frame, (size[0]+int(((self.camera.w-size[0])/20)),size[1]+int((self.camera.h-size[1]) / 20)))
 
     def zoom(self,val):
         self.camera.size = (int(cfg.screen_h*val), int(cfg.screen_v*val))

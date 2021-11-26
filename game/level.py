@@ -127,6 +127,7 @@ class World:
         if rect is None:
             return self.blocks
         return [self.blocks[i] for i in rect.collidelistall(self.blocks)]
+        # return self.blocks
     
     def get_actors(self, rect:pg.Rect=None):
         if rect is None:

@@ -85,8 +85,8 @@ class TextField:
     
 class ProgressBar:
     def __init__(self, pos, img_full, img_empty=None, value=1, colorkey='black'):
-        self.img = img_full
-        self.empty_img = img_empty
+        self.img = img_full.convert_alpha()
+        self.empty_img = img_empty.convert_alpha() if img_empty else None
         self.value = value
         self.cur_val = value
         self.rect = img_full.get_rect()

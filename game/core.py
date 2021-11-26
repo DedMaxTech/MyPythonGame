@@ -82,6 +82,7 @@ class Actor:
         if self.die:
             if self.die_kd >0: self.die_kd -= delta
             else: self.delete()
+            
         if not self.on_ground:
             self.yspeed += self.gravity*k
             

@@ -156,7 +156,7 @@ class Bullet(core.Actor):
             return
         if isinstance(actor, enemies.BaseAI) and not isinstance(self.parent, enemies.BaseAI):
             actor.hp -= self.damage
-            write_stat('done damage', get_stat('done damage')+self.damage)
+            # write_stat('done damage', get_stat('done damage')+self.damage)
             if not cfg.potato:
                 fx.blood(self.rect.center,self.parent.world, int(self.damage*1.5/10))
                 fx.damage(self.rect.center,-self.damage,self.parent.world)
@@ -165,7 +165,7 @@ class Bullet(core.Actor):
             self._delete = True
         if isinstance(actor, Player):
             actor.hp -= self.damage
-            write_stat('received damage', get_stat('received damage')+self.damage)
+            # write_stat('received damage', get_stat('received damage')+self.damage)
             actor.dmg_timer = 100
             self._delete = True
         if isinstance(actor, level.Block):
@@ -441,7 +441,7 @@ class Player(core.Actor):
         self.shoot_kd = gun['kd']
         self.shoot = gun['auto']
         if sounds: SOUNDS['shoot'].play()
-        write_stat('shoots', get_stat('shoots')+1)
+        # write_stat('shoots', get_stat('shoots')+1)
     
     def throw_genade(self):
         self.grenade=False
