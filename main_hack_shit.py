@@ -49,7 +49,7 @@ class Game:
         self.world_tick = 1.0
         self.pr = threading.Thread(target=self.await_data, daemon=True)
         self.camera = pg.Rect(0, -40, self.res[0], self.res[1])
-        self.ui = Interface(sounds)
+        self.ui = Interface()
         self.world = level.World()
         self.player: player.Player = None
         self.players:List[player.Player] = []
@@ -90,7 +90,18 @@ class Game:
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
         tf = TextField((220,195+36), 'black', 'Code:',30,bg='white')
-        self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),]+
+        b = Button((0,0), 'white', 'delete', 30, bg='darkgrey')
+        b.func=b.delete
+        self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),
+                        Interface([
+                            Button((0,0), 'white', 'MENU2', 60, ),
+                                VBox(4,(0,70),(400,150),anchor_h=UI.RIGHT, anchor_v=UI.UP,widgets=[
+                                    b,
+                                    Button((0,0), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
+                                    Button((0,0), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
+                                    Button((0,0), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
+                                ]),
+                            ], (300,100))]+
             vertical(5,[
             Button((75, 120), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
             Button((75, 155), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
@@ -98,7 +109,7 @@ class Game:
             Button((75, 200), 'white', 'Join game', 30, self.join_game, 'darkgrey',textfield=tf),
             Button((75, 260), 'white', 'Statistics', 30, self.stats_menu, 'darkgrey'),
             Button((75, 295), 'white', 'Exit', 30, exit, 'darkgrey'),
-        ])+add+[tf])
+        ])+add+[tf,])
     
     def select_level_menu(self):
         levels = dict()
@@ -401,13 +412,13 @@ class Game:
         else:
             self.frame.fill('black')
         if self.pause: self.screen.blit(self.tint2, (0, 0))
-        self.ui.draw(self.screen)
+        self.ui.render(self.screen)
 
     def event_loop(self):
         global writing
         writing = pg.key.get_pressed()[pg.K_m]
         for event in pg.event.get():
-            self.ui.update_buttons(event, self.delta)
+            self.ui.update(event, self.delta)
             if hasattr(event, 'pos'):
                 x,y = self.frame.get_size()
                 setattr(event, 'pos', (remap(event.pos[0], (0, cfg.screen_h), (0,x)), remap(event.pos[1], (0, cfg.screen_v), (0,y))))
@@ -461,7 +472,6 @@ class Game:
 
     def run(self):
         print(repr(get_stat()))
-        print(self.__class__.__name__, self.__class__.__qualname__)
         # self.resize()
         while True:
             if writing:

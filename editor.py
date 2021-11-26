@@ -59,7 +59,7 @@ class Editor:
             Button((100,400), 'white', 'Back', 50, self.main_menu, 'darkgrey'),Button((1000,400), 'white', 'Create', 50, self.create_level, 'darkgrey'),
         ]+add)
     def create_level(self):
-        path, bg = f'levels/{self.ui.buttons[2].text}.py', f'game\content/{self.ui.buttons[4].text}.png'
+        path, bg = f'levels/{self.ui.widgets[2].text}.py', f'game\content/{self.ui.widgets[4].text}.png'
         print(path,bg)
         if os.path.isfile(path):
             self.create_menu([Button((1000,450), 'red', 'Already exists', 50)])
@@ -68,7 +68,7 @@ class Editor:
         else:
             with open(path,'w') as file:
                 file.write(level.conf.format(bg=bg))
-            self.open_level(self.ui.buttons[2].text)
+            self.open_level(self.ui.widgets[2].text)
 
 
     def open_level(self, lvl):
@@ -127,8 +127,8 @@ class Editor:
         
 
         self.screen.blit(pg.transform.scale(self.frame, (int(self.res[0]/self.zoom),int(self.res[1]/self.zoom),)),(0,0))
-        self.ui.draw(self.screen)
-        if self.editing: self.info_ui.draw(self.screen)
+        self.ui.render(self.screen)
+        if self.editing: self.info_ui.render(self.screen)
         utils.debug(f'x: {-x} y: {-y}', self.screen, y=50)
         utils.debug(self.zoom, self.screen, y=100)
 
@@ -136,8 +136,8 @@ class Editor:
         w=1400
         for event in pg.event.get():
             if event.type == pg.QUIT: exit()
-            self.ui.update_buttons(event)
-            self.info_ui.update_buttons(event)
+            self.ui.update(event)
+            self.info_ui.update(event)
             if self.editing:
                 # if hasattr(event, 'pos'):
                 #     setattr(event, 'pos', (remap(event.pos[0], (0, self.res[0]), (0,self.res[0]/self.zoom)), remap(event.pos[1], (0, self.res[1]), (0,self.res[1]/self.zoom))))

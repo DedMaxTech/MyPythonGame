@@ -310,7 +310,7 @@ class Player(core.Actor):
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
         # UI
-        self.ui.update_buttons(delta=delta)
+        self.ui.update(delta=delta)
         
         if self.dead:
             return
@@ -319,18 +319,18 @@ class Player(core.Actor):
         
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
-        self.ui.buttons[0].value = self.hp/100
-        self.ui.buttons[1].value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
-        self.ui.buttons[2].text = f'{amm[0]}/{amm[1]}'
-        self.ui.buttons[5].text = str(self.grenades)
+        self.ui.widgets[0].value = self.hp/100
+        self.ui.widgets[1].value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
+        self.ui.widgets[2].text = f'{amm[0]}/{amm[1]}'
+        self.ui.widgets[5].text = str(self.grenades)
 
         
 
         if self.reload_kd>0 and self._reload:
-            self.ui.buttons[3].text = f'{self.reload_kd/1000:.2f}'
+            self.ui.widgets[3].text = f'{self.reload_kd/1000:.2f}'
         else:
-            self.ui.buttons[3].text = ''
-        self.ui.buttons[4].text = self.guns[self.gun].title()
+            self.ui.widgets[3].text = ''
+        self.ui.widgets[4].text = self.guns[self.gun].title()
 
         # TIMERS
         if self.dmg_timer >0: self.dmg_timer-=delta
@@ -498,4 +498,4 @@ class Player(core.Actor):
         
         if not self.dead:
             screen.blit(self.img, (self.rect.x - camera.x+off-3, self.rect.y - camera.y))
-        self.ui.draw(self.game.screen)
+        self.ui.render(self.game.screen)

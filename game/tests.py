@@ -1,7 +1,3 @@
-def count(self, a,b):
-    return a+b
+from UI import *
 
-A = object
-A.count = count
-a = A()
-print(a.count())
+ui = Interface

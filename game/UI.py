@@ -18,24 +18,26 @@ class Widget:
         self.die=False
         self.die_timer=1000
         self._delete=False
-    def update(self,event,delta):
+        self.sounds = sounds
+    def update(self,event,delta,offset=(0,0)):
         if self.die:
             if self.die_timer>0: self.die_timer-=delta
             else: self._delete=True
         if event:
+            if hasattr(event,'pos'): pos = event.pos[0]-offset[0],event.pos[1]-offset[1]
             if event.type==pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
-                if self.rect.collidepoint(*event.pos):
+                if self.rect.collidepoint(*pos):
                     self.press()
                     self.active=True
                 else: 
                     self.active=False
                     self.unactive(event.pos)
-            if event.type==pg.MOUSEBUTTONUP and event.button == pg.BUTTON_LEFT and self.rect.collidepoint(*event.pos):self.release()
-            if event.type==pg.MOUSEMOTION and not self.hovered and self.rect.collidepoint(*event.pos):
-                if sounds: SOUNDS['hover'].play()
+            if event.type==pg.MOUSEBUTTONUP and event.button == pg.BUTTON_LEFT and self.rect.collidepoint(*pos):self.release()
+            if event.type==pg.MOUSEMOTION and not self.hovered and self.rect.collidepoint(*pos):
+                if self.sounds: SOUNDS['hover'].play()
                 self.hovered=True
                 self.hover()
-            if event.type==pg.MOUSEMOTION and self.hovered and not self.rect.collidepoint(*event.pos):
+            if event.type==pg.MOUSEMOTION and self.hovered and not self.rect.collidepoint(*pos):
                 self.hovered=False
                 self.unhover()
             if event.type==pg.KEYDOWN: self.key_pressed(event.key, event.unicode)
@@ -45,10 +47,10 @@ class Widget:
     def release(self):pass
     def unactive(self, pos):pass
     def key_pressed(self, key, unicode):pass
-    def delete(self, time): 
+    def delete(self, time=0): 
         self.die=True
         self.die_timer=time
-    def render(self, screen:pg.Surface): pass
+    def render(self, screen:pg.Surface, offset=(0,0)): pass
 
 class Button(Widget):
     def __init__(self, pos, color, text, font: Union[int, pg.font.Font], callback_f=None, bg=None,bg_hover=None, img=None, size=None,
@@ -74,16 +76,16 @@ class Button(Widget):
         args = (() if not self.args else (self.args,))+(() if not self.texfield else (self.texfield.text,))
         self.func(*args)
 
-    def render(self, screen:pg.Surface):
+    def render(self, screen:pg.Surface,offset=(0,0)):
         if self.bg:
             if not self.hovered:
-                screen.fill(self.bg, self.rect)
+                screen.fill(self.bg, (self.rect.x-offset[0], self.rect.y-offset[1], self.rect.w,self.rect.h))
             else:
                 off = 50
-                screen.blit(self.font.render('~ ', False, self.color), (self.rect.x+5-self.font.size('~ ')[0], self.rect.y))
-                screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
-        if self.img: screen.blit(self.img, self.rect.topleft)
-        screen.blit(self.font.render(self.text, False, self.color), (self.rect.x+5, self.rect.y))
+                screen.blit(self.font.render('~ ', False, self.color), (self.rect.x-offset[0]+5-self.font.size('~ ')[0], self.rect.y-offset[1]))
+                screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x-offset[0], self.rect.y-offset[1],self.rect.w+20, self.rect.h))
+        if self.img: screen.blit(self.img, (self.rect.x-offset[0], self.rect.y-offset[1]))
+        screen.blit(self.font.render(self.text, False, self.color), (self.rect.x-offset[0]+5, self.rect.y-offset[1]))
 
 def vertical(margin, buttons:List[Button], invert=False):
     x,y = buttons[0].rect.topleft
@@ -134,15 +136,15 @@ class TextField(Widget):
         add = (self.text,) if self.add else ()
         if self.func: self.func(*((*self.args,) + add))
 
-    def render(self, screen:pg.Surface):
+    def render(self, screen:pg.Surface, offset=(0,0)):
         if self.bg:
             if not self.hovered:
-                screen.fill(self.bg, self.rect)
+                screen.fill(self.bg, (self.rect.x-offset[0], self.rect.y-offset[1], self.rect.w,self.rect.h))
             else:
                 off = 50
-                screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x, self.rect.y,self.rect.w+20, self.rect.h))
+                screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x-offset[0], self.rect.y-offset[1],self.rect.w+20, self.rect.h))
         # if self.img: screen.blit(pg.image.load(self.img), self.pos)
-        screen.blit(self.font.render(self.text + "|" if self.active else self.text, False, self.color), self.rect.topleft)
+        screen.blit(self.font.render(self.text + "|" if self.active else self.text, False, self.color), (self.rect.x-offset[0]+5, self.rect.y-offset[1]))
     
 class ProgressBar(Widget):
     def __init__(self, pos, img_full, img_empty=None, value=1, colorkey='black'):
@@ -155,51 +157,60 @@ class ProgressBar(Widget):
         self.rect.topleft = pos
         self.key = colorkey
     
-    def update(self, event, delta):
+    def update(self, event, delta,offset=(0,0)):
         self.cur_val += (self.value - self.cur_val) / 20
-        return super().update(event, delta)
+        return super().update(event, delta,offset)
     
-    def render(self, screen):
+    def render(self, screen, offset=(0,0)):
         if self.empty_img: screen.blit(self.empty_img, self.rect.topleft)
         sf = pg.Surface((self.rect.w, self.rect.h))
         sf.fill(self.key)
         sf.set_colorkey(self.key)
         sf.blit(self.img, (0,0))
         sf.fill(self.key, (self.rect.w*self.cur_val, 0, self.rect.w, self.rect.h))
-        screen.blit(sf,self.rect.topleft)
+        screen.blit(sf,(self.rect.x-offset[0]+5, self.rect.y-offset[1]))
 
-class Interface:
-    def __init__(self, sounds:bool=False, anims=True):
-        self.buttons:List[Widget] = []
-        self.pos = 0,0
+
+
+class Interface(Widget):
+    VERTICAL = 'v'
+    HORIZONTAL = 'h'
+    FREE = 'f'
+    def __init__(self,widgets=[],pos=(0,0),size=cfg.res, anims=False,relative=True):
+        super().__init__(pos,size)
+        self.widgets:List[Widget]=[]
         self.w=0
-        self.sounds, self.anims = sounds, anims
-        self.last_frame = pg.Surface(cfg.res)
-        if self.sounds:
-            self.sound = pg.mixer.Sound('game/content/sounds/menu2.wav')
-            self.sound.set_volume(0.2)
+        self.anims=anims
+        self.relative=relative
+        # self.orientation = orientation
+        # self.invert=invert
+        self.last_frame = pg.Surface(size)
+        self.set_ui(widgets)
 
     def clear(self):
-        self.buttons = []
-
-    def set_ui(self, buttons: list, anim=True):
-        self.draw(self.last_frame)
-        self.buttons = buttons
+        self.widgets = []
+    
+    def set_ui(self, buttons: list, anim=False):
+        self.render(self.last_frame)
+        self.widgets = buttons
         if anim: self.w = 0
 
-    def draw(self, screen: pg.Surface, offset=(0,0)):
+    def render(self, screen: pg.Surface, offset=(0,0)):
+        offset = offset if self.relative else (0,0)
         if self.w<cfg.screen_h: self.w+=10
-        for b in self.buttons:
-            b.render(screen)
+        for b in self.widgets:
+            b.render(screen,(-self.rect.x+offset[0],-self.rect.y+offset[1]))
         if self.anims and self.w<cfg.screen_h:
             sf=pg.Surface(cfg.res)
             sf.blit(self.last_frame,(0,0))
             sf.fill('green',(0,0,self.w,cfg.screen_v))
             sf.set_colorkey('green')    
             screen.blit(sf,(0,0))
-            
+    
+    def update_ui(self):
+        pass
 
-    def update_buttons(self, event=None, delta=0):
+    def update(self, event=None, delta=0, offset=(0,0)):
         # if event and event.type == pg.MOUSEBUTTONDOWN and event.button == pg.BUTTON_LEFT:
         #     for b in self.buttons:
         #         if type(b)==TextField: b.active = False
@@ -224,5 +235,81 @@ class Interface:
         # elif event and event.type == pg.MOUSEMOTION: self.pos = event.pos
         # [b.update(event) for b in self.buttons if event and type(b)==TextField and b.active]
         # [i.update() for i in self.buttons if type(i)==ProgressBar]
-        [w.update(event, delta) for w in self.buttons]
+        offset = offset if self.relative else (0,0)
+        [w.update(event, delta, (self.rect.x+offset[0],self.rect.y+offset[1])) for w in self.widgets]
+        flag=False
+        for i in self.widgets:
+            if i._delete:
+                del self.widgets[self.widgets.index(i)]
+                flag=True
+        if flag: self.update_ui()
+UP = 'u'
+DOWN = 'd' 
+RIGHT='r'
+LEFT='l'
+FILL='f'
+class Box(Interface):
+    def __init__(self,margin=0,pos=(0, 0),size=cfg.res,anchor_h:Union[RIGHT,LEFT,FILL]=RIGHT,anchor_v:Union[UP,DOWN,FILL]=UP, widgets=[]):
+        print(pos)
+        super().__init__(widgets=widgets, pos=pos,size=size, anims=False, relative=True)
+        self.margin=margin
+        self.anchor_h, self.anchor_v= anchor_h, anchor_v
+        self.update_ui()
+class VBox(Box):
+    def update_ui(self):
+        if self.anchor_v==UP:
+            y=0
+            for w in self.widgets:
+                w.rect.y=y
+                y+=w.rect.h+self.margin
+        elif self.anchor_v==DOWN:
+            y=self.rect.h
+            for w in self.widgets:
+                w.rect.bottom=y
+                y-=w.rect.h+self.margin
+        elif self.anchor_v==FILL:
+            h=self.rect.h/len(self.widgets) - self.margin
+            for w in self.widgets: w.rect.h=h
+            y=0
+            for w in self.widgets:
+                w.rect.y=y
+                y+=w.rect.h+self.margin
+        
+        if self.anchor_h==RIGHT:
+            for w in self.widgets:
+                w.rect.x=0
+        elif self.anchor_h==LEFT:
+            for w in self.widgets:
+                w.rect.right=self.rect.w
+        elif self.anchor_h==FILL:
+            for w in self.widgets: w.rect.w = self.rect.w
 
+
+class HBox(Box):
+    def update_ui(self):
+        if self.anchor_v==UP:
+            for w in self.widgets:
+                w.rect.y=0
+        elif self.anchor_v==DOWN:
+            for w in self.widgets:
+                w.rect.bottom=self.rect.h
+        elif self.anchor_v==FILL:
+            for w in self.widgets: w.rect.h = self.rect.h
+        
+        if self.anchor_h==RIGHT:
+            x=0
+            for w in self.widgets:
+                w.rect.x=x
+                x+=w.rect.w+self.margin
+        elif self.anchor_h==LEFT:
+            x=self.rect.right
+            for w in self.widgets:
+                w.rect.right=x
+                x-=w.rect.w+self.margin
+        elif self.anchor_h==FILL:
+            w = self.rect.w/len(self.widgets)-self.margin
+            for wid in self.widgets: wid.rect.w = w
+            x=0
+            for wid in self.widgets:
+                wid.rect.x=x
+                x+=wid.rect.w+self.margin
