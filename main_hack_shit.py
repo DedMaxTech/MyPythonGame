@@ -407,7 +407,7 @@ class Game:
         global writing
         writing = pg.key.get_pressed()[pg.K_m]
         for event in pg.event.get():
-            self.ui.update_buttons(event)
+            self.ui.update_buttons(event, self.delta)
             if hasattr(event, 'pos'):
                 x,y = self.frame.get_size()
                 setattr(event, 'pos', (remap(event.pos[0], (0, cfg.screen_h), (0,x)), remap(event.pos[1], (0, cfg.screen_v), (0,y))))

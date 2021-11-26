@@ -310,7 +310,7 @@ class Player(core.Actor):
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
         # UI
-        self.ui.update_buttons()
+        self.ui.update_buttons(delta=delta)
         
         if self.dead:
             return
