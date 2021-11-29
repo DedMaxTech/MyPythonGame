@@ -30,6 +30,7 @@ class Saving:
         elif tip==FunctionType:val = val
         elif tip==int: val=int(val)
         self._set_att_val(self.slots[attr][0],val)
+        self.reset()
 
     def save(self):
         return f'{self.module}.{self.__class__.__name__}({", ".join(["{key}={val}".format(key=key, val=repr(self._get_att_val(val[0]))) for key,val in self.slots.items()])})'
@@ -175,4 +176,5 @@ class Actor:
         screen.blit(pg.transform.scale(self.debug_img, self.rect.size), real(self.rect.topleft, camera))
 
     def nothing(self,*args,**kwargs): pass
+    def reset(self):pass
 

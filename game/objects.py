@@ -5,6 +5,7 @@ from pygame import event
 from game.UI import Button
 from . import core, player
 from . utils import *
+import cfg
 
 def create_portals(pos1, pos2, size = (40,40)):
     p1 = Portal(pos1,size)
@@ -66,6 +67,10 @@ class Portal(core.Actor, core.Saving):
         self.second._collide_actors(actors)
         self.second.pre_rect.center = self.second.rect.center
     
+    def reset(self):
+        self.img = pg.transform.scale(self.img, (self.rect.w,self.rect.h))
+        self.second.img=self.img
+
     def hit(self, actor):
         ignore = [a for kd, a in self.ignore]
         if isinstance(actor, core.Actor) and self.second and actor not in ignore:
@@ -88,6 +93,24 @@ class Portal(core.Actor, core.Saving):
             actor.yspeed = -actor.yspeed
             if sounds: sound.play()
 
+class Text(core.Actor, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'text':['text', str],
+        'size':['size', int],
+        'color':['color', str],
+    }
+    def __init__(self, x=0, y=0, text='', size=20, color='white'):
+        super().__init__(x, y, 1,1, bounce=0, gravity=0, static=False, friction=0, collision=False)
+        self.text=text
+        self.size=size
+        self.color=color
+        self.img=pg.font.Font(cfg.font, size).render(text, False, color)
+    def update(self, delta, blocks, actors):
+        pass
+    def reset(self):
+        self.img=pg.font.Font(cfg.font, self.size).render(self.text, False,self.color)
 
 class BaseTriger(core.Actor, core.Saving):
     slots = {
@@ -122,6 +145,8 @@ class Trigger(BaseTriger, core.Saving):
         super().__init__(x, y, w, h)
         self.func = function
 
+    def update(self, delta, blocks, actors):
+        self._collide_actors(actors)
     def triggered(self, actor):
         eval(f'lambda game: {self.func}')(self.game)
         self.delete()
