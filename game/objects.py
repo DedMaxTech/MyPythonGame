@@ -1,6 +1,8 @@
 from types import FunctionType
 from typing import List
 from pygame import event
+
+from game.UI import Button
 from . import core, player
 from . utils import *
 
@@ -119,7 +121,7 @@ class Trigger(BaseTriger, core.Saving):
     def __init__(self, x=0, y=0, w=40, h=40, function='1==1'):
         super().__init__(x, y, w, h)
         self.func = function
-    
+
     def triggered(self, actor):
         eval(f'lambda game: {self.func}')(self.game)
         self.delete()
@@ -159,6 +161,7 @@ class Ammo(BaseTriger, core.Saving):
         for key, val in self.ammo.items():
             if actor.ammo.get(key):actor.ammo[key][1]+=val
             else: actor.ammo[key] = [0, val]
+        actor.event_ui.add_ui([Button((0,0), 'white', f'{gun}: +{self.ammo[gun]}', 20, autodel=3*1000+i*300) for i, gun in enumerate(self.ammo)])
         self.delete()
 
 class GunsCase(BaseTriger, core.Saving):
@@ -176,6 +179,7 @@ class GunsCase(BaseTriger, core.Saving):
     
     def triggered(self, actor):
         actor.guns = list(set(actor.guns+self.guns))
+        actor.event_ui.add_ui([Button((0,0), 'white', f'+ {val}', 20, autodel=(3+i)*1000) for i, val in enumerate(self.guns)])
         self.delete()
 
 class ScreenTriger(BaseTriger, core.Saving):
@@ -224,7 +228,7 @@ class LevelTravelTriger(BaseTriger, core.Saving):
         self.r+=1
         self.img = pg.transform.rotate(PORTAL_IMG.copy(),self.r)
         self.img = pg.transform.scale(self.img, (self.rect.w,self.rect.h))
-        return super().update(delta, blocks, actors)
+        self._collide_actors(actors)
     
     def triggered(self, actor):
         self.game.start_game(self.level)

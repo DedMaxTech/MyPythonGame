@@ -10,16 +10,18 @@ class BloodParticle(core.Actor):
         self.autodel(1)
 
 class DamageParticle(core.Actor):
-    def __init__(self, x, y, dmg,w,  xv,yv):
+    def __init__(self, x, y, dmg,w,  xv,yv, heal=False):
         super().__init__(x, y, w, w, gravity=0.2,friction=0,collision=False)
         self.xspeed, self.yspeed = xv,yv
         # self.autodel(2)
-        self.text = f'{dmg}hp'
+        self.text = f'+{dmg}hp' if heal else f'-{dmg}hp' 
         # self.font =   
+        self.heal = heal
+        self.rect.w=int((w**0.5)*5)
         self.font=pg.font.Font(cfg.font, self.rect.w)
     
     def draw(self, screen: pg.Surface, camera: pg.Rect):
-        screen.blit(self.font.render(self.text,False,'red'), (self.rect.x - camera.x, self.rect.y - camera.y,))
+        screen.blit(self.font.render(self.text,False,'red' if not self.heal else 'green'), (self.rect.x - camera.x, self.rect.y - camera.y,))
         self.rect.w-=0.5
         if self.rect.w<=0: self.delete()
 

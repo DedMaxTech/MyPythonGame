@@ -1,7 +1,7 @@
 import pygame as pg
 import math
 from . import enemies, core, fx, level
-from .UI import Interface, Button,ProgressBar
+from .UI import Interface, Button,ProgressBar, VBox, RIGHT,LEFT,FILL,DOWN,UP
 from . utils import *
 from random import randint as rd
 import cfg
@@ -252,13 +252,21 @@ class Player(core.Actor):
         self.dead = False
         self.dead_kd = 2000
 
+        self.event_ui = VBox(0,(700,0), (154,400), anchor_h=RIGHT, anchor_v=DOWN)
+        self.hp_bar= ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
+        self.time_bar = ProgressBar((40,380), pg.image.load('game/content/ui/time_full.png').convert_alpha(), pg.image.load('game/content/ui/time_empty.png').convert_alpha(), colorkey='black')
+        self.ammo_but = Button((790,428),'yellow','', 20)
+        self.reload_but = Button((790,418),'red','', 15)
+        self.gun_but = Button((790,445),'white','', 15)
+        self.grenades_but = Button((760,460),'white','', 15)
         self.ui.set_ui([
-            ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black'),
-            ProgressBar((40,380), pg.image.load('game/content/ui/time_full.png').convert_alpha(), pg.image.load('game/content/ui/time_empty.png').convert_alpha(), colorkey='black'),
-            Button((790,428),'yellow','', 20),
-            Button((790,418),'red','', 15),
-            Button((790,445),'white','', 15),
-            Button((760,460),'white','', 15),
+            self.hp_bar,
+            self.time_bar,
+            self.ammo_but,
+            self.reload_but,
+            self.gun_but,
+            self.grenades_but,
+            self.event_ui,
             Button((750,420),'white','',1,img='game/content/ui/ammo.png'),
             Button((20,422),'white','',1,img='game/content/ui/heart.png'),
             Button((30,410),'white','',1,img='game/content/ui/clock.png'),
@@ -319,18 +327,18 @@ class Player(core.Actor):
         
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
-        self.ui.widgets[0].value = self.hp/100
-        self.ui.widgets[1].value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
-        self.ui.widgets[2].text = f'{amm[0]}/{amm[1]}'
-        self.ui.widgets[5].text = str(self.grenades)
+        self.hp_bar.value = self.hp/100
+        self.time_bar.value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
+        self.ammo_but.text = f'{amm[0]}/{amm[1]}'
+        self.grenades_but.text = str(self.grenades)
 
         
 
         if self.reload_kd>0 and self._reload:
-            self.ui.widgets[3].text = f'{self.reload_kd/1000:.2f}'
+            self.reload_but.text = f'{self.reload_kd/1000:.2f}'
         else:
-            self.ui.widgets[3].text = ''
-        self.ui.widgets[4].text = self.guns[self.gun].title()
+            self.reload_but.text = ''
+        self.gun_but.text = self.guns[self.gun].title()
 
         # TIMERS
         if self.dmg_timer >0: self.dmg_timer-=delta

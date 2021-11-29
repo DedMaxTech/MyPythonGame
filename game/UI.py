@@ -54,7 +54,7 @@ class Widget:
 
 class Button(Widget):
     def __init__(self, pos, color, text, font: Union[int, pg.font.Font], callback_f=None, bg=None,bg_hover=None, img=None, size=None,
-                 args: tuple = None, textfield=None):
+                 args: tuple = None, textfield=None, autodel=None):
         
         self.pos = self.x, self.y = pos
         self.color = pg.Color(color)
@@ -69,6 +69,7 @@ class Button(Widget):
         self.rect = pg.Rect(self.x, self.y, self.size[0]+10, self.size[1])
         # self.hover = False
         self.texfield=textfield
+        if autodel: self.delete(autodel)
         
     def nothing(self): pass
     def press(self):
@@ -194,6 +195,10 @@ class Interface(Widget):
         self.render(self.last_frame)
         self.widgets = buttons
         if anim: self.w = 0
+    
+    def add_ui(self, widgets):
+        self.widgets+=widgets
+        self.update_ui()
 
     def render(self, screen: pg.Surface, offset=(0,0)):
         offset = offset if self.relative else (0,0)
@@ -249,7 +254,7 @@ RIGHT='r'
 LEFT='l'
 FILL='f'
 class Box(Interface):
-    def __init__(self,margin=0,pos=(0, 0),size=cfg.res,anchor_h:Union[RIGHT,LEFT,FILL]=RIGHT,anchor_v:Union[UP,DOWN,FILL]=UP, widgets=[]):
+    def __init__(self,margin=0,pos=(0, 0),size=cfg.res,anchor_h:Union[RIGHT,LEFT,FILL]=LEFT,anchor_v:Union[UP,DOWN,FILL]=UP, widgets=[]):
         print(pos)
         super().__init__(widgets=widgets, pos=pos,size=size, anims=False, relative=True)
         self.margin=margin
@@ -275,10 +280,10 @@ class VBox(Box):
                 w.rect.y=y
                 y+=w.rect.h+self.margin
         
-        if self.anchor_h==RIGHT:
+        if self.anchor_h==LEFT:
             for w in self.widgets:
                 w.rect.x=0
-        elif self.anchor_h==LEFT:
+        elif self.anchor_h==RIGHT:
             for w in self.widgets:
                 w.rect.right=self.rect.w
         elif self.anchor_h==FILL:
@@ -296,12 +301,12 @@ class HBox(Box):
         elif self.anchor_v==FILL:
             for w in self.widgets: w.rect.h = self.rect.h
         
-        if self.anchor_h==RIGHT:
+        if self.anchor_h==LEFT:
             x=0
             for w in self.widgets:
                 w.rect.x=x
                 x+=w.rect.w+self.margin
-        elif self.anchor_h==LEFT:
+        elif self.anchor_h==RIGHT:
             x=self.rect.right
             for w in self.widgets:
                 w.rect.right=x
