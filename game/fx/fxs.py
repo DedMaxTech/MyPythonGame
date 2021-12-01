@@ -9,7 +9,7 @@ def blood(pos,world, amount=10):
 
 def damage(pos, dmg, world, heal=False):
     x,y = pos
-    world.actors.append(DamageParticle(x,y,dmg,abs(dmg),rd(-1,1),3,heal))
+    world.actors.append(DamageParticle(x,y,dmg,abs(dmg),rd(-1,1),-2,heal))
 
 def explosion(pos, world, amount=20):
     for i in range(amount):

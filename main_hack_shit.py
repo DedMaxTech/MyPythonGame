@@ -380,6 +380,11 @@ class Game:
             x = rd(-self.shake, self.shake)
             y = rd(-self.shake, self.shake)
         return x, y
+        # x, y = 0, 0
+        # if self.shake > 0.2:
+        #     self.shake = self.shake*0.9       
+        #     return self.shake,self.shake
+        # return x, y
     def draw(self):
         if self.playing:
             self.world.draw(self.frame, self.camera)
@@ -459,7 +464,7 @@ class Game:
             self.camera_update()
             self.process_zoom()
             if self.clock.get_fps()<=35: self.fps_alert=True
-
+        # pg.transform.scale(self.frame, self.res, self.screen)
         self.screen.blit(pg.transform.scale(self.frame, self.res), self.procces_camera_shake())
         self.draw()
         pg.display.update()

@@ -19,11 +19,12 @@ class DamageParticle(core.Actor):
         self.heal = heal
         self.rect.w=int((w**0.5)*5)
         self.font=pg.font.Font(cfg.font, self.rect.w)
+        self.autodel(3)
     
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.font.render(self.text,False,'red' if not self.heal else 'green'), (self.rect.x - camera.x, self.rect.y - camera.y,))
         self.rect.w-=0.5
-        if self.rect.w<=0: self.delete()
+        # if self.rect.w<=0: self.delete()
 
 class ExploseParticle(core.Actor):
     def __init__(self, x, y, w):

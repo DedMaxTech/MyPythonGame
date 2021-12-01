@@ -28,6 +28,7 @@ class Saving:
         elif tip==list:val = [i.strip() for i in val.split(',')]
         elif tip==FunctionType:val = val
         elif tip==int: val=int(val)
+        elif tip==float: val=float(val)
         self._set_att_val(self.slots[attr][0],val)
         self.reset()
 

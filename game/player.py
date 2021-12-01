@@ -67,7 +67,8 @@ GUNS = {
               'acc':2,
               'auto': True,
               'shake':7,
-              'back':1},
+              'back':1,
+              'recoil':10},
     'pistol': {'img': pg.image.load('game/content/player2/guns/pistol.png'),
                'hold_img': 0,
                'pos': (29, 29),
@@ -83,7 +84,8 @@ GUNS = {
                'acc':1,
                'auto': False,
                'shake':9,
-               'back':3},
+               'back':3,
+               'recoil':50},
     'shootgun': {'img': pg.image.load('game/content/player2/guns/shootgun.png'),
             'hold_img': 0,
             'pos': (29, 29),
@@ -99,7 +101,8 @@ GUNS = {
             'acc':1,
             'auto': False,
             'shake':15,
-            'back':10},
+            'back':10,
+            'recoil':70},
     'minigun': {'img': pg.image.load('game/content/player2/guns/minigun.png'),
             'hold_img': 0,
             'pos': (29, 29),
@@ -114,8 +117,9 @@ GUNS = {
             'kd':50,
             'acc':1,
             'auto': True,
-            'shake':7,
-            'back':1},
+            'shake':5,
+            'back':1,
+            'recoil':4},
 }
 
 def convert():
@@ -159,7 +163,7 @@ class Bullet(core.Actor):
             # write_stat('done damage', get_stat('done damage')+self.damage)
             if not cfg.potato:
                 fx.blood(self.rect.center,self.parent.world, int(self.damage*1.5/10))
-                fx.damage(self.rect.center,-self.damage,self.parent.world)
+                fx.damage(self.rect.center,self.damage,self.parent.world)
             if sounds: SOUNDS['hurt'].play()
             if self.parent.aim_time < self.parent.AIM_TIME_MAX: self.parent.aim_time+=self.damage*10
             self._delete = True
@@ -175,13 +179,16 @@ class Bullet(core.Actor):
                 self.delete()
             else:
                 self._delete = True
+        
+    def reset(self):
+        self.img = pg.transform.flip(self.img,False,True)
             
 class Grenade(core.Actor):
-    def __init__(self, x, y, xv,yv, world):
+    def __init__(self, x, y, xv,yv, game):
         super().__init__(x, y, 9,11, bounce=0.3, friction=0.1,image=IMGS['GRENADE'])
         self.xspeed, self.yspeed = xv,yv
         self.explose_tmr = 3500
-        self.world =world
+        self.game =game
         r=120
         self.pre_rect = pg.Rect(x-r,y-r, r*2,r*2)
         
@@ -202,11 +209,12 @@ class Grenade(core.Actor):
                     a.xspeed, a.yspeed = xv if self.rect.x>a.rect.x else -xv,(yv if self.rect.x>a.rect.x else -yv)-1 
                     if isinstance(a, Player) or isinstance(a, enemies.BaseAI):
                         a.hp -= dmg
-                        if not cfg.potato: fx.damage(a.rect.center, dmg, self.world)
+                        if not cfg.potato: fx.damage(a.rect.center, dmg, self.game.world)
             if isinstance(a, level.Block) and a.type in dest:
                 a.delete()
+        self.game.shake=20
         if sounds: SOUNDS['expl'].play()
-        if not cfg.potato: fx.explosion(self.rect.center,self.world, 30)
+        if not cfg.potato: fx.explosion(self.rect.center,self.game.world, 30)
         self.delete()
         
 
@@ -240,6 +248,7 @@ class Player(core.Actor):
         self.font = pg.font.Font(cfg.font, 14)
         self.need_sides = True
         self.to_ang=0
+        self.recoil=0
 
         self.gun = 0
         self.guns = ['pistol']
@@ -433,8 +442,8 @@ class Player(core.Actor):
         for i in range(gun['amount']):
             xvel, yvel = vec_to_speed(gun['speed'], self.angle+(rd(-acc*5, acc*5)/3))
             d = gun['dmg']
-            b = Bullet(self.rect.x + gun['pos'][0],
-                    self.rect.y + gun['pos'][1],
+            b = Bullet(self.rect.centerx,
+                    self.rect.centery,
                     xvel if self.look_r else -xvel,
                     -yvel,
                     gun['bull_img'], self.angle,rd(int(d-(d*0.2)), int(d+(d*0.2))), self
@@ -446,6 +455,7 @@ class Player(core.Actor):
         self.xspeed, self.yspeed = self.xspeed+(xv if self.look_r else-xv), self.yspeed-yv
         if self.shoot and self.game: self.game.shake = gun['shake']
 
+        self.recoil=gun['recoil']
         self.shoot_kd = gun['kd']
         self.shoot = gun['auto']
         if sounds: SOUNDS['shoot'].play()
@@ -456,7 +466,7 @@ class Player(core.Actor):
         if self.grenades<=0: return
         self.grenades-=1
         xv,yv = vec_to_speed(20 if self.aiming else 15, self.angle)
-        self.game.world.actors.append(Grenade(self.rect.centerx,self.rect.y+10,xv if self.look_r else -xv, -yv, self.game.world))
+        self.game.world.actors.append(Grenade(self.rect.centerx,self.rect.y+10,xv if self.look_r else -xv, -yv, self.game))
         
 
     def get_point(self, world, rad, ang=None):
@@ -490,8 +500,8 @@ class Player(core.Actor):
         offy = 0 if not self.aiming else -7
         if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
             self.img = pg.transform.rotate(self.img, -30)
-            off = 0 if self.look_r else -60
-        gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang)
+            off = -15 if self.look_r else -55
+        gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang+(self.recoil*remap(self.shoot_kd, (0,GUNS[self.guns[self.gun]]['kd']))))
         # debug(gun_img.get_rect().center, screen)
         w,h=gun_img.get_width()/2,gun_img.get_height()/2
         self.img.blit(gun_img, (gun_img.get_rect().x+30-w, gun_img.get_rect().y+35+offy+GUNS[self.guns[self.gun]]['offy']-h))

@@ -173,7 +173,7 @@ class ProgressBar(Widget):
         return super().update(event, delta,offset)
     
     def render(self, screen, offset=(0,0)):
-        if self.empty_img: screen.blit(self.empty_img, self.rect.topleft)
+        if self.empty_img: screen.blit(self.empty_img, (self.rect.x-offset[0]+5, self.rect.y-offset[1]))
         sf = pg.Surface((self.rect.w, self.rect.h))
         sf.fill(self.key)
         sf.set_colorkey(self.key)

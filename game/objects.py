@@ -3,7 +3,7 @@ from typing import List
 from pygame import event
 
 from game.UI import Button
-from . import core, player
+from . import core, player, fx
 from . utils import *
 import cfg
 
@@ -80,6 +80,7 @@ class Portal(core.Actor, core.Saving):
             actor.rect.centerx = self.second.rect.centerx
 
             actor.yspeed = -actor.yspeed
+            actor.reset()
             # actor.xspeed = -actor.xspeed
             if sounds: sound.play()
     
@@ -91,6 +92,7 @@ class Portal(core.Actor, core.Saving):
             actor.rect.y = self.rect.y+y
             actor.rect.centerx = self.rect.centerx
             actor.yspeed = -actor.yspeed
+            actor.reset()
             if sounds: sound.play()
 
 class Text(core.Actor, core.Saving):
@@ -111,7 +113,28 @@ class Text(core.Actor, core.Saving):
         pass
     def reset(self):
         self.img=pg.font.Font(cfg.font, self.size).render(self.text, False,self.color)
-
+class Image(core.Actor, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'image':['imgfile', str],
+        'rotation':['rot', int],
+        'scale':['scale', float],
+    }
+    def __init__(self, x=0, y=0, image='game/content/ui/arrow.png', rotation=0, scale=1):
+        img = pg.image.load(image)
+        w,h = img.get_size()
+        super().__init__(x, y, w,h, bounce=0, gravity=0, static=False, friction=0, collision=False)
+        self.imgfile=image
+        self.rot = rotation
+        self.scale = scale
+        self.img=pg.transform.rotate(pg.transform.scale(img,(int(w*self.scale), int(h*self.scale))),self.rot)
+    def update(self, delta, blocks, actors):
+        pass
+    def reset(self):
+        img = pg.image.load(self.imgfile)
+        w,h = img.get_size()
+        self.img=pg.transform.rotate(pg.transform.scale(img,(int(w*self.scale), int(h*self.scale))),self.rot)
 class BaseTriger(core.Actor, core.Saving):
     slots = {
         'x':['rect.x', int],
@@ -167,6 +190,7 @@ class Aid(BaseTriger, core.Saving):
     def triggered(self, actor):
         if actor.hp+self.hp>actor.max_hp: actor.hp = actor.max_hp
         else: actor.hp+=self.hp
+        fx.damage(actor.rect.center, self.hp, self.game.world, True)
         self.delete()
 
 class Ammo(BaseTriger, core.Saving):

@@ -18,8 +18,9 @@ actors = [
 	objects.Portal(x1=280, y1=1000, x2=600, y2=1000, w=80, h=40),
 	objects.Aid(x=60, y=860, hp=50),
 	objects.Ammo(x=400, y=860, ammo={'minigun': 300, 'rifle': 120}),
-	objects.GunsCase(x=200, y=960, guns=['minigun', 'rifle']),
-	objects.Text(x=200, y=800, text='lol some text', size=30, color='white')
+	objects.GunsCase(x=200, y=960, guns=['minigun', 'rifle', 'shootgun']),
+	objects.Text(x=200, y=800, text='lol some text', size=30, color='white'),
+	objects.Image(x=250, y=700, image='game/content/ui/ammo.png', rotation=50, scale=2)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

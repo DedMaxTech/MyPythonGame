@@ -84,7 +84,7 @@ class Editor:
                              img=level.block_s[i]['img'], args=(i)))
             a += 1
         objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
-            objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.Text]
+            objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.Text,objects.Image]
         bs+=vertical(3, [Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs])
         self.ui.set_ui(bs)
         # self.camera
@@ -178,7 +178,7 @@ class Editor:
             Button((w+30,50),'white','Object info:',50),
             Button((w+30,110),'white',f'{obj.module}.{obj.__class__.__name__}',40),
             *vertical(3,[Button((w+30,160),'white',str(i).title(),30) for i in obj.slots]+[Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj))]),
-            *vertical(3, [TextField((w+150, 160),'black', str(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit, args=(key,), add_text=True) for key,i in obj.slots.items()]),
+            *vertical(3, [TextField((w+150, 160),'black', str(obj._get_att_val(i[0])) if i[1] is not list else ', '.join(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit, args=(key,), add_text=True) for key,i in obj.slots.items()]),
             
         ])
     def del_obj(self, obj):
