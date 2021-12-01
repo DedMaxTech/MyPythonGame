@@ -63,6 +63,11 @@ def real(pos:Union[Tuple[int,int], pg.Rect], camera:pg.Rect, invert=False):
         if type(pos)==pg.Rect:return pg.Rect(pos.x + camera.x, pos.y + camera.y,pos.w, pos.h)
         else: return pos[0] + camera.x, pos[1] + camera.y
 
+def limit(val, min=None, max=None):
+    if min is not None and min>val:return min
+    elif max is not None and val>max: return max
+    else:return val
+
 def get_stat(key=None):
     d= dict()
     try:

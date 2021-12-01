@@ -117,10 +117,11 @@ class TextField(Widget):
         self.rect = pg.Rect(self.x-5, self.y, self.size[0]+5, self.size[1])
         self.add = add_text
         self.clear_on_click=clear_on_click
+        self.ind = len(self.text) if not clear_on_click else 0
     
     def press(self):
         if self.clear_on_click: self.text=''
-    
+
     def key_pressed(self, key,uni):
         if not self.active: return
         if key == pg.K_ESCAPE: self.active = False
@@ -129,9 +130,18 @@ class TextField(Widget):
             add = (self.text,) if self.add else ()
             if self.func: self.func(*((*self.args,) + add))
         elif key == pg.K_BACKSPACE:
-            if len(self.text) >= 1: self.text = self.text[:-1]
+            if self.ind >= 1:
+                self.text = self.text[:self.ind-1]+self.text[self.ind:]
+                self.ind -=1
+        elif key== pg.K_LEFT: 
+            self.ind = limit(self.ind-1, min=0)
+            print(self.ind)
+        elif key== pg.K_RIGHT:
+            self.ind = limit(self.ind+1, max=len(self.text))
+            print(self.ind)
         else:
-            self.text += uni
+            self.text = self.text[:self.ind]+uni+self.text[self.ind:]
+            self.ind = limit(self.ind+1, max=len(self.text))
     
     def unactive(self, pos):
         add = (self.text,) if self.add else ()
@@ -145,7 +155,7 @@ class TextField(Widget):
                 off = 50
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x-offset[0], self.rect.y-offset[1],self.rect.w+20, self.rect.h))
         # if self.img: screen.blit(pg.image.load(self.img), self.pos)
-        screen.blit(self.font.render(self.text + "|" if self.active else self.text, False, self.color), (self.rect.x-offset[0]+5, self.rect.y-offset[1]))
+        screen.blit(self.font.render(f'{self.text[:self.ind]}{"|" if self.active else ""}{self.text[self.ind:]}', False, self.color), (self.rect.x-offset[0]+5, self.rect.y-offset[1]))
     
 class ProgressBar(Widget):
     def __init__(self, pos, img_full, img_empty=None, value=1, colorkey='black'):

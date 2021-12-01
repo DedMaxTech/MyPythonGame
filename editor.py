@@ -92,7 +92,6 @@ class Editor:
 
     def save_level(self):
         self.editing = False
-        print(self.levelname)
         self.world.save_world(self.levelname)
         self.ui.clear()
         self.main_menu()

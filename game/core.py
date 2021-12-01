@@ -18,7 +18,6 @@ class Saving:
         return last
     
     def _set_att_val(self, att, val):
-        print(att,val, type(val))
         atts = att.split('.')
         if len(atts)==1: setattr(self, att, val);return
         setattr(self._get_att_val('.'.join(atts[:-1])), atts[-1], val)

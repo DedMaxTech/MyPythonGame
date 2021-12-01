@@ -19,7 +19,7 @@ actors = [
 	objects.Aid(x=60, y=860, hp=50),
 	objects.Ammo(x=400, y=860, ammo={'minigun': 300, 'rifle': 120}),
 	objects.GunsCase(x=200, y=960, guns=['minigun', 'rifle']),
-	objects.Text(x=960, y=580, text='text', size=20, color='white')
+	objects.Text(x=200, y=800, text='lol some text', size=30, color='white')
 ]
 blocks = [
 	level.Block(0,-40,'-'),
