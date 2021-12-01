@@ -124,7 +124,7 @@ class Image(core.Actor, core.Saving):
         'scale':['scale', float],
     }
     def __init__(self, x=0, y=0, image='game/content/ui/arrow.png', rotation=0, scale=1):
-        img = pg.image.load(image)
+        img = pg.image.load(image).convert_alpha()
         w,h = img.get_size()
         w,h = int(w*scale), int(h*scale)
         super().__init__(x, y, w,h, bounce=0, gravity=0, static=False, friction=0, collision=False)
@@ -136,7 +136,7 @@ class Image(core.Actor, core.Saving):
     def update(self, delta, blocks, actors):
         pass
     def reset(self):
-        img = pg.image.load(self.imgfile)
+        img = pg.image.load(self.imgfile).convert_alpha()
         w,h = img.get_size()
         self.rect.size=int(w*self.scale), int(h*self.scale)
         self.img=pg.transform.rotate(pg.transform.scale(img,(self.rect.w,self.rect.h)),self.rot)
@@ -177,7 +177,8 @@ class Trigger(BaseTriger, core.Saving):
     def update(self, delta, blocks, actors):
         self._collide_actors(actors)
     def triggered(self, actor):
-        eval(f'lambda game: {self.func}')(self.game)
+        game = self.game
+        exec(f'{self.func}')
         self.delete()
 
 class Aid(BaseTriger, core.Saving):

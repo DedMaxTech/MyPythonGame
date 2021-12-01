@@ -100,6 +100,7 @@ class Game:
                                     Button((0,0), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
                                     Button((0,0), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
                                     Button((0,0), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
+                                    CheckBox((0,0), 20)
                                 ]),
                             ], (300,100))]+
             vertical(5,[

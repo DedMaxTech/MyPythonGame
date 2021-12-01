@@ -21,7 +21,7 @@ class Editor:
         self.world = level.World()
         self.levelname = ''
         self.camera = pg.Rect(0,40,self.res[0], self.res[1])
-
+        self.draw_box = CheckBox((0,0),40)
         self.object = None
         self.editing = False
         self.select_box=VBox(2)
@@ -81,10 +81,9 @@ class Editor:
         a = 0
         bs.append(Button((0, 0), 'white', 'SAVE', 35, self.save_level, bg='darkgrey', ))
         bs.append(Button((100, 0), 'white', 'EXIT', 35, self.main_menu, bg='darkgrey', ))
-        for i in level.block_s:
-            bs.append(Button((200 + a * 45, 0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
-                             img=level.block_s[i]['img'], args=(i)))
-            a += 1
+        bs.append(HBox(1,(200,0),widgets=[Button((200,0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
+                img=level.block_s[i]['img'], args=(i)) for i in level.block_s]+[Button((0,0),'white','Drawing:', 30),self.draw_box]))
+
         objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
             objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.Text,objects.Image]
         bs+=vertical(3, [Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs])+[self.select_box]
@@ -102,7 +101,6 @@ class Editor:
         self.last_brush = self.brush
         self.brush = t
 
-
     def camera_update(self, keys):
         if keys[pg.K_a]:
             self.camera.x -= 10
@@ -112,7 +110,6 @@ class Editor:
             self.camera.y -= 10
         if keys[pg.K_s]:
             self.camera.y += 10
-
 
     def draw(self):
         self.frame.fill('black', [0,0,self.res[0], self.res[1]+40])
@@ -140,8 +137,6 @@ class Editor:
             self.ui.update(event)
             self.info_ui.update(event)
             if self.editing:
-                # if hasattr(event, 'pos'):
-                #     setattr(event, 'pos', (remap(event.pos[0], (0, self.res[0]), (0,self.res[0]/self.zoom)), remap(event.pos[1], (0, self.res[1]), (0,self.res[1]/self.zoom))))
                 if hasattr(event,'pos'):
                     pos = remap(event.pos[0], (0,self.res[0]), (0,self.res[0]*self.zoom),),remap(event.pos[1], (0,self.res[1]),(0,self.res[1]*self.zoom),)
                 if event.type == pg.MOUSEBUTTONDOWN:
@@ -153,7 +148,8 @@ class Editor:
                         if pg.key.get_pressed()[pg.K_LCTRL] and self.object and hasattr(self.object, 'rect'): 
                             self.object.rect.topleft=real(pos,self.camera, True)
                             self.obj_info(self.object)
-                        else: self.world.set_block((pos[0] + self.camera.x, pos[1]+self.camera.y), self.brush)
+                        else: 
+                            if self.draw_box.val: self.world.set_block((pos[0] + self.camera.x, pos[1]+self.camera.y), self.brush)
                     if event.button == pg.BUTTON_MIDDLE:
                         x,y = pos
                         objs = self.world.get_colliding(real(pos,self.camera, True),core.Saving)
@@ -170,7 +166,7 @@ class Editor:
                         if self.zoom>1:self.zoom=1
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == pg.BUTTON_RIGHT: self.drawing = False
-                if event.type == pg.MOUSEMOTION and self.drawing: self.world.set_block(
+                if event.type == pg.MOUSEMOTION and self.drawing and self.draw_box.val: self.world.set_block(
                     (pos[0] + self.camera.x, pos[1] +self.camera.y),
                     self.brush)
                 if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT:

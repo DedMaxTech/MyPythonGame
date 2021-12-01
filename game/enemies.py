@@ -99,7 +99,7 @@ class MeleeAI(BaseAI,core.Saving):
                 self.jump = True
         if self.jump and self.on_ground:
             self.jump = False
-            self.yspeed = -12
+            self.yspeed = -10
             self.on_ground = False
     
     def hit(self, actor):
@@ -199,7 +199,7 @@ class ShoterAI(BaseAI, core.Saving):
                 self.jump = True
         if self.jump and self.on_ground:
             self.jump = False
-            self.yspeed = -12
+            self.yspeed = -10
             self.on_ground = False
     
     def shoot(self, target,world):

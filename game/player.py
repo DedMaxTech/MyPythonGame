@@ -252,7 +252,7 @@ class Player(core.Actor):
 
         self.gun = 0
         self.guns = ['pistol']
-        self.ammo = {'rifle': [30, 30], 'pistol': [10,50],'shootgun':[5,10], 'minigun':[100,200]}
+        self.ammo = {'rifle': [0, 0], 'pistol': [0,0],'shootgun':[0,0], 'minigun':[0,0]}
         self.grenades = 40
         self.grenade=False
         self._reload = False

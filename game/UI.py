@@ -181,7 +181,20 @@ class ProgressBar(Widget):
         sf.fill(self.key, (self.rect.w*self.cur_val, 0, self.rect.w, self.rect.h))
         screen.blit(sf,(self.rect.x-offset[0]+5, self.rect.y-offset[1]))
 
+class CheckBox(Widget):
+    def __init__(self, pos, w,val=False, bg='white', color='black') -> None:
+        super().__init__(pos, (w,w))
+        self.val=val
+        self.bg = pg.Surface((w,w))
+        self.bg.fill(bg)
+        self.check = self.bg.copy()
+        pg.draw.lines(self.check, color, False, [(w/8,w/5*3), (w/5*2,w/5*4),(w/10*7,w/6)],4)
+    
+    def press(self):
+        self.val=not self.val
 
+    def render(self, screen: pg.Surface, offset=(0, 0)):
+        screen.blit(self.bg if not self.val else self.check, (self.rect.x-offset[0], self.rect.y-offset[1]))
 
 class Interface(Widget):
     VERTICAL = 'v'
