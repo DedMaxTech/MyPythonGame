@@ -198,7 +198,7 @@ class Grenade(core.Actor):
         return super().update(delta, blocks, actors)
     
     def explose(self,blocks, actors):
-        r = 200
+        r = 230
         dest = [key for key, val in level.block_s.items() if val['dest']]
         for a in actors+blocks:
             if isinstance(a, core.Actor):
@@ -238,8 +238,8 @@ class Player(core.Actor):
         self.aim_time=self.AIM_TIME_MAX
         self.timer = 0
         self.angle = 0
-        self.hp = 100
-        self.max_hp = 100
+        self.hp = 200
+        self.max_hp = 200
         self.dmg_timer = 0
         self.world = None
         self.shoot = False
@@ -336,12 +336,11 @@ class Player(core.Actor):
         
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
-        self.hp_bar.value = self.hp/100
+        self.hp_bar.value = remap(self.hp, (0,self.max_hp))
         self.time_bar.value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
         self.ammo_but.text = f'{amm[0]}/{amm[1]}'
         self.grenades_but.text = str(self.grenades)
 
-        
 
         if self.reload_kd>0 and self._reload:
             self.reload_but.text = f'{self.reload_kd/1000:.2f}'

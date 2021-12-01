@@ -122,6 +122,9 @@ class World:
                 min_dist = d
                 act = a
         return act
+    
+    def get_colliding(self, pos, obj_class=core.Actor):
+        return [a for a in self.actors if isinstance(a,obj_class) and a.rect.collidepoint(*pos)]
 
     def get_blocks(self, rect:pg.Rect=None):
         if rect is None:

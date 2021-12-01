@@ -17,10 +17,11 @@ actors = [
 	objects.Image(x=100, y=850, image='game/content/ui/arrow.png', rotation=225, scale=1.0),
 	objects.Image(x=340, y=860, image='game/content/ui/arrow.png', rotation=0, scale=1),
 	objects.Image(x=190, y=710, image='game/content/ui/arrow.png', rotation=180, scale=1.0),
-	objects.Image(x=880, y=700, image='game/content/ui/to_jump.png', rotation=0, scale=0.5)
+	objects.Image(x=880, y=700, image='game/content/ui/to_jump.png', rotation=0, scale=0.5),
+	objects.Grenades(x=410, y=580, amount=10),
+	objects.Grenades(x=230, y=580, amount=10)
 ]
 blocks = [
-	level.Block(1000,440,'='),
 	level.Block(0,-40,'-'),
 	level.Block(0,0,'-'),
 	level.Block(0,40,'-'),
@@ -132,7 +133,5 @@ blocks = [
 	level.Block(560,-40,'-'),
 	level.Block(600,-40,'-'),
 	level.Block(640,-40,'-'),
-	level.Block(680,-40,'-'),
-	level.Block(280,320,'='),
-	level.Block(240,320,'=')
+	level.Block(680,-40,'-')
 ]

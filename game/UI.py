@@ -93,14 +93,14 @@ def vertical(margin, buttons:List[Button], invert=False):
     k = 1 if not invert else 1
     for b in buttons:
         b.rect.topleft = (x,y)
-        y+=(b.size[1]+margin)*k
+        y+=(b.rect.size[1]+margin)*k
     return buttons
 def horizontal(margin, buttons:List[Button],invert=False):
     x,y = buttons[0].rect.topleft
     k = 1 if not invert else 1
     for b in buttons:
         b.rect.topleft = (x,y)
-        x+=(b.size[0]+margin)*k
+        x+=(b.rect.size[0]+margin)*k
     return buttons
 
 class TextField(Widget):
@@ -204,6 +204,7 @@ class Interface(Widget):
     def set_ui(self, buttons: list, anim=False):
         self.render(self.last_frame)
         self.widgets = buttons
+        self.update_ui()
         if anim: self.w = 0
     
     def add_ui(self, widgets):
@@ -266,9 +267,9 @@ FILL='f'
 class Box(Interface):
     def __init__(self,margin=0,pos=(0, 0),size=cfg.res,anchor_h:Union[RIGHT,LEFT,FILL]=LEFT,anchor_v:Union[UP,DOWN,FILL]=UP, widgets=[]):
         print(pos)
-        super().__init__(widgets=widgets, pos=pos,size=size, anims=False, relative=True)
         self.margin=margin
         self.anchor_h, self.anchor_v= anchor_h, anchor_v
+        super().__init__(widgets=widgets, pos=pos,size=size, anims=False, relative=True)
         self.update_ui()
 class VBox(Box):
     def update_ui(self):

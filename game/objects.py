@@ -103,16 +103,18 @@ class Text(core.Actor, core.Saving):
         'size':['size', int],
         'color':['color', str],
     }
-    def __init__(self, x=0, y=0, text='', size=20, color='white'):
+    def __init__(self, x=0, y=0, text='Text', size=20, color='white'):
         super().__init__(x, y, 1,1, bounce=0, gravity=0, static=False, friction=0, collision=False)
         self.text=text
         self.size=size
         self.color=color
         self.img=pg.font.Font(cfg.font, size).render(text, False, color)
+        self.rect.size = self.img.get_size()
     def update(self, delta, blocks, actors):
         pass
     def reset(self):
         self.img=pg.font.Font(cfg.font, self.size).render(self.text, False,self.color)
+        self.rect.size = self.img.get_size()
 class Image(core.Actor, core.Saving):
     slots = {
         'x':['rect.x', int],
@@ -124,17 +126,21 @@ class Image(core.Actor, core.Saving):
     def __init__(self, x=0, y=0, image='game/content/ui/arrow.png', rotation=0, scale=1):
         img = pg.image.load(image)
         w,h = img.get_size()
+        w,h = int(w*scale), int(h*scale)
         super().__init__(x, y, w,h, bounce=0, gravity=0, static=False, friction=0, collision=False)
         self.imgfile=image
         self.rot = rotation
         self.scale = scale
-        self.img=pg.transform.rotate(pg.transform.scale(img,(int(w*self.scale), int(h*self.scale))),self.rot)
+        self.img=pg.transform.rotate(pg.transform.scale(img,(w,h)),self.rot)
+        self.rect.size = self.img.get_size()
     def update(self, delta, blocks, actors):
         pass
     def reset(self):
         img = pg.image.load(self.imgfile)
         w,h = img.get_size()
-        self.img=pg.transform.rotate(pg.transform.scale(img,(int(w*self.scale), int(h*self.scale))),self.rot)
+        self.rect.size=int(w*self.scale), int(h*self.scale)
+        self.img=pg.transform.rotate(pg.transform.scale(img,(self.rect.w,self.rect.h)),self.rot)
+        self.rect.size = self.img.get_size()
 class BaseTriger(core.Actor, core.Saving):
     slots = {
         'x':['rect.x', int],
@@ -192,7 +198,23 @@ class Aid(BaseTriger, core.Saving):
         else: actor.hp+=self.hp
         fx.damage(actor.rect.center, self.hp, self.game.world, True)
         self.delete()
-
+class Grenades(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'amount':['amount', int]
+    }
+    def __init__(self, x=0, y=0, amount=10):
+        super().__init__(x, y, 9,11)
+        self.visible=True
+        self.gravity=0.4
+        self.img = pg.image.load('game/content/ui/grenade.png').convert_alpha()
+        self.amount=amount
+    
+    def triggered(self, actor):
+        actor.grenades+=self.amount
+        actor.event_ui.add_ui([Button((0,0), 'white', f'grenades: +{self.amount}', 20, autodel=3*1000)])
+        self.delete()
 class Ammo(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],

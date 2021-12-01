@@ -22,7 +22,9 @@ class Editor:
         self.levelname = ''
         self.camera = pg.Rect(0,40,self.res[0], self.res[1])
 
+        self.object = None
         self.editing = False
+        self.select_box=VBox(2)
         self.drawing = False
         self.brush = '='
         self.last_brush = None
@@ -48,7 +50,7 @@ class Editor:
         for i in glob('levels/blocks/*.txt'):
             bs.append(Button((1050, 200 + a * 45), 'white', i, 30, self.open_level, 'red', args=(i)));
             a += 1
-        bs.append(Button((150,600), 'white', 'Exit', 50,exit,'darkgrey'))
+        bs+=[Button((150,600), 'white', 'Exit', 50,exit,'darkgrey')]
         self.ui.set_ui(bs)
 
     def create_menu(self, add=[]):
@@ -83,9 +85,9 @@ class Editor:
             bs.append(Button((200 + a * 45, 0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
                              img=level.block_s[i]['img'], args=(i)))
             a += 1
-        objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
+        objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
             objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.Text,objects.Image]
-        bs+=vertical(3, [Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs])
+        bs+=vertical(3, [Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs])+[self.select_box]
         self.ui.set_ui(bs)
         # self.camera
         self.editing = True
@@ -140,16 +142,26 @@ class Editor:
             if self.editing:
                 # if hasattr(event, 'pos'):
                 #     setattr(event, 'pos', (remap(event.pos[0], (0, self.res[0]), (0,self.res[0]/self.zoom)), remap(event.pos[1], (0, self.res[1]), (0,self.res[1]/self.zoom))))
+                if hasattr(event,'pos'):
+                    pos = remap(event.pos[0], (0,self.res[0]), (0,self.res[0]*self.zoom),),remap(event.pos[1], (0,self.res[1]),(0,self.res[1]*self.zoom),)
                 if event.type == pg.MOUSEBUTTONDOWN:
-                    if event.pos[0]>w or event.pos[1]<40: continue
+
+                    if pos[0]>w or pos[1]<40: continue
                     if event.button == pg.BUTTON_RIGHT:
                         self.drawing = True
                     if event.button == pg.BUTTON_LEFT:
-                        self.world.set_block((event.pos[0] + self.camera.x, event.pos[1]+self.camera.y), self.brush)
+                        if pg.key.get_pressed()[pg.K_LCTRL] and self.object and hasattr(self.object, 'rect'): 
+                            self.object.rect.topleft=real(pos,self.camera, True)
+                            self.obj_info(self.object)
+                        else: self.world.set_block((pos[0] + self.camera.x, pos[1]+self.camera.y), self.brush)
                     if event.button == pg.BUTTON_MIDDLE:
-                        x,y = event.pos
-                        obj = self.world.get_nearest(core.Saving, real(event.pos,self.camera, True))
-                        self.obj_info(obj)
+                        x,y = pos
+                        objs = self.world.get_colliding(real(pos,self.camera, True),core.Saving)
+                        if len(objs)==1:self.obj_info(objs[0])
+                        elif len(objs)>1:
+                            self.select_box.rect.topleft=event.pos
+                            self.select_box.set_ui([Button((0,0),'white', f'{obj.__class__.__name__} at x:{obj.rect.x} y:{obj.rect.y}',30, self.obj_info,bg='darkgrey',args=(obj)) for obj in objs]+[Button((0,0),'white', 'Cancel',30, self.select_box.clear,bg='darkgrey')])
+
                     if event.button==pg.BUTTON_WHEELDOWN:
                         self.zoom/=1.2
                         if self.zoom<0.3:self.zoom=0.3
@@ -159,7 +171,7 @@ class Editor:
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == pg.BUTTON_RIGHT: self.drawing = False
                 if event.type == pg.MOUSEMOTION and self.drawing: self.world.set_block(
-                    (event.pos[0] + self.camera.x, event.pos[1] +self.camera.y),
+                    (pos[0] + self.camera.x, pos[1] +self.camera.y),
                     self.brush)
                 if event.type == pg.KEYDOWN and event.key == pg.K_LSHIFT:
                     self.last_brush = self.brush
@@ -172,16 +184,27 @@ class Editor:
         if isinstance(a, enemies.BaseAI): self.world.ais.append(a)
         self.world.actors.append(a)
 
+    def copy_obj(self, obj):
+        c = eval(obj.save())
+        c.rect.x+=10
+        c.rect.y+=10
+        self.world.actors.append(c)
+        self.obj_info(c)
+
+
     def obj_info(self, obj):
+        self.object=obj
         w=1400
+        self.select_box.clear()
         self.info_ui.set_ui([
             Button((w+30,50),'white','Object info:',50),
             Button((w+30,110),'white',f'{obj.module}.{obj.__class__.__name__}',40),
-            *vertical(3,[Button((w+30,160),'white',str(i).title(),30) for i in obj.slots]+[Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj))]),
+            *vertical(3,[Button((w+30,160),'white',str(i).title(),30) for i in obj.slots]+[Interface([Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj)),Button((100,0), 'white', 'Copy', 30, self.copy_obj, bg='darkgrey', args=(obj))])]),
             *vertical(3, [TextField((w+150, 160),'black', str(obj._get_att_val(i[0])) if i[1] is not list else ', '.join(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit, args=(key,), add_text=True) for key,i in obj.slots.items()]),
             
         ])
     def del_obj(self, obj):
+        self.object=None
         self.info_ui.set_ui([Button((1400+30,50),'white','Press MMB to select obj',50),])
         del self.world.actors[self.world.actors.index(obj)]
 
