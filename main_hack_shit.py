@@ -1,6 +1,6 @@
 from time import sleep
 import pygame as pg
-import cProfile, pstats
+import cProfile, pstats, sys
 import os, traceback, socket, pickle, math, glob
 from random import randint as rd
 from typing import List
@@ -92,17 +92,7 @@ class Game:
         tf = TextField((220,195+36), 'black', 'Code:',30,bg='white')
         b = Button((0,0), 'white', 'delete', 30, bg='darkgrey')
         b.func=b.delete
-        self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),
-                        Interface([
-                            Button((0,0), 'white', 'MENU2', 60, ),
-                                VBox(4,(0,70),(400,150),anchor_h=UI.RIGHT, anchor_v=UI.UP,widgets=[
-                                    b,
-                                    Button((0,0), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
-                                    Button((0,0), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
-                                    Button((0,0), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
-                                    CheckBox((0,0), 20)
-                                ]),
-                            ], (300,100))]+
+        self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),]+
             vertical(5,[
             Button((75, 120), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
             Button((75, 155), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
@@ -199,22 +189,23 @@ class Game:
 
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
-        pg.display.toggle_fullscreen()  
+        pg.display.toggle_fullscreen()
         os.system('python editor.py')
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
     @threaded()
-    def start_zoom(self):
+    def start_zoom(self, level):
         self.zoom(3)
+        # if f'levels.{level}' not in sys.modules:sleep(1)
         sleep(0.75)
         self.zoom(1)
 
     def start_game(self, level='tutorial'):
+        self.playing = True
         self.level = level
         self.ui.clear()
         pos, guns =self.world.open_world(level, game_inst=self)
         self.w = 2
-        self.playing = True
         if self.pause: self.pause = False
         self.player = player.Player(*pos, 0, self)
         self.player.guns = list(set(self.player.guns+guns))
@@ -222,7 +213,7 @@ class Game:
         self.world.actors += [self.player]
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
-        self.start_zoom()
+        self.start_zoom(level)
 
     # def join_game(self):
     #     try:
@@ -424,7 +415,7 @@ class Game:
         global writing
         writing = pg.key.get_pressed()[pg.K_m]
         for event in pg.event.get():
-            self.ui.update(event, self.delta)
+            if pg.mouse.get_focused() :self.ui.update(event, self.delta)
             if hasattr(event, 'pos'):
                 x,y = self.frame.get_size()
                 setattr(event, 'pos', (remap(event.pos[0], (0, cfg.screen_h), (0,x)), remap(event.pos[1], (0, cfg.screen_v), (0,y))))

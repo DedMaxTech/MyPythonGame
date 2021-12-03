@@ -13,7 +13,7 @@ class Editor:
         
 
         self.frame: pg.Surface = pg.Surface(self.res)
-        self.screen=pg.display.set_mode((self.res[0], self.res[1] + 40))
+        self.screen=pg.display.set_mode((self.res[0], self.res[1] + 40), flags=pg.NOFRAME)
         self.clock = pg.time.Clock()
         self.ui = Interface(anims=False)
         self.info_ui = Interface(anims=False)

@@ -26,6 +26,7 @@ from game import *
 spawn_pos = (40,40)
 background = '{bg}'
 guns = []
+self.ammo = {'rifle': 0, 'pistol': 0,'shootgun':0, 'minigun':0}
 
 ####DONT TOUCH####
 ais = [
@@ -83,8 +84,8 @@ class World:
         with open(f'levels/{levelname}.py', 'r') as file:
             self.ignore_str, _ = ''.join(file.readlines()).split('####DONT TOUCH####')
         level = importlib.import_module(f'levels.{levelname}')
-        if f'levels.{levelname}' in sys.modules:
-            importlib.reload(level)
+        # if f'levels.{levelname}' in sys.modules:
+        importlib.reload(level)
         # exec(f'from levels import {level}')
         print(f'{video=}')
         if video:self.bg = pg.image.load(level.background).convert()
@@ -138,6 +139,8 @@ class World:
         return [self.actors[i] for i in rect.collidelistall(self.actors)]
 
     def update_actors(self, delta, player = None):
+        delta = limit(delta, max=30)
+        print(delta)
         for b in self.blocks:
             if b._delete:
                 del self.blocks[self.blocks.index(b)]

@@ -8,11 +8,11 @@ guns = []
 ####DONT TOUCH####
 # Auto-generated in game.level
 ais = [
-	
+	enemies.ShoterAI(x=800, y=700, gun='rifle')
 ]
 actors = [
 	objects.Aid(x=540, y=740, hp=50),
-	objects.Ammo(x=450, y=740, ammo={}),
+	objects.Ammo(x=450, y=740, ammo={'shootgun': 20}),
 	objects.GunsCase(x=390, y=740, guns=['rifle', 'shootgun', 'minigun']),
 	objects.Image(x=100, y=850, image='game/content/ui/arrow.png', rotation=225, scale=1.0),
 	objects.Image(x=340, y=860, image='game/content/ui/arrow.png', rotation=0, scale=1),

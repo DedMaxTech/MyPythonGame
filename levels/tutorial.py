@@ -40,7 +40,7 @@ actors = [
 	objects.Image(x=1931, y=599, image='game/content/ui/arrow.png', rotation=25, scale=1.0),
 	objects.Image(x=1931, y=433, image='game/content/ui/arrow.png', rotation=150, scale=1.0),
 	objects.Image(x=1928, y=351, image='game/content/ui/arrow.png', rotation=25, scale=1.0),
-	objects.Ammo(x=2455, y=958, ammo={'pistol': 80}),
+	objects.Ammo(x=2542, y=974, ammo={'pistol': 80}),
 	objects.Text(x=2347, y=875, text='Take ammo for your pistol', size=30, color='white'),
 	objects.Text(x=3366, y=734, text='And      your first enemy', size=30, color='white'),
 	objects.Text(x=3413, y=734, text='kill', size=30, color='red'),

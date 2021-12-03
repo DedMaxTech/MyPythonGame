@@ -236,14 +236,19 @@ class ShoterAI(BaseAI, core.Saving):
     def draw(self, screen:pg.Surface, camera:pg.Rect):
         if self.xspeed == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
         else:
-            if self.xspeed>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
-            else:img,off = AI_IMG_LEFT.copy(), (-30,0)
+            # if self.xspeed>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
+            # else:img,off = AI_IMG_LEFT.copy(), (-30,0)
+            img = AI_IMG_RIGHT.copy()
+        off = (0,0) if self.look_r else (-30,0)
         # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+(30*self.hp/100),self.rect.y-camera.y),4)
-        gun_img = pg.transform.rotate(player.GUNS[self.gun]['img'].copy(), -self.angle)
+        ang = (-self.angle+90)%180 - 90
+        gun_img = pg.transform.rotate(player.GUNS[self.gun]['img'].copy(), ang if self.look_r else -ang)
         # if not self.look_r: gun_img=pg.transform.flip(gun_img, False,True)
         # debug(gun_img.get_rect().center, screen)
         img.blit(gun_img, (gun_img.get_rect().x, gun_img.get_rect().y+25))
+        if not self.look_r: img = pg.transform.flip(img, True,False)
+        
         if self.dmg_timer > 0:
             img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
