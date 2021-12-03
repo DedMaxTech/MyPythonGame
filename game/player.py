@@ -43,7 +43,6 @@ RED_TINT.fill('red')
 sounds = not pg.mixer.get_init() is None
 # print('sound',sounds)
 if sounds:
-    print('load sound')
     SOUNDS = {
         'jump':pg.mixer.Sound('game/content/sounds/jump.wav'),
         'hurt':pg.mixer.Sound('game/content/sounds/hurt.wav'),
@@ -160,6 +159,7 @@ class Bullet(core.Actor):
             return
         if isinstance(actor, enemies.BaseAI) and not isinstance(self.parent, enemies.BaseAI):
             actor.hp -= self.damage
+            self.parent.game.stats['done damage']+=self.damage
             # write_stat('done damage', get_stat('done damage')+self.damage)
             if not cfg.potato:
                 fx.blood(self.rect.center,self.parent.world, int(self.damage*1.5/10))
@@ -169,6 +169,7 @@ class Bullet(core.Actor):
             self._delete = True
         if isinstance(actor, Player):
             actor.hp -= self.damage
+            self.parent.game.stats['received damage']+=self.damage
             # write_stat('received damage', get_stat('received damage')+self.damage)
             actor.dmg_timer = 100
             self._delete = True
@@ -208,6 +209,7 @@ class Grenade(core.Actor):
                     xv,yv = vec_to_speed(dmg/5, 180-angle(a.rect.center,self.rect.center,))
                     a.xspeed, a.yspeed = xv if self.rect.x>a.rect.x else -xv,(yv if self.rect.x>a.rect.x else -yv)-1 
                     if isinstance(a, Player) or isinstance(a, enemies.BaseAI):
+                        self.game.stats['done damage']+=dmg
                         a.hp -= dmg
                         if not cfg.potato: fx.damage(a.rect.center, dmg, self.game.world)
             if isinstance(a, level.Block) and a.type in dest:
@@ -252,7 +254,7 @@ class Player(core.Actor):
 
         self.gun = 0
         self.guns = ['pistol']
-        self.ammo = {'rifle': [0, 0], 'pistol': [0,0],'shootgun':[0,0], 'minigun':[0,0]}
+        self.ammo = {'rifle': [30, 60], 'pistol': [10,50],'shootgun':[5,15], 'minigun':[100,100]}
         self.grenades = 40
         self.grenade=False
         self._reload = False
@@ -334,6 +336,8 @@ class Player(core.Actor):
         if self.hp <= 0: 
             self.death()
         
+        if self.ammo.get(self.guns[self.gun]) is None: self.ammo[self.guns[self.gun]]=[0,0]
+
         #UI UPDATE
         amm = self.ammo[self.guns[self.gun]]
         self.hp_bar.value = remap(self.hp, (0,self.max_hp))
@@ -341,7 +345,7 @@ class Player(core.Actor):
         self.ammo_but.text = f'{amm[0]}/{amm[1]}'
         self.grenades_but.text = str(self.grenades)
 
-
+    
         if self.reload_kd>0 and self._reload:
             self.reload_but.text = f'{self.reload_kd/1000:.2f}'
         else:
@@ -458,6 +462,7 @@ class Player(core.Actor):
         self.shoot_kd = gun['kd']
         self.shoot = gun['auto']
         if sounds: SOUNDS['shoot'].play()
+        self.game.stats['shoots']+=1
         # write_stat('shoots', get_stat('shoots')+1)
     
     def throw_genade(self):

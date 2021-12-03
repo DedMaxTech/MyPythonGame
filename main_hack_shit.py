@@ -65,7 +65,8 @@ class Game:
         self.searching = False
         self.shake = 0
         self.delta = 0.0
-        self.millis = get_stat('time')
+
+        self.stats = get_stat()
         self.w = 1
         self.level = 'levels/tutorial.txt'
         self.fps_alert = False
@@ -112,11 +113,29 @@ class Game:
     
     def stats_menu(self, add=[]):
         y = 120
-        bs = [Button((50, 50), 'white', 'YOUR STATS', 40, ),Button((75, 400), 'white', 'Back', 25, self.main_menu, 'darkgrey'),]
-        d:dict = get_stat()
-        for key in d:
-            bs.append(Button((75, y), 'white',f'{key.title()}: {int(d[key])}', 20))
-            y+=23
+        bs = [Button((50, 50), 'white', 'YOUR STATS', 40, ),]
+        d:dict = self.stats
+        k = f'{remap(d["time in air"],(0,d["time on ground"])):.2f}/1.0' if d["time in air"]<d["time on ground"] else f'1.0/{remap(d["time on ground"],(0,d["time in air"])):.2f}'
+        bs+=[VBox(3,(75,120),widgets=[
+                Button((0,0), 'white',f'Time in game:', 20),
+                Button((0,0), 'white',f'Damage you done:', 20),
+                Button((0,0), 'white',f'Damage you received:', 20),
+                Button((0,0), 'white',f'You shoot:', 20),
+                Button((0,0), 'white',f'You was in air:', 20),
+                Button((0,0), 'white',f'Time in air/on ground:', 20),
+                Button((75, 400), 'white', 'Back', 25, self.main_menu, 'darkgrey'),
+            ]),
+            VBox(3,(75,120),(600,1000), anchor_h=UI.RIGHT, widgets=[
+                Button((0,0), 'white',f'{int(d["time"]/60)} mins.', 20),
+                Button((0,0), 'white',f'{int(d["done damage"])} hp', 20),
+                Button((0,0), 'white',f'{int(d["received damage"])} hp', 20),
+                Button((0,0), 'white',f'{d["shoots"]} bullets', 20),
+                Button((0,0), 'white',f'{int(d["time in air"]/60)} mins.', 20),
+                Button((0,0), 'white',k, 20),
+            ])]
+        # for key in d:
+        #     bs.append(Button((75, y), 'white',f'{key.title()}: {int(d[key])}', 20))
+        #     y+=23
         self.ui.set_ui(bs+add)
         
     def pause_menu(self):
@@ -426,12 +445,13 @@ class Game:
 
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
             if event.type == AUTOSAVE_EVENT:
-                write_stat('time', self.millis)
+                write_stats(self.stats)
+                # write_stat('time', self.millis)
 
                 
     def loop(self):
         self.event_loop()
-        self.millis += self.delta/1000
+        self.stats['time']+=self.delta/1000
         if self.playing and not self.pause:
             
             if self.player._delete: self.start_game(self.level)
@@ -440,6 +460,7 @@ class Game:
             else:
                 if self.w < sf.get_width(): self.w *= 1.1
             self.world_tick = 0.3 if self.player.aiming else 1.0
+            self.stats['time on ground' if self.player.on_ground else 'time in air']+=self.delta/1000
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
             self.world.update_actors(self.delta*self.world_tick, self.player)
 

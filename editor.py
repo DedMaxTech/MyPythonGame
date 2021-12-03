@@ -85,7 +85,7 @@ class Editor:
                 img=level.block_s[i]['img'], args=(i)) for i in level.block_s]+[Button((0,0),'white','Drawing:', 30),self.draw_box]))
 
         objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
-            objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.Text,objects.Image]
+            objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.ZoomTriger,objects.Text,objects.Image]
         bs+=vertical(3, [Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs])+[self.select_box]
         self.ui.set_ui(bs)
         # self.camera

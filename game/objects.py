@@ -159,6 +159,26 @@ class BaseTriger(core.Actor, core.Saving):
     def triggered(self, actor):
         pass
 
+class ZoomTriger(BaseTriger):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'zoom':['zoom', float]
+    }
+    def __init__(self, x=0, y=0, w=40, h=40, zoom=0.5):
+        super().__init__(x=x, y=y, w=w, h=h)
+        self.zoom=zoom
+        self.colliding=False
+    
+    def update(self, delta, blocks, actors):
+        c = self.rect.colliderect(self.game.player.rect)
+        if c and not self.colliding:
+            self.game.zoom(self.zoom)
+        elif not c and self.colliding:
+            self.game.zoom(1)
+        self.colliding=c
 
 def create_zoom_zone(x,y,w,h,zoom, defoult=1):
     return Trigger(x,y,20,h, lambda game: game.zoom(defoult)),Trigger(x+20,y,20,h, lambda game: game.zoom(zoom)),Trigger(x+w,y,20,h, lambda game: game.zoom(zoom)),Trigger(x+w+20,y,20,h, lambda game: game.zoom(defoult)),
@@ -326,7 +346,6 @@ class ScreenConditionTriger(BaseTriger, core.Saving):
         self.timer = 1000
     
     def update(self, delta, blocks, actors):
-        print(repr(self.condition))
         if self.ok and self.timer >0: self.timer-=delta
         if not self.ok and self.visible and self.func(self.game):
             self.ok=True

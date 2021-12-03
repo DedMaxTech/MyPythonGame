@@ -19,7 +19,9 @@ actors = [
 	objects.Image(x=190, y=710, image='game/content/ui/arrow.png', rotation=180, scale=1.0),
 	objects.Image(x=880, y=700, image='game/content/ui/to_jump.png', rotation=0, scale=0.5),
 	objects.Grenades(x=410, y=580, amount=10),
-	objects.Grenades(x=230, y=580, amount=10)
+	objects.Grenades(x=230, y=580, amount=10),
+	objects.ZoomTriger(x=205, y=874, w=100, h=140, zoom=0.5),
+	objects.ZoomTriger(x=471, y=869, w=100, h=140, zoom=2.0)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

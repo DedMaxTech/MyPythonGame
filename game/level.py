@@ -140,7 +140,6 @@ class World:
 
     def update_actors(self, delta, player = None):
         delta = limit(delta, max=30)
-        print(delta)
         for b in self.blocks:
             if b._delete:
                 del self.blocks[self.blocks.index(b)]

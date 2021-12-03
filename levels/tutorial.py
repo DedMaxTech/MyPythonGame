@@ -60,7 +60,8 @@ actors = [
 	objects.Text(x=4806, y=867, text='Some of your enemies can have guns too', size=30, color='white'),
 	objects.Text(x=5006, y=903, text='So take this gun and ammo', size=30, color='white'),
 	objects.Image(x=5094, y=921, image='game/content/ui/arrow.png', rotation=-160, scale=1.0),
-	objects.Ammo(x=5057, y=963, ammo={'rifle': 120})
+	objects.Ammo(x=5057, y=963, ammo={'rifle': 120}),
+	objects.Trigger(x=0, y=612, w=400, h=40, function='game.player.ammo={}')
 ]
 blocks = [
 	level.Block(0,-40,'-'),

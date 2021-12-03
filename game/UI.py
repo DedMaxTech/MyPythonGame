@@ -124,7 +124,7 @@ class TextField(Widget):
 
     def key_pressed(self, key,uni):
         if not self.active: return
-        if key == pg.K_ESCAPE: self.active = False
+        if key == pg.K_ESCAPE: self.active = False; return
         elif key == pg.K_RETURN:
             self.active = False
             add = (self.text,) if self.add else ()
@@ -135,11 +135,10 @@ class TextField(Widget):
                 self.ind -=1
         elif key== pg.K_LEFT: 
             self.ind = limit(self.ind-1, min=0)
-            print(self.ind)
         elif key== pg.K_RIGHT:
             self.ind = limit(self.ind+1, max=len(self.text))
-            print(self.ind)
         else:
+            if key in [pg.K_LALT, pg.K_LSHIFT, pg.K_LCTRL]: return
             self.text = self.text[:self.ind]+uni+self.text[self.ind:]
             self.ind = limit(self.ind+1, max=len(self.text))
     
@@ -279,7 +278,6 @@ LEFT='l'
 FILL='f'
 class Box(Interface):
     def __init__(self,margin=0,pos=(0, 0),size=cfg.res,anchor_h:Union[RIGHT,LEFT,FILL]=LEFT,anchor_v:Union[UP,DOWN,FILL]=UP, widgets=[]):
-        print(pos)
         self.margin=margin
         self.anchor_h, self.anchor_v= anchor_h, anchor_v
         super().__init__(widgets=widgets, pos=pos,size=size, anims=False, relative=True)
