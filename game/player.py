@@ -312,7 +312,7 @@ class Player(core.Actor):
             self.aiming = d['aim']
 
 
-    def death(self):
+    def to_death(self):
         self.dead=True
         self.autodel(3)
         self.game.death()
@@ -333,9 +333,9 @@ class Player(core.Actor):
         
         if self.dead:
             return
-        if self.hp <= 0: 
-            self.death()
-        
+        # if self.hp <= 0: 
+        #     self.death()
+        if self.hp<=0: self.to_death()
         if self.ammo.get(self.guns[self.gun]) is None: self.ammo[self.guns[self.gun]]=[0,0]
 
         #UI UPDATE

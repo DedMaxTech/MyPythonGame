@@ -37,8 +37,9 @@ class Saving:
 
 font = pg.font.SysFont('Arial',size=40)
 font.bold=True
+
 class Actor:
-    def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True, image=None):
+    def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True, image=None, damaging=False):
         self.rect = pg.Rect(x,y,w,h)
         self.pre_rect = pg.Rect(x-30,y-30,w+30,h+30)
         self.xspeed, self.yspeed = 0.0, 0.0
@@ -52,6 +53,11 @@ class Actor:
         self.img = image
         self.visible = True
         self.game=None
+
+        self.damaging = damaging
+        self.hp=100
+        self.max_hp=100
+
         text = font.render(self.__class__.__name__, False, 'red')
         sf = pg.transform.scale(pg.transform.rotate(text.copy(), 45),(w,h))
         sf.blit(pg.transform.scale(pg.transform.rotate(text.copy(), -45),(w,h)), (0,0))
@@ -77,7 +83,7 @@ class Actor:
         if self.collision:
             self.on_ground = self.check_on_ground(blocks)
             if self.need_sides: self.right, self.left = self.check_right(blocks), self.check_left(blocks)
-
+        
         k=delta/def_tick
         # print(k)
         if self.die:
@@ -102,6 +108,14 @@ class Actor:
     def delete(self):
         # print('del', self)
         self._delete = True
+
+    def health(self,hp):
+        self.hp = limit(self.hp+hp,0,self.max_hp)
+        if hp<0: self.damaged(hp)
+        if self.hp==0: self.to_death()
+    
+    def damaged(self, hp):pass
+    def to_death(self):pass
 
     def check_on_ground(self, blocks):
         self.rect.y += 1

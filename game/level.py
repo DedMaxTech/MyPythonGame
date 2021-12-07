@@ -145,7 +145,8 @@ class World:
                 del self.blocks[self.blocks.index(b)]
         for a in self.actors:
             if a._delete:
-                del self.actors[self.actors.index(a)]
+                try: del self.actors[self.actors.index(a)]
+                except ValueError:continue
             else:
                 if not a.static and a.collision:
                     a.update(delta, self.get_blocks(a.pre_rect), self.get_actors(a.pre_rect))
