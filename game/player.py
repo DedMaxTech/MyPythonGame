@@ -186,7 +186,7 @@ class Bullet(core.Actor):
             
 class Grenade(core.Actor):
     def __init__(self, x, y, xv,yv, game):
-        super().__init__(x, y, 9,11, bounce=0.3, friction=0.1,image=IMGS['GRENADE'])
+        super().__init__(x, y, 9,11, bounce=0.45, friction=0.1,image=IMGS['GRENADE'])
         self.xspeed, self.yspeed = xv,yv
         self.explose_tmr = 3500
         self.game =game
@@ -330,7 +330,7 @@ class Player(core.Actor):
         # HP MANAGEMENT
         # UI
         self.ui.update(delta=delta)
-        
+        if self.dead and self.die_kd<1500:self.game.v=0
         if self.dead:
             return
         # if self.hp <= 0: 
@@ -518,6 +518,6 @@ class Player(core.Actor):
             # if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         
-        if not self.dead:
+        if not self.dead and self.visible:
             screen.blit(self.img, (self.rect.x - camera.x+off-3, self.rect.y - camera.y))
         self.ui.render(self.game.screen)

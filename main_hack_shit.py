@@ -65,9 +65,12 @@ class Game:
         self.searching = False
         self.shake = 0
         self.delta = 0.0
+        self._zoom = 1
+        self._curzoom = 1
 
         self.stats = get_stat()
         self.w = 1
+        self.v=1
         self.level = 'levels/tutorial.txt'
         self.fps_alert = False
 
@@ -216,7 +219,7 @@ class Game:
     def start_zoom(self, level):
         self.zoom(3)
         # if f'levels.{level}' not in sys.modules:sleep(1)
-        sleep(0.75)
+        sleep(0.85)
         self.zoom(1)
 
     def start_game(self, level='tutorial'):
@@ -224,7 +227,8 @@ class Game:
         self.level = level
         self.ui.clear()
         pos, guns =self.world.open_world(level, game_inst=self)
-        self.w = 2
+        self.w=1
+        self.v=cfg.screen_h
         if self.pause: self.pause = False
         self.player = player.Player(*pos, 0, self)
         self.player.guns = list(set(self.player.guns+guns))
@@ -305,7 +309,7 @@ class Game:
     def camera_update(self):
         ofsetx, ofsety = 930,450
         k = self.delta/core.def_tick
-        d = self.frame.get_height()/10/k
+        d = self.frame.get_height()/15/k/self._curzoom
         r = self.player.rect
         
         if self.player.aiming:
@@ -314,23 +318,27 @@ class Game:
             r = pg.Rect(r.x+x,r.y+y,1,1)
             # self.world_tick = 0.3
         #     self.zoom(1.5)
-        # else: self.zoom(1)   
-        if r.x < self.camera.x + ofsetx:
-            self.camera.x -= (self.camera.x + ofsetx - r.x) /d
-        if r.right > self.camera.right - ofsetx:
-            self.camera.x += (r.right - self.camera.right + ofsetx)/d
+        # else: self.zoom(1)
+        self.camera.centerx-= (self.camera.centerx-r.centerx)/d
+        self.camera.centery-= (self.camera.centery-r.centery)/d
+        # if r.x < self.camera.x + ofsetx:
+        #     self.camera.x -= (self.camera.x + ofsetx - r.x) /d
+        # if r.right > self.camera.right - ofsetx:
+        #     self.camera.x += (r.right - self.camera.right + ofsetx)/d
 
-        if r.y < self.camera.y + ofsety:
-            self.camera.y -= (self.camera.y + ofsety - r.y) /d
-        if r.bottom > self.camera.bottom - ofsety:
-            self.camera.y += (r.bottom - self.camera.bottom + ofsety)/d
+        # if r.y < self.camera.y + ofsety:
+        #     self.camera.y -= (self.camera.y + ofsety - r.y) /d
+        # if r.bottom > self.camera.bottom - ofsety:
+        #     self.camera.y += (r.bottom - self.camera.bottom + ofsety)/d
     
     def process_zoom(self):
         size = self.frame.get_size()
-        self.frame =pg.transform.scale(self.frame, (size[0]+int(((self.camera.w-size[0])/20)),size[1]+int((self.camera.h-size[1]) / 20)))
+        self._curzoom=size[0]*self._zoom/self.camera.w
+        self.frame =pg.transform.scale(self.frame, (size[0]+int(((self.camera.w-size[0])/30)),size[1]+int((self.camera.h-size[1]) / 30)))
 
     def zoom(self,val):
         self.camera.size = (int(cfg.screen_h*val), int(cfg.screen_v*val))
+        self._zoom = val
 
     def update_control(self, event: pg.event.Event, camera: pg.Rect):
         d = {}
@@ -413,8 +421,8 @@ class Game:
             if self.w< sf.get_width():
                 sf.fill('black')
                 x,y = self.player.rect.centerx-self.camera.x, self.player.rect.centery-self.camera.y
-                x,y = remap(x, (0,1280),(0,cfg.screen_h)),remap(y, (0,720),(0,cfg.screen_v))
-                pg.draw.circle(sf,'white', (x,y), self.w)
+                x,y = remap(x, (0,854*self._curzoom),(0,cfg.screen_h)),remap(y, (0,480*self._curzoom),(0,cfg.screen_v))
+                pg.draw.circle(sf,'white', (x,y), round(self.w))
                 if self.player.dead:
                     text = font.render('Respawning...', False, (255,0,0))
                     text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
@@ -455,10 +463,8 @@ class Game:
         if self.playing and not self.pause:
             
             if self.player._delete: self.start_game(self.level)
-            if self.player.dead and self.player.die_kd<=1500:
-                if self.w > 1: self.w /= 1.1
-            else:
-                if self.w < sf.get_width(): self.w *= 1.1
+            if self.v>self.w: self.w*=1.08
+            else: self.w/=1.08
             self.world_tick = 0.3 if self.player.aiming else 1.0
             self.stats['time on ground' if self.player.on_ground else 'time in air']+=self.delta/1000
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)

@@ -315,15 +315,26 @@ class LevelTravelTriger(BaseTriger, core.Saving):
         self.img = pg.transform.scale(PORTAL_IMG.copy(), (w,h))
         self.level = levelname
         self.r=0
+        self.timer=1500
+        self.t=False
     
     def update(self, delta, blocks, actors):
+        if self.t:
+            if self.timer>0: self.timer-=delta
+            else: self.game.start_game(self.level)
         self.r+=1
         self.img = pg.transform.rotate(PORTAL_IMG.copy(),self.r)
         self.img = pg.transform.scale(self.img, (self.rect.w,self.rect.h))
         self._collide_actors(actors)
     
     def triggered(self, actor):
-        self.game.start_game(self.level)
+        if self.t:return
+        self.game.zoom(3)
+        self.game.w=cfg.screen_h
+        self.game.v=1
+        actor.visible=False
+        actor.static=True
+        self.t=True
 
 class ScreenConditionTriger(BaseTriger, core.Saving):
     slots = {

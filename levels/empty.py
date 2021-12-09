@@ -1,7 +1,7 @@
 # Auto-generated, can be edited
 from game import *
 
-spawn_pos = (40,40)
+spawn_pos = (40,840)
 background = 'game\content/bg2.png'
 guns = []
 
@@ -17,11 +17,11 @@ actors = [
 	objects.Image(x=100, y=850, image='game/content/ui/arrow.png', rotation=225, scale=1.0),
 	objects.Image(x=340, y=860, image='game/content/ui/arrow.png', rotation=0, scale=1),
 	objects.Image(x=190, y=710, image='game/content/ui/arrow.png', rotation=180, scale=1.0),
-	objects.Image(x=880, y=700, image='game/content/ui/to_jump.png', rotation=0, scale=0.5),
 	objects.Grenades(x=410, y=580, amount=10),
 	objects.Grenades(x=230, y=580, amount=10),
-	objects.ZoomTriger(x=205, y=874, w=100, h=140, zoom=0.5),
-	objects.ZoomTriger(x=471, y=869, w=100, h=140, zoom=2.0)
+	objects.LevelTravelTriger(x=375, y=878, w=40, h=120, levelname='empty'),
+	objects.ZoomTriger(x=769, y=805, w=400, h=400, zoom=0.5),
+	objects.ZoomTriger(x=1355, y=762, w=400, h=400, zoom=3.0)
 ]
 blocks = [
 	level.Block(0,-40,'-'),
@@ -81,14 +81,6 @@ blocks = [
 	level.Block(1040,1000,'-'),
 	level.Block(1080,1000,'-'),
 	level.Block(1120,1000,'-'),
-	level.Block(1200,960,'-'),
-	level.Block(1200,920,'-'),
-	level.Block(1200,880,'-'),
-	level.Block(1200,840,'-'),
-	level.Block(1200,800,'-'),
-	level.Block(1200,760,'-'),
-	level.Block(1200,720,'-'),
-	level.Block(1200,680,'-'),
 	level.Block(1200,640,'-'),
 	level.Block(1200,600,'-'),
 	level.Block(1200,560,'-'),
@@ -135,5 +127,49 @@ blocks = [
 	level.Block(560,-40,'-'),
 	level.Block(600,-40,'-'),
 	level.Block(640,-40,'-'),
-	level.Block(680,-40,'-')
+	level.Block(680,-40,'-'),
+	level.Block(1240,1000,'-'),
+	level.Block(1280,1000,'-'),
+	level.Block(1320,1000,'-'),
+	level.Block(1360,1000,'-'),
+	level.Block(1400,1000,'-'),
+	level.Block(1640,1000,'-'),
+	level.Block(1880,1000,'-'),
+	level.Block(1840,1000,'-'),
+	level.Block(1800,1000,'-'),
+	level.Block(1760,1000,'-'),
+	level.Block(1440,1000,'-'),
+	level.Block(1480,1000,'-'),
+	level.Block(1520,1000,'-'),
+	level.Block(1560,1000,'-'),
+	level.Block(1600,1000,'-'),
+	level.Block(1680,1000,'-'),
+	level.Block(1720,1000,'-'),
+	level.Block(1880,960,'-'),
+	level.Block(1880,920,'-'),
+	level.Block(1880,880,'-'),
+	level.Block(1880,840,'-'),
+	level.Block(1880,800,'-'),
+	level.Block(1880,760,'-'),
+	level.Block(1880,720,'-'),
+	level.Block(1840,720,'-'),
+	level.Block(1840,680,'-'),
+	level.Block(1840,640,'-'),
+	level.Block(1840,600,'-'),
+	level.Block(1800,600,'-'),
+	level.Block(1760,600,'-'),
+	level.Block(1720,600,'-'),
+	level.Block(1680,600,'-'),
+	level.Block(1640,600,'-'),
+	level.Block(1600,600,'-'),
+	level.Block(1560,600,'-'),
+	level.Block(1520,600,'-'),
+	level.Block(1480,600,'-'),
+	level.Block(1440,600,'-'),
+	level.Block(1400,600,'-'),
+	level.Block(1360,600,'-'),
+	level.Block(1320,600,'-'),
+	level.Block(1280,600,'-'),
+	level.Block(1240,600,'-'),
+	level.Block(1160,600,'-')
 ]
