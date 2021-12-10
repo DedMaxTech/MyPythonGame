@@ -86,7 +86,10 @@ class Editor:
 
         objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
             objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.ZoomTriger,objects.Text,objects.Image]
-        bs+=vertical(3, [Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs])+[self.select_box]
+        bs+=[VBox(3,(1520,580),(400,480), UI.LEFT,UI.DOWN,widgets=[Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs][::-1]+[HBox(3,size=(300,25), anchor_h=UI.FILL, anchor_v=UI.FILL, widgets=[
+            Button((0,0),'white', k.title(),25),
+            TextField((0,0),'white', str(self.world._get_att_val(v[0])) if v[1] is not list else ', '.join(self.world._get_att_val(v[0])),25,'darkgrey',callback_f=self.world.edit, args=(k,),add_text=True)
+        ]) for k,v in self.world.slots.items()]),self.select_box]
         self.ui.set_ui(bs)
         # self.camera
         self.editing = True
@@ -96,6 +99,9 @@ class Editor:
         self.world.save_world(self.levelname)
         self.ui.clear()
         self.main_menu()
+    
+    def config_level(self,name, val):
+        pass
 
     def set_brush(self, t):
         self.last_brush = self.brush
