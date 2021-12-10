@@ -113,7 +113,7 @@ class World(core.Saving):
 
     def save_world(self, levelname):
         with open(f'levels/{levelname}.py', 'w') as file:
-            file.write(f'from game import *\n\nspawn_pos = {repr(self.spawn_pos)}\nbackground = {repr(self.bg_name)}\n'+write_list('guns', self.guns))
+            file.write(f'from game import *\n\nspawn_pos = {repr(self.spawn_pos)}\nbackground = {repr(self.bg_name)}\n'+write_list('guns', [repr(i) for i in self.guns]))
             # file.write('####DONT TOUCH####\n# Auto-generated in '+__name__+'\n')
             ais = write_list('ais',[i.save() for i in self.ais if isinstance(i,core.Saving)])
             acts = write_list('actors',[i.save() for i in self.actors if isinstance(i,core.Saving) and not isinstance(i, enemies.BaseAI)])
@@ -190,4 +190,5 @@ class World(core.Saving):
         for sf,_, pos in self.images: screen.blit(sf, real(pos, camera))
         [a.draw(screen, camera) for a in self.actors]
 
-    def reset(self):pass
+    def reset(self):
+        self.bg = pg.image.load(self.bg_name).convert_alpha()

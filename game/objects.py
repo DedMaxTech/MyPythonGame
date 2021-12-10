@@ -320,6 +320,10 @@ class LevelTravelTriger(BaseTriger, core.Saving):
     
     def update(self, delta, blocks, actors):
         if self.t:
+            self.rect.x += self.rect.w*0.02
+            self.rect.y += self.rect.h*0.02
+            self.rect.w*=0.98
+            self.rect.h*=0.98
             if self.timer>0: self.timer-=delta
             else: self.game.start_game(self.level)
         self.r+=1

@@ -1,9 +1,10 @@
 from game import *
 
-spawn_pos = [40,40]
+spawn_pos = [40, 40]
 background = 'game\\content/bg2.png'
 guns = [
-
+	'rifle',
+	'shootgun'
 ]
 ais = [
 	
