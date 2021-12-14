@@ -85,7 +85,7 @@ class Editor:
                 img=level.block_s[i]['img'], args=(i)) for i in level.block_s]+[Button((0,0),'white','Drawing:', 30),self.draw_box]))
 
         objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
-            objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.ZoomTriger,objects.Text,objects.Image]
+            objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.ZoomTriger,objects.CameraTargetTriger,objects.Text,objects.Image]
         bs+=[VBox(3,(1520,580),(400,480), UI.LEFT,UI.DOWN,widgets=[Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs][::-1]+[HBox(3,size=(300,25), anchor_h=UI.FILL, anchor_v=UI.FILL, widgets=[
             Button((0,0),'white', k.title(),25),
             TextField((0,0),'white', str(self.world._get_att_val(v[0])) if v[1] is not list else ', '.join(self.world._get_att_val(v[0])),25,'darkgrey',callback_f=self.world.edit, args=(k,),add_text=True)

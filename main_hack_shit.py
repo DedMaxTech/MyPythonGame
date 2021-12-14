@@ -73,6 +73,7 @@ class Game:
         self.v=1
         self.level = 'levels/tutorial.txt'
         self.fps_alert = False
+        self.camera_target = None
 
         pg.display.set_caption(cfg.GAMENAME)
         # pg.display.toggle_fullscreen()
@@ -229,6 +230,7 @@ class Game:
         pos, guns =self.world.open_world(level, game_inst=self)
         self.w=1
         self.v=cfg.screen_h
+        self.camera_target=None
         if self.pause: self.pause = False
         self.player = player.Player(*pos, 0, self)
         s = objects.SpawningPortal(*pos, self)
@@ -313,24 +315,17 @@ class Game:
         d = self.frame.get_height()/15/k/self._curzoom
         r = self.player.rect
         
-        if self.player.aiming:
-            x,y = vec_to_speed(300, -self.player.angle)
-            x = x if self.player.look_r else -x
-            r = pg.Rect(r.x+x,r.y+y,1,1)
-            # self.world_tick = 0.3
-        #     self.zoom(1.5)
-        # else: self.zoom(1)
+        if self.camera_target:
+            r = self.camera_target
+        else:
+            if self.player.aiming:
+                x,y = vec_to_speed(300, -self.player.angle)
+                x = x if self.player.look_r else -x
+                r = pg.Rect(r.x+x,r.y+y,1,1)
+
         self.camera.centerx-= (self.camera.centerx-r.centerx)/d
         self.camera.centery-= (self.camera.centery-r.centery)/d
-        # if r.x < self.camera.x + ofsetx:
-        #     self.camera.x -= (self.camera.x + ofsetx - r.x) /d
-        # if r.right > self.camera.right - ofsetx:
-        #     self.camera.x += (r.right - self.camera.right + ofsetx)/d
 
-        # if r.y < self.camera.y + ofsety:
-        #     self.camera.y -= (self.camera.y + ofsety - r.y) /d
-        # if r.bottom > self.camera.bottom - ofsety:
-        #     self.camera.y += (r.bottom - self.camera.bottom + ofsety)/d
     
     def process_zoom(self):
         size = self.frame.get_size()
@@ -428,7 +423,7 @@ class Game:
                     text = font.render('Respawning...', False, (255,0,0))
                     text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
                     sf.blit(text, (300,100))
-                self.screen.blit(sf,(0,0))
+                if self.w<cfg.screen_h-100:self.screen.blit(sf,(0,0))
             debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
             debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
             # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)

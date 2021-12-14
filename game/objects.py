@@ -408,3 +408,42 @@ class ScreenConditionTriger(BaseTriger, core.Saving):
         if self.visible: 
             if not self.ok:self.game.screen.blit(self.image, (0,0))
             else: self.game.screen.blit(self.OK_IMG, (0,0))
+
+class CameraTargetTriger(BaseTriger):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'target_x':['target.x', int],
+        'target_y':['target.y', int],
+        'timer':['timer', int]
+    }
+    def __init__(self, x=0, y=0, w=40, h=40,target_x=0,target_y=0,timer=0):
+        super().__init__(x=x, y=y, w=w, h=h)
+        self.timer = timer
+        self.onetime = timer>0
+        self.target=pg.Rect(target_x,target_y,1,1)
+        self.t=False
+    
+    def update(self, delta, blocks, actors):
+        if self.onetime:
+            print(self.t)
+            if self.t:
+                if self.timer>0: self.timer-=delta
+                else: 
+                    self.game.camera_target = None
+                    self.delete()
+                    return
+        else:
+            if self.rect.colliderect(self.game.player.rect): self.game.camera_target = self.target
+            else: self.game.camera_target = None
+        self._collide_actors(actors)
+    
+    def triggered(self, actor):
+        self.t=True
+        self.game.camera_target = self.target
+    
+    def debug_draw(self, screen, camera):
+        super().debug_draw(screen, camera)
+        pg.draw.rect(screen,'red',(*real((self.target.x-(854/2),self.target.y-(480/2)), camera),854,480), 2)
