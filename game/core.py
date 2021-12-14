@@ -25,7 +25,7 @@ class Saving:
     def edit(self, attr, val:str):
         tip = self.slots[attr][1]
         if tip==dict:val = json.loads(val.replace("'",'"'))
-        elif tip==list:val = [i.strip() for i in val.split(',')]
+        elif tip==list:val = [i.strip() for i in val.split(',') if i]
         elif tip==FunctionType:val = val
         elif tip==int: val=int(val)
         elif tip==float: val=float(val)

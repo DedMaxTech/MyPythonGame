@@ -54,6 +54,7 @@ GUNS = {
     'rifle': {'img': pg.image.load('game/content/player/guns/rifle.png'),
               'hold_img': 0,
               'pos': (29, 29),
+              'offx':0,
               'offy':0,
               'bull_pos': (0, 0),
               'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
@@ -71,6 +72,7 @@ GUNS = {
     'pistol': {'img': pg.image.load('game/content/player2/guns/pistol.png'),
                'hold_img': 0,
                'pos': (29, 29),
+               'offx':0,
                'offy':0,
                'bull_pos': (0, 0),
                'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
@@ -88,6 +90,7 @@ GUNS = {
     'shootgun': {'img': pg.image.load('game/content/player2/guns/shootgun.png'),
             'hold_img': 0,
             'pos': (29, 29),
+            'offx':0,
             'offy':-5,
             'bull_pos': (0, 0),
             'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
@@ -105,6 +108,7 @@ GUNS = {
     'minigun': {'img': pg.image.load('game/content/player2/guns/minigun.png'),
             'hold_img': 0,
             'pos': (29, 29),
+            'offx':0,
             'offy':-5,
             'bull_pos': (0, 0),
             'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
@@ -119,6 +123,24 @@ GUNS = {
             'shake':5,
             'back':1,
             'recoil':4},
+    'sniper': {'img': pg.image.load('game/content/player2/guns/sniper.png'),
+            'hold_img': 0,
+            'pos': (29, 29),
+            'offx':7,
+            'offy':-5,
+            'bull_pos': (0, 0),
+            'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
+            'speed': 35,
+            'mag': 5,
+            'amount': 1,
+            'reload': 2000,
+            'dmg':130,
+            'kd':400,
+            'acc':1,
+            'auto': False,
+            'shake':12,
+            'back':7,
+            'recoil':80},
 }
 
 def convert():
@@ -254,7 +276,7 @@ class Player(core.Actor):
 
         self.gun = 0
         self.guns = ['pistol']
-        self.ammo = {'rifle': [30, 60], 'pistol': [10,50],'shootgun':[5,15], 'minigun':[100,100]}
+        self.ammo = {'rifle': [30, 60], 'pistol': [10,50],'shootgun':[5,15], 'minigun':[100,100], 'sniper':[5,15]}
         self.grenades = 40
         self.grenade=False
         self._reload = False
@@ -508,7 +530,7 @@ class Player(core.Actor):
         gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang+(self.recoil*remap(self.shoot_kd, (0,GUNS[self.guns[self.gun]]['kd']))))
         # debug(gun_img.get_rect().center, screen)
         w,h=gun_img.get_width()/2,gun_img.get_height()/2
-        self.img.blit(gun_img, (gun_img.get_rect().x+30-w, gun_img.get_rect().y+35+offy+GUNS[self.guns[self.gun]]['offy']-h))
+        self.img.blit(gun_img, (gun_img.get_rect().x+30+GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+35+offy+GUNS[self.guns[self.gun]]['offy']-h))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if self.dead: self.img = PLAYER_IMG_DEAD

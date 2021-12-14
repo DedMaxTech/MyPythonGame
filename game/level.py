@@ -94,7 +94,7 @@ class World(core.Saving):
         # if f'levels.{levelname}' in sys.modules:
         importlib.reload(level)
         # exec(f'from levels import {level}')
-        print(f'{video=}')
+        print(f'Open level - {levelname}, {video=}')
         self.bg_name = level.background
         if video:self.bg = pg.image.load(level.background).convert()
         else:self.bg = pg.image.load(level.background)

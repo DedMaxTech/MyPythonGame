@@ -1,19 +1,17 @@
-# Auto-generated, can be edited
 from game import *
 
-spawn_pos = (40,840)
-background = 'game\content/bg2.png'
-guns = []
-
-####DONT TOUCH####
-# Auto-generated in game.level
+spawn_pos = (40, 840)
+background = 'game\\content/bg2.png'
+guns = [
+	
+]
 ais = [
 	enemies.ShoterAI(x=800, y=700, gun='rifle')
 ]
 actors = [
 	objects.Aid(x=540, y=740, hp=50),
 	objects.Ammo(x=450, y=740, ammo={'shootgun': 20}),
-	objects.GunsCase(x=390, y=740, guns=['rifle', 'shootgun', 'minigun']),
+	objects.GunsCase(x=390, y=740, guns=['rifle', 'shootgun', 'minigun', 'sniper']),
 	objects.Image(x=100, y=850, image='game/content/ui/arrow.png', rotation=225, scale=1.0),
 	objects.Image(x=340, y=860, image='game/content/ui/arrow.png', rotation=0, scale=1),
 	objects.Image(x=190, y=710, image='game/content/ui/arrow.png', rotation=180, scale=1.0),
@@ -21,7 +19,8 @@ actors = [
 	objects.Grenades(x=230, y=580, amount=10),
 	objects.LevelTravelTriger(x=375, y=878, w=40, h=120, levelname='empty'),
 	objects.ZoomTriger(x=769, y=805, w=400, h=400, zoom=0.5),
-	objects.ZoomTriger(x=1355, y=762, w=400, h=400, zoom=3.0)
+	objects.ZoomTriger(x=1355, y=762, w=400, h=400, zoom=3.0),
+	objects.Aid(x=610, y=830, hp=50)
 ]
 blocks = [
 	level.Block(0,-40,'-'),
