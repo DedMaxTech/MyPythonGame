@@ -231,9 +231,10 @@ class Game:
         self.v=cfg.screen_h
         if self.pause: self.pause = False
         self.player = player.Player(*pos, 0, self)
+        s = objects.SpawningPortal(*pos, self)
         self.player.guns = list(set(self.player.guns+guns))
         self.camera.center = pos
-        self.world.actors += [self.player]
+        self.world.actors += [self.player,s]
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
         self.start_zoom(level)

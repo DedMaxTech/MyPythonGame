@@ -340,6 +340,39 @@ class LevelTravelTriger(BaseTriger, core.Saving):
         actor.static=True
         self.t=True
 
+class SpawningPortal(core.Actor):
+
+    def __init__(self, x, y, game):
+        w,h = 35+10, 63+10
+        super().__init__(x-5, y-5, w,h, 0,0,True,0,False)
+        self.img = pg.transform.scale(PORTAL_IMG.copy(), (self.rect.w, self.rect.h))
+        self.r=0
+        self.timer=3000
+        self.size = [w,h]
+        self.game = game
+        self.game.player.visible, self.game.player.static=False,True
+    
+    def update(self, delta, blocks, actors):
+        
+
+        if self.timer>0: self.timer-=delta
+        else:
+            self.game.player.visible, self.game.player.static=True,False
+            self.delete()
+            return
+        if self.timer<1200:
+            self.size[0]*=0.97
+            self.size[1]*=0.97
+            self.game.player.visible, self.game.player.static=True,False
+        self.r+=1
+        self.img = pg.transform.rotate(PORTAL_IMG.copy(),self.r)
+        self.img = pg.transform.scale(self.img, (int(self.size[0]),int(self.size[1])))
+        self._collide_actors(actors)
+    
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        screen.blit(self.img, real((self.rect.centerx-(self.size[0]/2),self.rect.centery-(self.size[1]/2)), camera))
+    
+
 class ScreenConditionTriger(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],
