@@ -6,20 +6,20 @@ guns = [
 	
 ]
 ais = [
-	enemies.ShoterAI(x=800, y=700, gun='rifle')
+	enemies.ShoterAI(x=976, y=900, gun='rifle')
 ]
 actors = [
-	objects.Aid(x=540, y=740, hp=50),
-	objects.Ammo(x=450, y=740, ammo={'shootgun': 20}),
-	objects.GunsCase(x=390, y=740, guns=['rifle', 'shootgun', 'minigun', 'sniper']),
+	objects.Aid(x=468, y=969, hp=50),
+	objects.Ammo(x=410, y=977, ammo={'shootgun': 20}),
+	objects.GunsCase(x=365, y=976, guns=['rifle', 'shootgun', 'minigun', 'sniper']),
 	objects.Image(x=100, y=850, image='game/content/ui/arrow.png', rotation=225, scale=1.0),
 	objects.Image(x=340, y=860, image='game/content/ui/arrow.png', rotation=0, scale=1),
 	objects.Image(x=190, y=710, image='game/content/ui/arrow.png', rotation=180, scale=1.0),
 	objects.Grenades(x=410, y=580, amount=10),
 	objects.Grenades(x=230, y=580, amount=10),
-	objects.LevelTravelTriger(x=375, y=878, w=40, h=120, levelname='empty'),
-	objects.Aid(x=610, y=830, hp=50),
-	objects.CameraTargetTriger(x=1190, y=724, w=400, h=400, target_x=200, target_y=600, timer=2000)
+	objects.LevelTravelTriger(x=1840, y=883, w=40, h=120, levelname='empty'),
+	objects.Aid(x=507, y=972, hp=50),
+	objects.CameraTargetTriger(x=47, y=654, w=400, h=400, target_x=1000, target_y=800, timer=5000)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

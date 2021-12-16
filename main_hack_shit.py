@@ -1,7 +1,7 @@
 from time import sleep
 import pygame as pg
 import cProfile, pstats, sys
-import os, traceback, socket, pickle, math, glob
+import os, traceback, socket, pickle, math, glob, subprocess
 from random import randint as rd
 from typing import List
 
@@ -35,6 +35,10 @@ pg.draw.circle(sf,'white',(427,240), 50)
 sf.set_colorkey('white')
 
 font = pg.font.Font(cfg.font,60)
+
+load_screen = pg.Surface((cfg.screen_h,cfg.screen_v))
+load_screen.blit(font.render('Loading...', False, 'white'),(300,190))
+
 writing = False
 class Game:
     def __init__(self):
@@ -213,7 +217,8 @@ class Game:
     def editor(self):
         pg.display.set_caption('для продолженя игры закройте редактор')
         pg.display.toggle_fullscreen()
-        os.system('python editor.py')
+        # os.system('python editor.py')
+        subprocess.run('python editor.py')
         pg.display.toggle_fullscreen()
         pg.display.set_caption(cfg.GAMENAME)
     @threaded()
@@ -224,6 +229,8 @@ class Game:
         self.zoom(1)
 
     def start_game(self, level='tutorial'):
+        self.screen.blit(load_screen,(0,0))
+        pg.display.flip()
         self.playing = True
         self.level = level
         self.ui.clear()
