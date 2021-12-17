@@ -84,7 +84,7 @@ class Editor:
         bs.append(HBox(1,(200,0),widgets=[Button((200,0), 'white', '', 40, callback_f=self.set_brush, size=(40, 40),
                 img=level.block_s[i]['img'], args=(i)) for i in level.block_s]+[Button((0,0),'white','Drawing:', 30),self.draw_box]))
 
-        objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
+        objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.DoubleGunBonus,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
             objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.ZoomTriger,objects.CameraTargetTriger,objects.Text,objects.Image]
         bs+=[VBox(3,(1520,580),(400,480), UI.LEFT,UI.DOWN,widgets=[Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs][::-1]+[HBox(3,size=(300,25), anchor_h=UI.FILL, anchor_v=UI.FILL, widgets=[
             Button((0,0),'white', k.title(),25),

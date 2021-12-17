@@ -7,6 +7,9 @@ from typing import List
 
 import cfg
 
+# Game by MaxGyverTech
+# 
+
 os.environ['SDL_VIDEO_WINDOW_POS'] = '0,0'
 pg.init()
 
@@ -20,7 +23,7 @@ except pg.error:
 from game import *
 
 
-# Game by MaxGyverTech
+
 
 with open('game/content/cursor.xbm') as c: 
     m = open('game/content/cursor_mask.xbm')
@@ -302,19 +305,6 @@ class Game:
 
     def death(self):
         self.zoom(1.5)
-
-    @threaded(daemon=True)
-    def set_level(self, floor=0, tpx=500):
-        pos = (floor - self.n) * self.res[1]
-        self.n = floor
-        init_pos = self.camera.y
-        for i in range(1000):
-            p = init_pos + pos * (i / 1000)
-            self.camera.y = p
-            if i == tpx:
-                self.player.rect.topleft = (800, (floor + 1) * 900)
-            pg.time.wait(1)
-        self.camera.y = init_pos + pos
 
     def camera_update(self):
         ofsetx, ofsety = 930,450

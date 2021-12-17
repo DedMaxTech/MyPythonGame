@@ -19,7 +19,8 @@ actors = [
 	objects.GunsCase(x=200, y=960, guns=['minigun', 'rifle', 'shootgun']),
 	objects.Text(x=200, y=800, text='lol some text', size=30, color='white'),
 	objects.Image(x=250, y=700, image='game/content/ui/ammo.png', rotation=50, scale=2),
-	objects.Grenades(x=680, y=380, amount=10)
+	objects.Grenades(x=680, y=380, amount=10),
+	objects.DoubleGunBonus(x=700, y=770, time=5000)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

@@ -201,6 +201,36 @@ class Trigger(BaseTriger, core.Saving):
         exec(f'{self.func}')
         self.delete()
 
+class DoubleGunBonus(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'time':['time', int]
+    }
+    def __init__(self, x=0, y=0, time=5000):
+        super().__init__(x, y, 25,25)
+        self.visible=True
+        self.gravity, self.friction=0.4,0.005
+        self.frame_timer = 400
+        self.cur_img = 0
+        self.imgs = [player.GUNS[i]['img'] for i in player.GUNS]
+        self.img = self.imgs[0]
+        self.time = time
+    
+    def update(self, delta, blocks, actors):
+        if self.frame_timer>0:self.frame_timer-=delta
+        else:
+            self.frame_timer = 400
+            self.cur_img+=1
+            self.cur_img = self.cur_img%len(self.imgs)
+            self.img = self.imgs[self.cur_img]
+        return super().update(delta, blocks, actors)
+
+    def triggered(self, actor):
+        actor.bonus['Double gun']+=self.time
+        actor.event_ui.add_ui([Button((0,0),'yellow','Double gun:',20)])
+        self.delete()
+
 class Aid(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],
@@ -210,7 +240,7 @@ class Aid(BaseTriger, core.Saving):
     def __init__(self, x=0, y=0, hp=50):
         super().__init__(x, y, 25,25)
         self.visible=True
-        self.gravity=0.4
+        self.gravity, self.friction=0.4,0.005
         self.img = pg.image.load('game/content/objects/aid.png').convert_alpha()
         self.hp = hp
     
@@ -228,7 +258,7 @@ class Grenades(BaseTriger, core.Saving):
     def __init__(self, x=0, y=0, amount=10):
         super().__init__(x, y, 9,11)
         self.visible=True
-        self.gravity=0.4
+        self.gravity, self.friction=0.4,0.005
         self.img = pg.image.load('game/content/ui/grenade.png').convert_alpha()
         self.amount=amount
     
@@ -245,7 +275,7 @@ class Ammo(BaseTriger, core.Saving):
     def __init__(self, x=0, y=0, ammo:dict={}):
         super().__init__(x, y, 25,25)
         self.visible=True
-        self.gravity=0.4
+        self.gravity, self.friction=0.4,0.005
         self.img = pg.transform.scale(pg.image.load('game/content/ui/ammo.png'),(25,25)).convert_alpha()
         self.ammo = ammo
     
@@ -265,7 +295,7 @@ class GunsCase(BaseTriger, core.Saving):
     def __init__(self, x=0, y=0, guns:List[str]=[]):
         super().__init__(x, y, 25,25)
         self.visible=True
-        self.gravity=0.4
+        self.gravity, self.friction=0.4,0.005
         self.img = pg.image.load('game/content/objects/guns.png').convert_alpha()
         self.guns = guns
     

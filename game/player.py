@@ -1,7 +1,7 @@
 import pygame as pg
 import math
 from . import enemies, core, fx, level
-from .UI import Interface, Button,ProgressBar, VBox, RIGHT,LEFT,FILL,DOWN,UP
+from .UI import HBox, Interface, Button,ProgressBar, VBox, RIGHT,LEFT,FILL,DOWN,UP
 from . utils import *
 from random import randint as rd
 import cfg
@@ -37,9 +37,6 @@ GRAVITY = 0.4
 RED_TINT = pg.Surface(PLAYER_IMG.get_size())
 RED_TINT.fill('red')
 
-
-
-
 sounds = not pg.mixer.get_init() is None
 # print('sound',sounds)
 if sounds:
@@ -49,6 +46,7 @@ if sounds:
         'shoot':pg.mixer.Sound('game/content/sounds/shoot.wav'),
         'expl':pg.mixer.Sound('game/content/sounds/explosion.wav'),
     }
+
 
 GUNS = {
     'rifle': {'img': pg.image.load('game/content/player/guns/rifle.png'),
@@ -91,7 +89,7 @@ GUNS = {
             'hold_img': 0,
             'pos': (29, 29),
             'offx':0,
-            'offy':-5,
+            'offy':-2,
             'bull_pos': (0, 0),
             'bull_img':pg.image.load('game/content/player/guns/bullet.png'),
             'speed': 25,
@@ -281,6 +279,10 @@ class Player(core.Actor):
         self.grenade=False
         self._reload = False
         self.reload_kd = 0
+        
+        self.bonus = {
+            'Double gun':5000,
+        }
 
         self.dead = False
         self.dead_kd = 2000
@@ -366,6 +368,11 @@ class Player(core.Actor):
         self.time_bar.value = remap(self.aim_time, (0, self.AIM_TIME_MAX))
         self.ammo_but.text = f'{amm[0]}/{amm[1]}'
         self.grenades_but.text = str(self.grenades)
+        for w in self.event_ui.widgets:
+            for k, v in self.bonus.items():
+                if w.text.startswith(k):
+                    if v>0:w.text = f'{k}: {v/1000:.1f}'
+                    else: w.delete()
 
     
         if self.reload_kd>0 and self._reload:
@@ -379,6 +386,8 @@ class Player(core.Actor):
         if self.shoot_kd >0: self.shoot_kd -= delta
         if self.inventory_kd>0: self.inventory_kd -= delta
         if not self.aiming and self.aim_time<self.AIM_TIME_MAX: self.aim_time += delta/30
+        for k,v in self.bonus.items():
+            if v>0: self.bonus[k]-=delta
 
         # RELOAD
         if self._reload:
@@ -464,7 +473,7 @@ class Player(core.Actor):
             return
         gun = GUNS[self.guns[self.gun]]
         acc = gun['acc'] if self.aiming else gun['acc']*2
-        for i in range(gun['amount']):
+        for i in range(gun['amount'] if not self.bonus['Double gun']>0 else gun['amount']*2):
             xvel, yvel = vec_to_speed(gun['speed'], self.angle+(rd(-acc*5, acc*5)/3))
             d = gun['dmg']
             b = Bullet(self.rect.centerx,
@@ -476,7 +485,7 @@ class Player(core.Actor):
             self.game.world.actors.append(b)
 
         self.ammo[self.guns[self.gun]][0] -= 1
-        xv,yv=vec_to_speed(gun['back'], self.angle-180)
+        xv,yv=vec_to_speed(gun['back'] if not self.bonus['Double gun']>0 else gun['back']*2, self.angle-180)
         self.xspeed, self.yspeed = self.xspeed+(xv if self.look_r else-xv), self.yspeed-yv
         if self.shoot and self.game: self.game.shake = gun['shake']
 
@@ -523,7 +532,7 @@ class Player(core.Actor):
         #     self.img.blit(PLAYER_LEGS_AIR, (0, 53))
         # self.img.blit(PLAYER_LEGS_AIR, (0, 0))
         off = 0 if self.look_r else -30
-        offy = 0 if not self.aiming else -7
+        offy = 0 if not self.aiming else -5
         if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
             self.img = pg.transform.rotate(self.img, -30)
             off = -15 if self.look_r else -55
@@ -531,6 +540,7 @@ class Player(core.Actor):
         # debug(gun_img.get_rect().center, screen)
         w,h=gun_img.get_width()/2,gun_img.get_height()/2
         self.img.blit(gun_img, (gun_img.get_rect().x+30+GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+35+offy+GUNS[self.guns[self.gun]]['offy']-h))
+        if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+35+GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+30+offy+GUNS[self.guns[self.gun]]['offy']-h))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
         if self.dead: self.img = PLAYER_IMG_DEAD
