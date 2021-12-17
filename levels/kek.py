@@ -10,7 +10,7 @@ ais = [
 	
 ]
 actors = [
-	
+	objects.Portal(x1=238, y1=52, x2=40, y2=0, w=40, h=40)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

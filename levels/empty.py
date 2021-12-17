@@ -19,7 +19,8 @@ actors = [
 	objects.Grenades(x=230, y=580, amount=10),
 	objects.LevelTravelTriger(x=1840, y=883, w=40, h=120, levelname='empty'),
 	objects.Aid(x=507, y=972, hp=50),
-	objects.CameraTargetTriger(x=47, y=654, w=400, h=400, target_x=1000, target_y=800, timer=5000)
+	objects.CameraTargetTriger(x=223, y=627, w=400, h=400, target_x=1000, target_y=800, timer=5000),
+	objects.ZoomTriger(x=1494, y=835, w=200, h=200, zoom=2.0)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

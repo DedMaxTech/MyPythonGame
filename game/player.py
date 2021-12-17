@@ -271,6 +271,7 @@ class Player(core.Actor):
         self.need_sides = True
         self.to_ang=0
         self.recoil=0
+        self.wall_jump_kd = 0
 
         self.gun = 0
         self.guns = ['pistol']
@@ -386,6 +387,7 @@ class Player(core.Actor):
         if self.shoot_kd >0: self.shoot_kd -= delta
         if self.inventory_kd>0: self.inventory_kd -= delta
         if not self.aiming and self.aim_time<self.AIM_TIME_MAX: self.aim_time += delta/30
+        if self.wall_jump_kd>0: self.wall_jump_kd-=delta
         for k,v in self.bonus.items():
             if v>0: self.bonus[k]-=delta
 
@@ -444,11 +446,13 @@ class Player(core.Actor):
             #     self.double = False
                 # self.xspeed = 0
             if not self.on_ground:
-                if self.left and self.move_left and self.look_r:
+                if self.left and self.move_left and self.look_r and self.wall_jump_kd<=0:
+                    self.wall_jump_kd=700
                     self.move_left = False
                     self.xspeed += WALL_JUMP_FORCE
                     self.double = True
-                elif self.right and self.move_right and not self.look_r:
+                elif self.right and self.move_right and not self.look_r and self.wall_jump_kd<=0:
+                    self.wall_jump_kd=700
                     self.move_right = False
                     self.xspeed -= WALL_JUMP_FORCE
                     self.double = True
@@ -514,8 +518,7 @@ class Player(core.Actor):
             rect.x += x; rect.y+=y
             if not world.get_blocks(rect):
                 return rect.center
-            r-=1
-        return self.rect.center
+            r-=1 
 
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)
@@ -531,6 +534,7 @@ class Player(core.Actor):
         # else:
         #     self.img.blit(PLAYER_LEGS_AIR, (0, 53))
         # self.img.blit(PLAYER_LEGS_AIR, (0, 0))
+        
         off = 0 if self.look_r else -30
         offy = 0 if not self.aiming else -5
         if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
@@ -543,6 +547,13 @@ class Player(core.Actor):
         if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+35+GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+30+offy+GUNS[self.guns[self.gun]]['offy']-h))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
+        dw,dh=0,0
+        if self.wall_jump_kd>0:
+            dw,dh = self.img.get_size()
+            wall_ang = remap(self.wall_jump_kd, (0,700),(0,360))
+            self.img = pg.transform.rotate(self.img, wall_ang)
+            w,h=self.img.get_size()
+            dw,dh=int(w-dw),int(h-dh)
         if self.dead: self.img = PLAYER_IMG_DEAD
         if not self.look_r: self.rotate()
         if not self.dead:
@@ -551,5 +562,5 @@ class Player(core.Actor):
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         
         if not self.dead and self.visible:
-            screen.blit(self.img, (self.rect.x - camera.x+off-3, self.rect.y - camera.y))
+            screen.blit(self.img, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh))
         self.ui.render(self.game.screen)
