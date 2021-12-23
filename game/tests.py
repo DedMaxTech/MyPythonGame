@@ -1,5 +1,5 @@
 import pygame as pg
-
+from pygame import image
 
 def rotate(surface, angle, pivot, offset):
     """Rotate the surface around the pivot point.
@@ -22,13 +22,15 @@ screen = pg.display.set_mode((640, 480))
 clock = pg.time.Clock()
 BG_COLOR = pg.Color('gray12')
 # The original image will never be modified.
-IMAGE = pg.Surface((140, 60), pg.SRCALPHA)
-pg.draw.polygon(IMAGE, pg.Color('dodgerblue3'), ((0, 0), (140, 30), (0, 60)))
+# IMAGE = pg.Surface((140, 60), pg.SRCALPHA)
+# pg.draw.polygon(IMAGE, pg.Color('dodgerblue3'), ((0, 0), (140, 30), (0, 60)))
+IMAGE = pg.image.load('game/content/player2/player.png')
 # Store the original center position of the surface.
 pivot = [200, 250]
 # This offset vector will be added to the pivot point, so the
 # resulting rect will be blitted at 'rect.topleft + offset'.
-offset = pg.math.Vector2(-70,0)
+offset = pg.math.Vector2(12,10)
+print((5,5)-offset.xy)
 angle = 0
 
 running = True

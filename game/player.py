@@ -282,7 +282,7 @@ class Player(core.Actor):
         self.reload_kd = 0
         
         self.bonus = {
-            'Double gun':5000,
+            'Double gun':0,
         }
 
         self.dead = False
@@ -447,12 +447,12 @@ class Player(core.Actor):
                 # self.xspeed = 0
             if not self.on_ground:
                 if self.left and self.move_left and self.look_r and self.wall_jump_kd<=0:
-                    self.wall_jump_kd=700
+                    self.wall_jump_kd=500
                     self.move_left = False
                     self.xspeed += WALL_JUMP_FORCE
                     self.double = True
                 elif self.right and self.move_right and not self.look_r and self.wall_jump_kd<=0:
-                    self.wall_jump_kd=700
+                    self.wall_jump_kd=500
                     self.move_right = False
                     self.xspeed -= WALL_JUMP_FORCE
                     self.double = True
@@ -506,7 +506,10 @@ class Player(core.Actor):
         self.grenades-=1
         xv,yv = vec_to_speed(20 if self.aiming else 15, self.angle)
         self.game.world.actors.append(Grenade(self.rect.centerx,self.rect.y+10,xv if self.look_r else -xv, -yv, self.game))
-        
+    
+    # def hit(self, actor):
+    #     if isinstance(actor,level.Block):self.wall_jump_kd=0
+    #     return super().hit(actor)
 
     def get_point(self, world, rad, ang=None):
         r = rad
@@ -537,23 +540,26 @@ class Player(core.Actor):
         
         off = 0 if self.look_r else -30
         offy = 0 if not self.aiming else -5
-        if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)):
+        if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)) and self.wall_jump_kd<=0:
             self.img = pg.transform.rotate(self.img, -30)
             off = -15 if self.look_r else -55
+        
+        # GUN IMG PROCC.
         gun_img = pg.transform.rotate(GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang+(self.recoil*remap(self.shoot_kd, (0,GUNS[self.guns[self.gun]]['kd']))))
-        # debug(gun_img.get_rect().center, screen)
         w,h=gun_img.get_width()/2,gun_img.get_height()/2
         self.img.blit(gun_img, (gun_img.get_rect().x+30+GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+35+offy+GUNS[self.guns[self.gun]]['offy']-h))
         if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+35+GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+30+offy+GUNS[self.guns[self.gun]]['offy']-h))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
+
+        # WALL JUMP ROTATE
         dw,dh=0,0
         if self.wall_jump_kd>0:
-            dw,dh = self.img.get_size()
-            wall_ang = remap(self.wall_jump_kd, (0,700),(0,360))
+            w,h = self.img.get_size()
+            wall_ang = remap(self.wall_jump_kd, (0,500),(0,360))
             self.img = pg.transform.rotate(self.img, wall_ang)
-            w,h=self.img.get_size()
-            dw,dh=int(w-dw),int(h-dh)
+            dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(12,10).rotate(-wall_ang)-(24,20)
+        
         if self.dead: self.img = PLAYER_IMG_DEAD
         if not self.look_r: self.rotate()
         if not self.dead:

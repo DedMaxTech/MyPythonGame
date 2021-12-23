@@ -55,6 +55,9 @@ def vec_to_speed(vec, angle):
 def vec_sum(vec1,vec2):
     return (vec1[0]+vec2[0],vec1[1]+vec2[1],)
 
+def vec_delta(vec1,vec2):
+    return (vec1[0]-vec2[0],vec1[1]-vec2[1],)
+
 def real(pos:Union[Tuple[int,int], pg.Rect], camera:pg.Rect, invert=False):
     if not invert:
         if type(pos)==pg.Rect:return pg.Rect(pos.x - camera.x, pos.y - camera.y,pos.w, pos.h)
