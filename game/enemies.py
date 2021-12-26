@@ -22,7 +22,7 @@ class BaseAI(core.Actor):
         if isinstance(actor, player.Player) and self.attack_kd <= 0:
             self.attack_kd = 1000
             dmg = 20
-            actor.hp -= dmg
+            actor.damage(dmg)
             write_stat('received damage', get_stat('received damage')+dmg)
             actor.dmg_timer = 100
 class MeleeAI(BaseAI,core.Saving):

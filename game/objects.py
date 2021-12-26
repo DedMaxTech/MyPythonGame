@@ -141,13 +141,7 @@ class Image(core.Actor, core.Saving):
         self.rect.size=int(w*self.scale), int(h*self.scale)
         self.img=pg.transform.rotate(pg.transform.scale(img,(self.rect.w,self.rect.h)),self.rot)
         self.rect.size = self.img.get_size()
-class BaseTriger(core.Actor, core.Saving):
-    slots = {
-        'x':['rect.x', int],
-        'y':['rect.y', int],
-        'w':['rect.w', int],
-        'h':['rect.h', int],
-    }
+class BaseTriger(core.Actor):
     def __init__(self, x=0, y=0, w=40, h=40):
         super().__init__(x, y, w, h, bounce=0, gravity=0, static=False, friction=0, collision=True)
         self.game = None
@@ -159,7 +153,7 @@ class BaseTriger(core.Actor, core.Saving):
     def triggered(self, actor):
         pass
 
-class ZoomTriger(BaseTriger):
+class ZoomTriger(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],
         'y':['rect.y', int],
@@ -208,7 +202,7 @@ class DoubleGunBonus(BaseTriger, core.Saving):
         'time':['time', int]
     }
     def __init__(self, x=0, y=0, time=5000):
-        super().__init__(x, y, 25,25)
+        super().__init__(x, y, 35,15)
         self.visible=True
         self.gravity, self.friction=0.4,0.005
         self.frame_timer = 400
@@ -228,7 +222,36 @@ class DoubleGunBonus(BaseTriger, core.Saving):
 
     def triggered(self, actor):
         actor.bonus['Double gun']+=self.time
-        actor.event_ui.add_ui([Button((0,0),'yellow','Double gun:',20)])
+        actor.event_ui.add_ui([Button((0,0),'yellow','Double gun: ---',20)])
+        self.delete()
+
+class ArmorBonus(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'time':['time', int]
+    }
+    def __init__(self, x=0, y=0, time=5000):
+        super().__init__(x, y, 30,30)
+        self.visible=True
+        self.gravity, self.friction=0.4,0.005
+        self.frame_timer = 400
+        self.cur_img = 0
+        self.img = pg.image.load('game/content/objects/shield.png').convert_alpha()
+        self.time = time
+    
+    # def update(self, delta, blocks, actors):
+    #     if self.frame_timer>0:self.frame_timer-=delta
+    #     else:
+    #         self.frame_timer = 400
+    #         self.cur_img+=1
+    #         self.cur_img = self.cur_img%len(self.imgs)
+    #         self.img = self.imgs[self.cur_img]
+    #     return super().update(delta, blocks, actors)
+
+    def triggered(self, actor):
+        actor.bonus['Armor']+=self.time
+        actor.event_ui.add_ui([Button((0,0),'yellow','Armor: ---',20)])
         self.delete()
 
 class Aid(BaseTriger, core.Saving):
@@ -402,7 +425,6 @@ class SpawningPortal(core.Actor):
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.img, real((self.rect.centerx-(self.size[0]/2),self.rect.centery-(self.size[1]/2)), camera))
     
-
 class ScreenConditionTriger(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],
@@ -439,7 +461,7 @@ class ScreenConditionTriger(BaseTriger, core.Saving):
             if not self.ok:self.game.screen.blit(self.image, (0,0))
             else: self.game.screen.blit(self.OK_IMG, (0,0))
 
-class CameraTargetTriger(BaseTriger):
+class CameraTargetTriger(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],
         'y':['rect.y', int],

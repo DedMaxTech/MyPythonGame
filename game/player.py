@@ -188,7 +188,7 @@ class Bullet(core.Actor):
             if self.parent.aim_time < self.parent.AIM_TIME_MAX: self.parent.aim_time+=self.damage*10
             self._delete = True
         if isinstance(actor, Player):
-            actor.hp -= self.damage
+            actor.damage(self.damage)
             self.parent.game.stats['received damage']+=self.damage
             # write_stat('received damage', get_stat('received damage')+self.damage)
             actor.dmg_timer = 100
@@ -283,6 +283,7 @@ class Player(core.Actor):
         
         self.bonus = {
             'Double gun':0,
+            'Armor':0,
         }
 
         self.dead = False
@@ -438,6 +439,11 @@ class Player(core.Actor):
         
         # grenades
         if self.grenade: self.throw_genade()
+    
+    def damage(self, hp):
+        if self.bonus['Armor']: hp/=5
+        self.hp -= hp
+        self.damaged(hp)
         
 
     def _jump(self, tick):
