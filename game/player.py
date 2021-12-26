@@ -441,7 +441,7 @@ class Player(core.Actor):
         if self.grenade: self.throw_genade()
     
     def damage(self, hp):
-        if self.bonus['Armor']: hp/=5
+        if self.bonus['Armor']: hp/=4
         self.hp -= hp
         self.damaged(hp)
         
@@ -573,6 +573,14 @@ class Player(core.Actor):
             # if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         
+
+        mask = pg.mask.from_surface(self.img).to_surface()
+        mask.set_colorkey('black')
         if not self.dead and self.visible:
+            if self.bonus['Armor']>0:
+                screen.blit(mask, (self.rect.x - camera.x+off-3-dw-2, self.rect.y - camera.y-dh))
+                screen.blit(mask, (self.rect.x - camera.x+off-3-dw+2, self.rect.y - camera.y-dh))
+                screen.blit(mask, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh-2))
+                screen.blit(mask, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh+2))
             screen.blit(self.img, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh))
         self.ui.render(self.game.screen)

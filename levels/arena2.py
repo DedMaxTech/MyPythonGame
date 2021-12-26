@@ -10,17 +10,24 @@ ais = [
 	enemies.MeleeAI(x=960, y=580),
 	enemies.MeleeAI(x=960, y=580),
 	enemies.MeleeAI(x=960, y=580),
-	enemies.ShoterAI(x=1310, y=680, gun='shootgun')
+	enemies.ShoterAI(x=1310, y=680, gun='shootgun'),
+	enemies.ShoterAI(x=1180, y=820, gun='rifle'),
+	enemies.ShoterAI(x=1360, y=650, gun='rifle'),
+	enemies.ShoterAI(x=1280, y=440, gun='rifle'),
+	enemies.ShoterAI(x=1080, y=430, gun='rifle'),
+	enemies.MeleeAI(x=950, y=700),
+	enemies.MeleeAI(x=1420, y=520)
 ]
 actors = [
 	objects.Portal(x1=280, y1=1000, x2=600, y2=1000, w=80, h=40),
 	objects.Aid(x=60, y=860, hp=50),
 	objects.Ammo(x=400, y=860, ammo={'minigun': 300, 'rifle': 120}),
-	objects.GunsCase(x=200, y=960, guns=['minigun', 'rifle', 'shootgun']),
+	objects.GunsCase(x=224, y=969, guns=['minigun', 'rifle', 'shootgun']),
 	objects.Text(x=200, y=800, text='lol some text', size=30, color='white'),
 	objects.Image(x=250, y=700, image='game/content/ui/ammo.png', rotation=50, scale=2),
 	objects.Grenades(x=680, y=380, amount=10),
-	objects.DoubleGunBonus(x=700, y=770, time=5000)
+	objects.ArmorBonus(x=127, y=966, time=50000),
+	objects.DoubleGunBonus(x=158, y=977, time=5000)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

@@ -316,7 +316,7 @@ class GunsCase(BaseTriger, core.Saving):
         'guns':['guns', list]
     }
     def __init__(self, x=0, y=0, guns:List[str]=[]):
-        super().__init__(x, y, 25,25)
+        super().__init__(x, y, 30,20)
         self.visible=True
         self.gravity, self.friction=0.4,0.005
         self.img = pg.image.load('game/content/objects/guns.png').convert_alpha()
