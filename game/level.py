@@ -82,12 +82,14 @@ class World(core.Saving):
         self.ignore_str = []
         self.spawn_pos = (40,40)
         self.bg_name = 'game/content/blocks/bg.png'
+        self.neo_mode = False
         # self.bg = pg.image.load(self.bg_name).convert()
         self.rect: pg.Rect = None
         if level: self.open_world(level)
 
     def open_world(self, levelname, game_inst=None, video=True):
         self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
+        self.neo_mode = True
         # with open(f'levels/{levelname}.py', 'r') as file:
         #     self.ignore_str, _ = ''.join(file.readlines()).split('####DONT TOUCH####')
         level = importlib.import_module(f'levels.{levelname}')
@@ -154,9 +156,11 @@ class World(core.Saving):
                 del self.blocks[self.blocks.index(b)]
         for a in self.actors:
             if a._delete:
-                try: del self.actors[self.actors.index(a)]
+                try: self.actors.remove(a)
                 except ValueError:continue
             else:
+                if self.neo_mode and not (type(a) in [objects.Portal,objects.SpawningPortal] or a is player): continue
+                
                 if not a.static and a.collision:
                     a.update(delta, self.get_blocks(a.pre_rect), self.get_actors(a.pre_rect))
                 else:
