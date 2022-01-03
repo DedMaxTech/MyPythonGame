@@ -24,10 +24,13 @@ actors = [
 	objects.Ammo(x=400, y=860, ammo={'minigun': 300, 'rifle': 120}),
 	objects.GunsCase(x=224, y=969, guns=['minigun', 'rifle', 'shootgun']),
 	objects.Text(x=200, y=800, text='lol some text', size=30, color='white'),
-	objects.Image(x=250, y=700, image='game/content/ui/ammo.png', rotation=50, scale=2),
+	objects.Image(x=250, y=700, image='game/content/ui/ammo.png', rotation=50, scale=2.0),
 	objects.Grenades(x=680, y=380, amount=10),
 	objects.ArmorBonus(x=127, y=966, time=50000),
-	objects.DoubleGunBonus(x=158, y=977, time=5000)
+	objects.DoubleGunBonus(x=158, y=977, time=5000),
+	objects.CameraTargetTriger(x=102, y=346, w=700, h=800, target_x=520, target_y=800, timer=0),
+	objects.ZoomTriger(x=102, y=360, w=700, h=700, zoom=1.5),
+	objects.TimeStopBonus(x=201, y=967, time=50000)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

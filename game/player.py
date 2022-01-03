@@ -284,6 +284,7 @@ class Player(core.Actor):
         self.bonus = {
             'Double gun':0,
             'Armor':0,
+            'Time stop':0,
         }
 
         self.dead = False
@@ -431,6 +432,8 @@ class Player(core.Actor):
             self.xspeed += xv if self.look_r else -xv
             self.yspeed = yv
 
+        self.game.world.neo_mode = self.bonus['Time stop']>0
+        
         # JUMP
         self._jump(tick)
 
@@ -573,6 +576,11 @@ class Player(core.Actor):
             # if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
         # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
         
+        # if self.game.world.neo_mode:
+        #     neg = pg.Surface(self.img.get_size(), pg.SRCALPHA)
+        #     neg.fill((255, 255, 255))
+        #     neg.blit(self.img, (0, 0), special_flags=pg.BLEND_SUB)
+        #     self.img = neg
 
         mask = pg.mask.from_surface(self.img).to_surface()
         mask.set_colorkey('black')

@@ -89,7 +89,7 @@ class World(core.Saving):
 
     def open_world(self, levelname, game_inst=None, video=True):
         self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
-        self.neo_mode = True
+        self.neo_mode = False
         # with open(f'levels/{levelname}.py', 'r') as file:
         #     self.ignore_str, _ = ''.join(file.readlines()).split('####DONT TOUCH####')
         level = importlib.import_module(f'levels.{levelname}')
@@ -159,13 +159,13 @@ class World(core.Saving):
                 try: self.actors.remove(a)
                 except ValueError:continue
             else:
-                if self.neo_mode and not (type(a) in [objects.Portal,objects.SpawningPortal] or a is player): continue
+                if self.neo_mode and not (isinstance(a, (objects.SpawningPortal, objects.BaseTriger)) or a is player): continue  
                 
                 if not a.static and a.collision:
                     a.update(delta, self.get_blocks(a.pre_rect), self.get_actors(a.pre_rect))
                 else:
                     a.update(delta, [], self.actors)
-        if self.ais:
+        if self.ais and not self.neo_mode:
             [ai.update_ai(delta, self) for ai in self.ais]
 
     def set_blocks(self, blocks):
@@ -187,12 +187,13 @@ class World(core.Saving):
     def get_size(self):
         return (self.w + 40), self.h
     
-    def draw(self, screen: pg.Surface, camera: pg.Rect):
+    def draw(self, screen: pg.Surface, camera: pg.Rect, debug=False):
         screen.blit(self.bg, (0,0))
         for i in self.get_blocks(camera):
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y - camera.y))
         for sf,_, pos in self.images: screen.blit(sf, real(pos, camera))
         [a.draw(screen, camera) for a in self.actors]
+        if debug: [a.debug_draw(screen, camera) for a in self.actors]
 
     def reset(self):
         self.bg = pg.image.load(self.bg_name).convert_alpha()

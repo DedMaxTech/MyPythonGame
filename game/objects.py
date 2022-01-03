@@ -73,7 +73,7 @@ class Portal(core.Actor, core.Saving):
 
     def hit(self, actor):
         ignore = [a for kd, a in self.ignore]
-        if isinstance(actor, core.Actor) and self.second and actor not in ignore:
+        if isinstance(actor, core.Actor) and actor.gravity and self.second and actor not in ignore:
             self.ignore.append([500,actor])
             x,y = real(actor.rect.topleft, self.rect)
             actor.rect.y = self.second.rect.y+y
@@ -86,7 +86,7 @@ class Portal(core.Actor, core.Saving):
     
     def second_hit(self,actor):
         ignore = [a for kd, a in self.ignore]
-        if isinstance(actor, core.Actor) and actor not in ignore:
+        if isinstance(actor, core.Actor) and actor.gravity and actor not in ignore:
             self.ignore.append([500,actor])
             x,y = real(actor.rect.topleft, self.second.rect)
             actor.rect.y = self.rect.y+y
@@ -235,24 +235,52 @@ class ArmorBonus(BaseTriger, core.Saving):
         super().__init__(x, y, 30,30)
         self.visible=True
         self.gravity, self.friction=0.4,0.005
-        self.frame_timer = 400
-        self.cur_img = 0
         self.img = pg.image.load('game/content/objects/shield.png').convert_alpha()
         self.time = time
-    
-    # def update(self, delta, blocks, actors):
-    #     if self.frame_timer>0:self.frame_timer-=delta
-    #     else:
-    #         self.frame_timer = 400
-    #         self.cur_img+=1
-    #         self.cur_img = self.cur_img%len(self.imgs)
-    #         self.img = self.imgs[self.cur_img]
-    #     return super().update(delta, blocks, actors)
 
     def triggered(self, actor):
         actor.bonus['Armor']+=self.time
         actor.event_ui.add_ui([Button((0,0),'yellow','Armor: ---',20)])
         self.delete()
+
+class TimeStopBonus(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'time':['time', int]
+    }
+    def __init__(self, x=0, y=0, time=5000):
+        super().__init__(x, y, 23,29)
+        self.visible=True
+        self.gravity, self.friction=0.4,0.005
+        self.img_source = pg.image.load('game/content/objects/time.png').convert_alpha()
+        self.img=self.img_source.copy()
+        self.time = time
+        self.active = False
+        self.r=0
+    
+    def update(self, delta, blocks, actors):
+        if self.active:
+            if self.time>0:self.time-=delta
+            else:
+                self.delete()
+            self.r+=1
+            self.img = pg.transform.rotate(self.img_source, self.r)
+            self.img = pg.transform.scale(self.img,self.img_source.get_size())
+            
+        return super().update(delta, blocks, actors)
+    
+
+    def triggered(self, actor):
+        if not self.active:
+            actor.bonus['Time stop']+=self.time
+            actor.event_ui.add_ui([Button((0,0),'yellow','Time stop: ---',20)])
+            self.active=True
+            self.img_source = pg.transform.scale(self.img_source,(23*2,29*2))
+            self.rect.x-=30
+            self.rect.y-=30
+            self.rect.w+=30
+            self.rect.h+=30
 
 class Aid(BaseTriger, core.Saving):
     slots = {

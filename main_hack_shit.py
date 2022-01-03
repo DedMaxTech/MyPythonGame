@@ -81,6 +81,7 @@ class Game:
         self.level = 'levels/tutorial.txt'
         self.fps_alert = False
         self.camera_target = None
+        self.debug = False
 
         pg.display.set_caption(cfg.GAMENAME)
         # pg.display.toggle_fullscreen()
@@ -342,6 +343,7 @@ class Game:
             if event.key == pg.K_q: d['tp'] = True
             if event.key == pg.K_r: d['reload'] = True
             if event.key == pg.K_g: d['grenade']=True
+            if event.key == pg.K_n: self.debug = not self.debug
         if event.type == pg.KEYUP:
             if event.key == pg.K_d: d['right'] = False
             if event.key == pg.K_a: d['left'] = False
@@ -399,18 +401,18 @@ class Game:
         # return x, y
     def draw(self):
         if self.playing:
-            self.world.draw(self.frame, self.camera)
+            self.world.draw(self.frame, self.camera,self.debug)
             # self.player.draw(self.frame, self.camera)
 
-            for p in self.players:
-                p.draw(self.frame, self.camera)
+            # for p in self.players:
+            #     p.draw(self.frame, self.camera)
             
             # POST PROCESS
             if not cfg.potato:
-                if self.world_tick == 1.0:
-                    self.screen.blit(self.tint, (0, 0))
-                else:
+                if self.world_tick!=1.0 or self.world.neo_mode:
                     self.screen.blit(self.tint_slow, (0, 0))
+                else:
+                    self.screen.blit(self.tint, (0, 0))
             if self.w< sf.get_width():
                 sf.fill('black')
                 x,y = self.player.rect.centerx-self.camera.x, self.player.rect.centery-self.camera.y
@@ -421,13 +423,19 @@ class Game:
                     text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
                     sf.blit(text, (300,100))
                 if self.w<cfg.screen_h-100:self.screen.blit(sf,(0,0))
-            debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
-            debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
-            # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
-            debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
-            debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
+            if self.debug:
+                debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
+                debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
+                # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
+                debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
+                debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
         else:
             self.frame.fill('black')
+        if self.world.neo_mode:
+            neg = pg.Surface(self.frame.get_size())
+            neg.fill((255, 255, 255))
+            neg.blit(self.frame, (0, 0), special_flags=pg.BLEND_SUB)
+            self.frame = neg
         if self.pause: self.screen.blit(self.tint2, (0, 0))
         self.ui.render(self.screen)
 
@@ -449,7 +457,7 @@ class Game:
                 write_stats(self.stats)
                 # write_stat('time', self.millis)
 
-                
+
     def loop(self):
         self.event_loop()
         self.stats['time']+=self.delta/1000
