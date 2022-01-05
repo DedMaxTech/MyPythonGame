@@ -22,7 +22,7 @@ actors = [
 	objects.ZoomTriger(x=1494, y=835, w=200, h=200, zoom=2.0),
 	objects.ArmorBonus(x=264, y=860, time=50000),
 	objects.TimeStopBonus(x=268, y=954, time=10000),
-	objects.Portal(x1=40, y1=920, x2=200, y2=920, w=40, h=80)
+	objects.Portal(x1=40, y1=920, x2=500, y2=920, w=40, h=80)
 ]
 blocks = [
 	level.Block(0,-40,'-'),

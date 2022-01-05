@@ -66,4 +66,19 @@
 #     clock.tick(30)
 
 # pg.quit()
-a = [1,2,3,4,5,6,7,8,9,10]
+
+import time, math
+import threading, pickle
+from typing import Tuple, Union
+import pygame as pg
+
+
+a = Vec(-1,1)
+print(a.angle())
+# print(a.x)
+# print(a.length())
+# print(math.sqrt(a.x*a.x+a.y*a.y))
+# print(a.x/a.length())
+# b = math.acos(a.x/a.length())
+# print(b)
+# print(math.degrees(b))

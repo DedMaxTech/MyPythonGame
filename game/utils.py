@@ -12,6 +12,11 @@ def threaded(daemon=True):
         return wrapper
     return decor
 
+class Vec(pg.math.Vector2):
+    def angle(self) -> float:
+        a = math.degrees(math.acos(self.x/self.length()))
+        return a if self.y>0 else -a
+
 font = pg.font.SysFont('Arial',size=14)
 def debug(var, screen:pg.Surface, x=0, y=0):
     screen.blit(font.render(str(var), True, 'red'), (x, y))

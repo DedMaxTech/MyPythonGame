@@ -150,7 +150,7 @@ def convert():
 class Bullet(core.Actor):
     def __init__(self, x, y, xv,yv, img, rot, dmg, parent):
         w,h = img.get_size()
-        super().__init__(x, y, w, h,gravity=0, friction=0)
+        super().__init__(x, y, w, h,gravity=0.1, friction=0)
         self.autodel(20)
         self.parent = parent
         self.damage = dmg
