@@ -263,6 +263,7 @@ class TimeStopBonus(BaseTriger, core.Saving):
         if self.active:
             if self.time>0:self.time-=delta
             else:
+                # self.end()
                 self.delete()
             self.r+=1
             self.img = pg.transform.rotate(self.img_source, self.r)
@@ -270,7 +271,20 @@ class TimeStopBonus(BaseTriger, core.Saving):
             
         return super().update(delta, blocks, actors)
     
-
+    @threaded()
+    def start(self):
+        self.game.world_tick = 1
+        for _ in range(100):
+            self.game.world_tick -= 0.01
+            time.sleep(0.01)
+        self.game.world_tick = 1
+    @threaded()
+    def end(self):
+        self.game.world_tick = 0
+        for _ in range(100):
+            self.game.world_tick += 0.01
+            time.sleep(0.01)
+        self.game.world_tick = 1
     def triggered(self, actor):
         if not self.active:
             actor.bonus['Time stop']+=self.time
@@ -281,6 +295,7 @@ class TimeStopBonus(BaseTriger, core.Saving):
             self.rect.y-=30
             self.rect.w+=30
             self.rect.h+=30
+            # self.start()
 
 class Aid(BaseTriger, core.Saving):
     slots = {

@@ -429,6 +429,7 @@ class Game:
                 # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
                 debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
                 debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
+                debug(f'tick: {self.world_tick}',self.frame,y=60)
         else:
             self.frame.fill('black')
         if self.world.neo_mode:
