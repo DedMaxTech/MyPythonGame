@@ -45,7 +45,6 @@ load_screen.blit(font.render('Loading...', False, 'white'),(300,190))
 writing = False
 class Game:
     def __init__(self):
-        global sound
         self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
         print(f'Server: {self.serv_ip}')
 
@@ -124,7 +123,6 @@ class Game:
         ))
     
     def stats_menu(self, add=[]):
-        y = 120
         bs = [Button((50, 50), 'white', 'YOUR STATS', 40, ),]
         d:dict = self.stats
         k = f'{remap(d["time in air"],(0,d["time on ground"])):.2f}/1.0' if d["time in air"]<d["time on ground"] else f'1.0/{remap(d["time on ground"],(0,d["time in air"])):.2f}'
