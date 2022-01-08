@@ -427,7 +427,7 @@ class Game:
                 debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
                 debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
                 # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
-                debug(f'pos: {self.player.rect.center} ang: {self.player.angle} xv: {self.player.xspeed:.1f} yv: {self.player.yspeed:.2f} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
+                debug(f'pos: {self.player.rect.center} ang: {self.player.angle} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
                 debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
                 debug(f'tick: {self.world_tick}',self.frame,y=60)
         else:
@@ -490,11 +490,6 @@ class Game:
         self.draw()
         pg.display.update()
 
-    @threaded()
-    def resize(self):
-        while True:
-            x,y = input().split(' ')
-            self.screen = pg.display.set_mode(size=(int(x), int(y)), flags=pg.SCALED | pg.FULLSCREEN)
 
     def run(self):
         print(repr(get_stat()))

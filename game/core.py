@@ -3,6 +3,7 @@ import pygame as pg
 import json
 from . utils import *
 import cfg
+# from . import fx
 
 def_tick=1/60*1000
 
@@ -42,7 +43,7 @@ class Actor:
     def __init__(self, x, y, w, h, bounce=0.0, gravity=0.4, static=False, friction=0.005, collision=True, image=None, damaging=False):
         self.rect = pg.Rect(x,y,w,h)
         self.pre_rect = pg.Rect(x-30,y-30,w+30,h+30)
-        self.xspeed, self.yspeed = 0.0, 0.0
+        self.speed = Vec(0,0)
         self.gravity, self.bounce, self.static, self.friction, self.collision = gravity, bounce, static, friction, collision
         self.on_ground = False
         self.need_sides = False
@@ -54,6 +55,7 @@ class Actor:
         self.visible = True
         self.game=None
 
+        self.on_fire=0
         self.damaging = damaging
         self.hp=100
         self.max_hp=100
@@ -84,6 +86,11 @@ class Actor:
             self.on_ground = self.check_on_ground(blocks)
             if self.need_sides: self.right, self.left = self.check_right(blocks), self.check_left(blocks)
         
+        if self.on_fire>0: 
+            self.on_fire-=delta
+            self.hp-=0.1
+            # if self.game: 
+        
         k=delta/def_tick
         # print(k)
         if self.die:
@@ -91,16 +98,16 @@ class Actor:
             else: self.delete()
             
         if not self.on_ground:
-            self.yspeed += self.gravity*k
+            self.speed.y += self.gravity*k
             
         else:
-            if abs(self.xspeed) > 0.1:
-                self.xspeed = self.xspeed * (1 - self.friction)
-            else: self.xspeed =0
+            if abs(self.speed.x) > 0.1:
+                self.speed.x = self.speed.x * (1 - self.friction)
+            else: self.speed.x = 0
 
-        if self.yspeed: self.rect.y += self.yspeed *k
+        if self.speed.y: self.rect.y += self.speed.y *k
         if blocks and self.collision: self._collide_y(blocks)
-        if self.xspeed: self.rect.x += self.xspeed *k
+        if self.speed.x: self.rect.x += self.speed.x *k
         if blocks and self.collision: self._collide_x(blocks)
         if self.collision: self._collide_actors(actors)
         self.pre_rect.center = self.rect.center
@@ -145,32 +152,32 @@ class Actor:
         return False
 
     def _collide_x(self, blocks):
-        if self.xspeed == 0: return
+        if self.speed.x == 0: return
         for b in blocks:
             if self.rect.colliderect(b.rect):
-                if self.xspeed>0:
+                if self.speed.x>0:
                     self.rect.right = b.rect.left
-                elif self.xspeed < 0:
+                elif self.speed.x < 0:
                     self.rect.left = b.rect.right
                 self.hit(b)
-                if abs(self.xspeed) > 1:
-                    self.xspeed = -self.xspeed * self.bounce
-                else: self.xspeed =0
+                if abs(self.speed.x) > 1:
+                    self.speed.x = -self.speed.x * self.bounce
+                else: self.speed.x =0
 
     def _collide_y(self, blocks): 
-        if self.yspeed == 0: return
+        if self.speed.y == 0: return
         for b in blocks:
             if self.rect.colliderect(b.rect):
-                if self.yspeed > 0:
+                if self.speed.y > 0:
                     # self.yvel = 0
                     self.rect.bottom = b.rect.top
-                if self.yspeed < 0:
-                    self.yspeed = 0
+                if self.speed.y < 0:
+                    self.speed.y = 0
                     self.rect.top = b.rect.bottom
-                if abs(self.yspeed) > 2:
-                    self.yspeed = -self.yspeed * self.bounce
+                if abs(self.speed.y) > 2:
+                    self.speed.y = -self.speed.y * self.bounce
                 else:
-                    self.yspeed = 0
+                    self.speed.y = 0
                 self.hit(b)
     def _collide_actors(self, actors):
         [self.hit(a) for a in actors if self.rect.colliderect(a.rect) and a != self]
@@ -188,6 +195,7 @@ class Actor:
     
     def debug_draw(self,screen, camera):
         screen.blit(pg.transform.scale(self.debug_img, self.rect.size), real(self.rect.topleft, camera))
+        pg.draw.line(screen,'green', real(self.rect.center, camera),real(self.rect.center+self.speed*3, camera))
 
     def nothing(self,*args,**kwargs): pass
     def reset(self):pass

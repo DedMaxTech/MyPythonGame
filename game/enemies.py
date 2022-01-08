@@ -3,7 +3,7 @@ import math
 # from game.level import block_s
 from random import randint as rd
 # from .player import Player
-from . import player, core
+from . import player, core,fx
 from . utils import *
 
 import cfg
@@ -47,6 +47,7 @@ class MeleeAI(BaseAI,core.Saving):
         self.attack_kd = 0
         self.dmg_timer = 0
         self.need_sides = True
+        self.target = None
         
     
     def update_ai(self,delta, world):
@@ -63,6 +64,7 @@ class MeleeAI(BaseAI,core.Saving):
             self.state = states[rd(0,len(states)-1)]
             self.timer = rd(1000,3000)
         target = world.get_nearest(player.Player, self.rect.center)
+        self.target =target
         d = distanse(target.rect.center,self.rect.center)
         # if d < self.START_AGR and abs(player_pos[0]-self.rect.x):
         #     if player_pos[0]-self.rect.x>0:
@@ -74,16 +76,17 @@ class MeleeAI(BaseAI,core.Saving):
         # else: self.xspeed = 0
         if target is not None and d < self.START_AGR and abs(target.rect.centerx-self.rect.x) > 30:
             self.state = self.FOLLOW
+        else: self.target=None
 
         if self.state == self.WAIT:
-            self.xspeed = 0
+            self.speed.x = 0
         elif self.state == self.GO_R:
-            self.xspeed = SPEED
+            self.speed.x = SPEED
         elif self.state == self.GO_L:
-            self.xspeed = -SPEED
+            self.speed.x = -SPEED
         elif self.state == self.FOLLOW:
-            if target.rect.centerx-self.rect.x>15:self.xspeed = SPEED
-            else: self.xspeed = -SPEED
+            if target.rect.centerx-self.rect.x>15:self.speed.x = SPEED
+            else: self.speed.x = -SPEED
         # match self.state:
         #     case self.WAIT:
         #         self.xspeed = 0
@@ -94,13 +97,15 @@ class MeleeAI(BaseAI,core.Saving):
         #     case self.FOLLOW:
         #         if player_pos[0]-self.rect.x>0:self.xspeed = SPEED
         #         else: self.xspeed = -SPEED
-        if self.xspeed != 0:
+        if self.speed.x != 0:
             if self.right or self.left:
                 self.jump = True
         if self.jump and self.on_ground:
             self.jump = False
-            self.yspeed = -10
+            self.speed.y = -10
             self.on_ground = False
+        
+        if self.game and self.on_fire>0: fx.fire(self.rect.center,self.game.world,4)
     
     def hit(self, actor):
         if isinstance(actor, player.Player) and self.attack_kd <= 0:
@@ -110,10 +115,15 @@ class MeleeAI(BaseAI,core.Saving):
             write_stat('received damage', get_stat('received damage')+dmg)
             actor.dmg_timer = 100
 
+    def debug_draw(self, screen, camera):
+        if self.target:
+            pg.draw.line(screen, 'red', real(self.rect.center,camera),real(self.target.rect.center,camera),2)
+        return super().debug_draw(screen, camera)
+
     def draw(self, screen:pg.Surface, camera:pg.Rect):
-        if self.xspeed == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
+        if self.speed.x == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
         else:
-            if self.xspeed>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
+            if self.speed.x>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
             else:img,off = AI_IMG_LEFT.copy(), (-30,0)
         # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+(30*self.hp/100),self.rect.y-camera.y),4)
@@ -144,7 +154,7 @@ class ShoterAI(BaseAI, core.Saving):
         self.dmg_timer = 0
         self.need_sides = True
         self.moving = moving
-
+        self.target = None
         self.gun = gun
         self.shoot_kd = 0
 
@@ -164,6 +174,7 @@ class ShoterAI(BaseAI, core.Saving):
             self.timer = rd(1000,3000)
 
         target = world.get_nearest(player.Player, self.rect.center)
+        self.target = target
         d = distanse(target.rect.center,self.rect.center)
         x,y = real(self.rect.center,target.rect)
         x,y = -x,y-40
@@ -173,15 +184,15 @@ class ShoterAI(BaseAI, core.Saving):
         self.d = d
         if target is not None and d < self.START_AGR:
             self.state = self.ATTACK
-        else: pass
+        else: self.target=None
         if self.state == self.WAIT:
-            self.xspeed = 0
+            self.speed.x = 0
         elif self.state == self.GO_R:
-            self.xspeed = SPEED
+            self.speed.x = SPEED
         elif self.state == self.GO_L:
-            self.xspeed = -SPEED
+            self.speed.x = -SPEED
         elif self.state == self.ATTACK:
-            self.xspeed = 0
+            self.speed.x = 0
             self.shoot(target, world)
 
         # match self.state:
@@ -194,13 +205,15 @@ class ShoterAI(BaseAI, core.Saving):
         #     case self.FOLLOW:
         #         if player_pos[0]-self.rect.x>0:self.xspeed = SPEED
         #         else: self.xspeed = -SPEED
-        if self.xspeed != 0:
+        if self.speed.x != 0:
             if self.right or self.left:
                 self.jump = True
         if self.jump and self.on_ground:
             self.jump = False
-            self.yspeed = -10
+            self.speed.y = -10
             self.on_ground = False
+        
+        if self.game and self.on_fire>0: fx.fire(self.rect.center,self.game.world,4)
     
     def shoot(self, target,world):
         if self.shoot_kd >0: return
@@ -232,9 +245,14 @@ class ShoterAI(BaseAI, core.Saving):
             actor.hp -= dmg
             write_stat('received damage', get_stat('received damage')+dmg)
             actor.dmg_timer = 100
+    
+    def debug_draw(self, screen, camera):
+        if self.target:
+            pg.draw.line(screen, 'red', real(self.rect.center,camera),real(self.target.rect.center,camera),2)
+        return super().debug_draw(screen, camera)
 
     def draw(self, screen:pg.Surface, camera:pg.Rect):
-        if self.xspeed == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
+        if self.speed.x == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
         else:
             # if self.xspeed>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
             # else:img,off = AI_IMG_LEFT.copy(), (-30,0)

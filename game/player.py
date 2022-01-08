@@ -155,7 +155,7 @@ class Bullet(core.Actor):
         self.parent = parent
         self.damage = dmg
         self.img = pg.transform.rotate(img, abs(rot)).convert_alpha()
-        self.xspeed, self.yspeed = xv,yv
+        self.speed = Vec(xv,yv)
         if xv < 0:
             self.img = pg.transform.flip(self.img,True,False)
         if yv > 0:
@@ -171,6 +171,9 @@ class Bullet(core.Actor):
         return super().update(delta, blocks, actors)
     
     def draw(self, screen: pg.Surface, camera):
+        
+        # pg.draw.line(screen,'yellow', real(self.rect.center, camera),real(self.rect.center+self.speed*-2, camera),2)
+        # pg.draw.line(screen,'orange', real(self.rect.center, camera),real(self.rect.center+self.speed*-1, camera),2)
         screen.blit(self.img, (self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         # screen.blit(self.trale, real(self.rect.center, camera), special_flags=pg.BLEND_RGB_ADD)
         # screen.blit(self.img, self.rect.topleft, special_flags=pg.BLEND_RGB_ADD)
@@ -207,7 +210,7 @@ class Bullet(core.Actor):
 class Grenade(core.Actor):
     def __init__(self, x, y, xv,yv, game):
         super().__init__(x, y, 9,11, bounce=0.45, friction=0.1,image=IMGS['GRENADE'])
-        self.xspeed, self.yspeed = xv,yv
+        self.speed = Vec(xv,yv)
         self.explose_tmr = 3500
         self.game =game
         r=120
@@ -227,7 +230,8 @@ class Grenade(core.Actor):
                 if d<r:
                     dmg=int(remap(r-d, (0,r), (20,120)))
                     xv,yv = vec_to_speed(dmg/5, 180-angle(a.rect.center,self.rect.center,))
-                    a.xspeed, a.yspeed = xv if self.rect.x>a.rect.x else -xv,(yv if self.rect.x>a.rect.x else -yv)-1 
+                    a.speed.xy = xv if self.rect.x>a.rect.x else -xv,(yv if self.rect.x>a.rect.x else -yv)-1
+                    a.on_fire = rd(5000,8000)
                     if isinstance(a, Player) or isinstance(a, enemies.BaseAI):
                         self.game.stats['done damage']+=dmg
                         a.hp -= dmg
@@ -349,8 +353,9 @@ class Player(core.Actor):
             core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_LEGS),
         ]
         for i in prts:
-            i.xspeed = self.xspeed+rd(-3,3)
-            i.yspeed = self.yspeed-5
+            i.speed.xy = self.speed.x+rd(-3,3),self.speed.y-5
+            # i.xspeed = self.xspeed+rd(-3,3)
+            # i.yspeed = self.yspeed-5
         self.game.world.actors += prts
         fx.blood(self.rect.center, self.game.world, 50)
     def update_control(self,delta, blocks, level, tick=1):
@@ -416,8 +421,8 @@ class Player(core.Actor):
 
         # SIDE MOVE
         ACCEL = PLAYER_ACCELERATION
-        if self.move_right and not self.right: self.xspeed += ACCEL -self.xspeed
-        if self.move_left and not self.left: self.xspeed -= ACCEL+self.xspeed
+        if self.move_right and not self.right: self.speed.x += ACCEL -self.speed.x
+        if self.move_left and not self.left: self.speed.x -= ACCEL+self.speed.x
 
         #AIM
         if self.aiming:
@@ -429,8 +434,8 @@ class Player(core.Actor):
             self.tp = False
             # self.rect.center = self.get_point(level, 200)
             xv, yv = vec_to_speed(15, -self.angle)
-            self.xspeed += xv if self.look_r else -xv
-            self.yspeed = yv
+            self.speed.x += xv if self.look_r else -xv
+            self.speed.y = yv
 
         self.game.world.neo_mode = self.bonus['Time stop']>0
         
@@ -442,6 +447,8 @@ class Player(core.Actor):
         
         # grenades
         if self.grenade: self.throw_genade()
+        
+        if self.game and self.on_fire>0: fx.fire(self.rect.center,self.game.world,6)
     
     def damage(self, hp):
         if self.bonus['Armor']: hp/=4
@@ -458,17 +465,19 @@ class Player(core.Actor):
                 if self.left and self.move_left and self.look_r and self.wall_jump_kd<=0:
                     self.wall_jump_kd=500
                     self.move_left = False
-                    self.xspeed += WALL_JUMP_FORCE
+                    self.speed.x += WALL_JUMP_FORCE
                     self.double = True
                 elif self.right and self.move_right and not self.look_r and self.wall_jump_kd<=0:
                     self.wall_jump_kd=500
                     self.move_right = False
-                    self.xspeed -= WALL_JUMP_FORCE
+                    self.speed.x -= WALL_JUMP_FORCE
                     self.double = True
-                elif self.double: self.double = False
+                elif self.double:
+                    fx.fire((self.rect.centerx,self.rect.bottom),self.game.world,20)
+                    self.double = False
                 else:return
             self.jump = False
-            self.yspeed = -JUMP_FORCE
+            self.speed.y = -JUMP_FORCE
             self.on_ground = False
             if sounds: SOUNDS['jump'].play()
     def reload(self):
@@ -499,7 +508,7 @@ class Player(core.Actor):
 
         self.ammo[self.guns[self.gun]][0] -= 1
         xv,yv=vec_to_speed(gun['back'] if not self.bonus['Double gun']>0 else gun['back']*2, self.angle-180)
-        self.xspeed, self.yspeed = self.xspeed+(xv if self.look_r else-xv), self.yspeed-yv
+        self.speed.x, self.speed.y = self.speed.x+(xv if self.look_r else-xv), self.speed.y-yv
         if self.shoot and self.game: self.game.shake = gun['shake']
 
         self.recoil=gun['recoil']
@@ -534,6 +543,11 @@ class Player(core.Actor):
 
     def rotate(self):
         self.img = pg.transform.flip(self.img, True, False)
+        
+    def debug_draw(self, screen, camera):
+        x,y = pg.mouse.get_pos()
+        pg.draw.line(screen,'yellow', real(self.rect.center, camera),pg.mouse.get_pos())
+        return super().debug_draw(screen, camera)
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         self.img = IMGS['BACK'].copy()

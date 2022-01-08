@@ -3,16 +3,18 @@ from game import core
 import cfg
 from random import randint as rd
 
+from game.utils import *
+
 class BloodParticle(core.Actor):
     def __init__(self, x, y, w, xv,yv):
         super().__init__(x, y, w, w,friction=0,collision=False)
-        self.xspeed, self.yspeed = xv,yv
+        self.speed = Vec(xv,yv)
         self.autodel(1)
 
 class DamageParticle(core.Actor):
     def __init__(self, x, y, dmg,w,  xv,yv, heal=False):
         super().__init__(x, y, w, w, gravity=0.2,friction=0,collision=False)
-        self.xspeed, self.yspeed = xv,yv
+        self.speed = Vec(xv,yv)
         # self.autodel(2)
         self.text = f'+{dmg}hp' if heal else f'-{dmg}hp' 
         # self.font =   

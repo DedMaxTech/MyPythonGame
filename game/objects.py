@@ -71,6 +71,10 @@ class Portal(core.Actor, core.Saving):
         self.img = pg.transform.scale(self.img, (self.rect.w,self.rect.h))
         self.second.img=self.img
 
+    def debug_draw(self, screen, camera):
+        if self.second: pg.draw.line(screen,'blue', real(self.rect.center, camera),real(self.second.rect.center, camera),3)
+        return super().debug_draw(screen, camera)
+
     def hit(self, actor):
         ignore = [a for kd, a in self.ignore]
         if isinstance(actor, core.Actor) and actor.gravity and self.second and actor not in ignore:
@@ -79,7 +83,7 @@ class Portal(core.Actor, core.Saving):
             actor.rect.y = self.second.rect.y+y
             actor.rect.centerx = self.second.rect.centerx
 
-            actor.yspeed = -actor.yspeed
+            actor.speed.y = -actor.speed.y
             actor.reset()
             # actor.xspeed = -actor.xspeed
             if sounds: sound.play()
@@ -91,7 +95,7 @@ class Portal(core.Actor, core.Saving):
             x,y = real(actor.rect.topleft, self.second.rect)
             actor.rect.y = self.rect.y+y
             actor.rect.centerx = self.rect.centerx
-            actor.yspeed = -actor.yspeed
+            actor.speed.y = -actor.speed.y
             actor.reset()
             if sounds: sound.play()
 

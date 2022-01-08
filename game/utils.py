@@ -3,14 +3,25 @@ import threading, pickle
 from typing import Tuple, Union
 import pygame as pg
 
+# tasks = []
+
+# def new_task(func, time,loop=False):
+#     tasks.append([func,time,loop])
 
 def threaded(daemon=True):
+    """Function, wraped in this decorator, 'll be lauched in new thread
+
+    Args:
+        daemon (bool, optional): If False, script wait for thread end. Defaults to True.
+    """
     def decor(func):
         def wrapper(*args, **kwargs):
             t = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=daemon)
             t.start()
         return wrapper
     return decor
+
+
 
 class Vec(pg.math.Vector2):
     def angle(self) -> float:

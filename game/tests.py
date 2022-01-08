@@ -71,9 +71,15 @@ import time, math
 import threading, pickle
 from typing import Tuple, Union
 import pygame as pg
+class Vec(pg.math.Vector2):
+    def angle(self) -> float:
+        a = math.degrees(math.acos(self.x/self.length()))
+        return a if self.y>0 else -a
 
 
 a = Vec(-1,1)
+a *= 2
+print(a.x)
 print(a.angle())
 # print(a.x)
 # print(a.length())
