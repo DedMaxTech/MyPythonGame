@@ -31,7 +31,6 @@ class Vec(pg.math.Vector2):
     """
     def angle(self) -> float:
         """Get vector angle from -180 to 180
-
         Returns:
             float: Angle  in range +- 180
         """
@@ -43,7 +42,6 @@ font = pg.font.SysFont('Arial', size=14)
 
 def debug(var:Any, screen: pg.Surface, x=0, y=0):
     """Draw any value on screen
-    
     Args:
         var (Any): Any value
         screen (pg.Surface): Where to draw
@@ -55,11 +53,9 @@ def debug(var:Any, screen: pg.Surface, x=0, y=0):
 
 def distanse(pos1: Tuple[int,int] | pg.Rect, pos2:Tuple[int,int] | pg.Rect) -> float:
     """Distance for 2 objects
-
     Args:
         pos1 (Tuple[int,int] or pg.Rect): Rect obj or coordinates
         pos2 (Tuple[int,int] or pg.Rect): Rect obj or coordinates
-
     Returns:
         float: distanse
     """
@@ -69,27 +65,60 @@ def distanse(pos1: Tuple[int,int] | pg.Rect, pos2:Tuple[int,int] | pg.Rect) -> f
     return (x * x + y * y) ** 0.5
 
 
-def angle(pos1, pos2=(0, 0)):
+def angle(pos1:Tuple[int, int], pos2:Tuple[int, int]=(0, 0)):
+    """Angle to point, defoult coordinate center is 0,0
+    Args:
+        pos1 (Tuple[int, int]): Point for angle
+        pos2 (Tuple[int, int], optional): Coordinate center. Defaults to (0, 0).
+    Returns:
+        float: Angle
+    """
     x, y = pos1[0] - pos2[0], pos2[1] - pos1[1]
-    if x == 0: x = 0.0001
-    return math.degrees(math.atan(y / x))
+    l = (x * x + y * y) ** 0.5
+    if not l: return 0
+    a = math.degrees(math.acos(x / l))
+    return a if y > 0 else -a
 
 
-def vec_to_speed(vec, angle):
-    xvel = vec * math.cos(math.radians(angle))
-    yvel = vec * math.sin(math.radians(angle))
-    return xvel, yvel
+def vec_to_speed(vec:float, angle:float) -> Tuple[float, float]:
+    return vec * math.cos(math.radians(angle)), vec * math.sin(math.radians(angle))
 
 
-def vec_sum(vec1, vec2):
-    return vec1[0] + vec2[0], vec1[1] + vec2[1],
+def vec_sum(vec1:Tuple[float, float], vec2:Tuple[float, float]) -> Tuple[float, float]:
+    """coordinates sum
+    Args:
+        vec1 (Tuple[float, float]): 1st point
+        vec2 (Tuple[float, float]): 2nd point
+    Returns:
+        Tuple[float, float]: Sum
+    """
+    return vec1[0] + vec2[0], vec1[1] + vec2[1]
 
 
-def vec_delta(vec1, vec2):
-    return vec1[0] - vec2[0], vec1[1] - vec2[1],
+def vec_delta(vec1:Tuple[float, float], vec2:Tuple[float, float]) -> Tuple[float, float]:
+    """coordinates delta
+
+    Args:
+        vec1 (Tuple[float, float]): 1st point
+        vec2 (Tuple[float, float]): 2nd point
+
+    Returns:
+        Tuple[float, float]: Delta
+    """
+    return vec1[0] - vec2[0], vec1[1] - vec2[1]
 
 
-def real(pos: Union[Tuple[int, int], pg.Rect], camera: pg.Rect, invert=False):
+def real(pos: Union[Tuple[int, int], pg.Rect], camera: pg.Rect, invert=False) -> Tuple[int, int]:
+    """Transfer coordinates to camera
+
+    Args:
+        pos (Union[Tuple[int, int], pg.Rect]): Point or Rect
+        camera (pg.Rect): Camera rect
+        invert (bool, optional): Invert for some cases. Defaults to False.
+
+    Returns:
+        Tuple[int, int]: Coords
+    """
     if not invert:
         if type(pos) == pg.Rect:
             return pg.Rect(pos.x - camera.x, pos.y - camera.y, pos.w, pos.h)
@@ -102,13 +131,15 @@ def real(pos: Union[Tuple[int, int], pg.Rect], camera: pg.Rect, invert=False):
             return pos[0] + camera.x, pos[1] + camera.y
 
 
-def limit(val, min=None, max=None):
-    if min is not None and min > val:
-        return min
-    elif max is not None and val > max:
-        return max
-    else:
-        return val
+def limit(val: float, min:float=None, max:float =None) -> float:
+    """Return value in min&max bounds
+
+    Returns:
+        float: val in bounds
+    """
+    if min is not None and min > val: return min
+    elif max is not None and val > max: return max
+    else: return val
 
 
 def get_stat(key=None):
@@ -132,7 +163,7 @@ def write_stats(d):
         pickle.dump(d, file)
 
 
-def remap(val, in_boubds: Tuple[float, float], out_bounds: Tuple[float, float] = (0, 1)):
+def remap(val: float, in_boubds: Tuple[float, float], out_bounds: Tuple[float, float] = (0, 1)) -> float:
     return (val - in_boubds[0]) * (out_bounds[1] - out_bounds[0]) / (in_boubds[1] - in_boubds[0]) + out_bounds[0]
 
 
