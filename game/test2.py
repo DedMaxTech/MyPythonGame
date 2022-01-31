@@ -1,6 +1,4 @@
-class A:
-    pass
+import textwrap
 
-class B: pass
-
-class C(A):pass
+a = 'abc123cd'
+print(textwrap.wrap(a,3))

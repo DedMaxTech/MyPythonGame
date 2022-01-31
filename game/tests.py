@@ -4,21 +4,11 @@ import zlib,socket
 
 screen = pg.display.set_mode((854,480),pg.SCALED)
 sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+sock.settimeout(2)
 addr = socket.gethostbyname(socket.gethostname()), 5001
 sock.sendto(b'hello',addr)
 while 1:
-    try:
-        if pg.QUIT in pg.event.get(): exit()
-        data = b''
-        while 1:
-            d,add = sock.recvfrom(1024)
-            if add == addr:
-                if d == b'stop': break
-                else: data += d
-        img = pg.image.fromstring(zlib.decompress(data),(854,480),'RGB')
-        screen.blit(img,(0,0))
-        pg.display.flip()
-    except Exception as e: print(e)
+
         
 # for _ in range(10):
 #     print('||||||||||||||||||||||||||||||||||||\n||||||||||||||||||||||||||||||||||||')

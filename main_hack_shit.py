@@ -1,7 +1,7 @@
 from time import sleep
 from numpy import add
 import pygame as pg
-import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats
+import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats,textwrap
 from random import randint as rd
 from typing import List
 
@@ -43,6 +43,8 @@ load_screen = pg.Surface((cfg.screen_h,cfg.screen_v))
 load_screen.blit(font.render('Loading...', False, 'white'),(300,190))
 
 writing = False
+
+
 class Game:
     def __init__(self):
         self.res, self.fps, self.serv_ip = [cfg.screen_h, cfg.screen_v], cfg.fps, cfg.addr[0]
@@ -66,7 +68,8 @@ class Game:
         self.n = 0
 
         self.playing = False  # TODO: меню
-        self.online,self.host = False,False
+        self.online,self.host = Status.Offline,False
+        self.addr = ('',0)
         self.addrs = []
         self.pause = False
         self.searching = False
@@ -100,7 +103,7 @@ class Game:
         # pg.mouse.set_cursor(*pg.cursors.arrow)
         self.playing = False
         # if self.online: self.sock.close()
-        self.online = False
+        self.online = Status.Offline
         self.pause = False
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
@@ -159,7 +162,7 @@ class Game:
                 Button((400, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey', args=(self.level)),
                 Button((400, 290), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
                 Button((400, 320), 'white', 'Exit', 25, exit, 'darkgrey'),
-            ] + [Button((400, 260), 'white', 'Online', 25, self.create_game, 'darkgrey', ),] if not self.online else horizontal(5, [Button((400, 260), 'white', 'Offline', 25, self.close_game, 'darkgrey', ), Button((400, 260), 'white', f'Code to cennect: {self.ip.split(".")[-1]}', 25),]), anim=False)
+            ] + ([Button((400, 260), 'white', 'Online', 25, self.create_game, 'darkgrey', ),] if self.online == Status.Offline else horizontal(5, [Button((400, 260), 'white', 'Offline', 25, self.close_game, 'darkgrey', ), Button((400, 260), 'white', f'Code to cennect: {self.addr[0].split(".")[-1]}', 25),])), anim=False)
             
             pg.mouse.set_cursor(*pg.cursors.arrow)
         else:
@@ -195,7 +198,8 @@ class Game:
                     cur_p.r_leg = p['r_leg']
             except ConnectionResetError:
                 print('conn err')
-                self.online = self.playing= False
+                self.online = Status.Offline
+                self.playing= False
                 self.main_menu([Button((75, 290), 'white', 'Connection error', 30,bg='darkgrey'),])
             except Exception as e:
                 print(traceback.format_exc())
@@ -203,9 +207,12 @@ class Game:
     def awaiting_conn(self):
         while 1:
             try:
-                d,addr = self.sock.recvfrom(1024)
-                if d == b'hello':
-                    self.addrs.append(addr)
+                if self.online is Status.Host:
+                    d,addr = self.sock.recvfrom(1024)
+                    if d == b'hello':
+                        self.addrs.append(addr)
+                else:
+                    time.sleep(1)
             except socket.timeout:
                 pass
 
@@ -285,59 +292,69 @@ class Game:
         self.awaiting_conn()
         kd = pg.time.Clock()
         while 'always':
-            # if not self.online: kd.tick(fps)
-            predata = zlib.compress(pg.image.tostring(self.screen,'RGB'),1)
-            k = len(predata)//buf_size
-            data = []
-            for i in range(k):
-                data.append(predata[:buf_size])
-                predata = predata[buf_size:]
-            data.append(predata)
-            for addr in self.addrs:
-                for d in data:
-                    self.sock.sendto(d,addr)
-                self.sock.sendto(b'stop',addr)
-            kd.tick(fps)
-            self.stream_fps = kd.get_fps()
+            if self.online is not Status.Host: kd.tick(fps)
+            if writing:
+                with cProfile.Profile() as pr:
+                    self.send_screen(kd, fps,buf_size)
+                stats = pstats.Stats(pr)
+                stats.sort_stats(pstats.SortKey.TIME)
+                stats.dump_stats('stat2.prof')
+            else: self.send_screen(kd, fps,buf_size)
+
+    
+    def send_screen(self,kd,fps=60, buf_size=1024,compress_level=2):
+        predata = zlib.compress(pg.image.tostring(self.screen,'RGB'),compress_level)
+        k = len(predata)//buf_size
+        data = []
+        for i in range(k):
+            data.append(predata[:buf_size])
+            predata = predata[buf_size:]
+        data.append(predata)
+        for addr in self.addrs:
+            for d in data:
+                self.sock.sendto(d,addr)
+            self.sock.sendto(b'stop',addr)
+        kd.tick(fps)
+        self.stream_fps = kd.get_fps()        
     
     
     def join_game(self, port):
-        try:
-            ip = socket.gethostbyname(socket.getservbyname()).split('.')
-            self.sock.connect(('.'.join(ip[:-1])+'.'+port, cfg.addr[1]))
-            data = pickle.loads(self.sock.recv(1024 * 4))
-            self.world.open_world(data.get('level'))
-            self.ui.clear()
-            self.camera.x = 0
-            self.player = player.Player(50, 0, data.get('n'), self)  # TODO: ONLINEEEEEE
-            self.playing = True
-            self.online = True
-            self.pr.start()
-        except socket.timeout:
-            self.join_menu('Servers dont answer...',
-                           [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
-        except Exception as e:
-            print(e)
-            self.join_menu('Cant connect to servers:(',
-                           [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
+        # try:
+        ip = socket.gethostbyname(socket.gethostname()).split('.')
+        addr = ('.'.join(ip[:-1])+'.'+port, cfg.addr[1])
+        self.sock.settimeout(2)
+        self.sock.sendto(b'hello',addr)
+        self.online = Status.Listen
+        self.addr = addr
+        #     self.world.open_world(data.get('level'))
+        #     self.ui.clear()
+        #     self.camera.x = 0
+        #     self.player = player.Player(50, 0, data.get('n'), self)  # TODO: ONLINEEEEEE
+        #     self.playing = True
+        #     self.online = True
+        #     self.pr.start()
+        # except socket.timeout:
+        #     self.join_menu('Servers dont answer...',
+        #                    [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
+        # except Exception as e:
+        #     print(e)
+        #     self.join_menu('Cant connect to servers:(',
+        #                    [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
 
-        self.loop()
+        # self.loop()
     
     def create_game(self):
-        self.ip = socket.gethostbyname(socket.getservbyname())
-        self.port = cfg.addr[1]
-        self.sock.bind((self.ip, self.port))
-        self.host = True
+        self.online = Status.Host
+
     
     def close_game(self):
-        self.host=False
+        self.online = Status.Offline
         self.sock.close()
 
     def death(self):
         self.zoom(1.5)
 
     def camera_update(self):
-        ofsetx, ofsety = 930,450
         k = self.delta/core.def_tick
         d = self.frame.get_height()/15/k/self._curzoom
         r = self.player.rect
@@ -429,44 +446,59 @@ class Game:
         #     return self.shake,self.shake
         # return x, y
     def draw(self):
-        if self.playing:
-            self.world.draw(self.frame, self.camera,self.debug)
-            # self.player.draw(self.frame, self.camera)
+        if self.online is not Status.Listen:
+            if self.playing:
+                self.world.draw(self.frame, self.camera,self.debug)
+                # self.player.draw(self.frame, self.camera)
 
-            # for p in self.players:
-            #     p.draw(self.frame, self.camera)
-            
-            # POST PROCESS
-            if not cfg.potato:
-                if self.world_tick!=1.0 or self.world.neo_mode:
-                    self.screen.blit(self.tint_slow, (0, 0))
-                else:
-                    self.screen.blit(self.tint, (0, 0))
-            if self.w< sf.get_width():
-                sf.fill('black')
-                x,y = self.player.rect.centerx-self.camera.x, self.player.rect.centery-self.camera.y
-                x,y = remap(x, (0,854*self._curzoom),(0,cfg.screen_h)),remap(y, (0,480*self._curzoom),(0,cfg.screen_v))
-                pg.draw.circle(sf,'white', (x,y), round(self.w))
-                if self.player.dead:
-                    text = font.render('Respawning...', False, (255,0,0))
-                    text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
-                    sf.blit(text, (300,100))
-                if self.w<cfg.screen_h-100:self.screen.blit(sf,(0,0))
-            if self.debug:
-                debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}; Stream FPS:{int(self.stream_fps)}',self.frame)
-                debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
-                # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
-                debug(f'pos: {self.player.rect.center} ang: {self.player.angle} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
-                debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
-                debug(f'tick: {self.world_tick}',self.frame,y=60)
+                # for p in self.players:
+                #     p.draw(self.frame, self.camera)
+                
+                # POST PROCESS
+                if not cfg.potato:
+                    if self.world_tick!=1.0 or self.world.neo_mode:
+                        self.screen.blit(self.tint_slow, (0, 0))
+                    else:
+                        self.screen.blit(self.tint, (0, 0))
+                if self.w< sf.get_width():
+                    sf.fill('black')
+                    x,y = self.player.rect.centerx-self.camera.x, self.player.rect.centery-self.camera.y
+                    x,y = remap(x, (0,854*self._curzoom),(0,cfg.screen_h)),remap(y, (0,480*self._curzoom),(0,cfg.screen_v))
+                    pg.draw.circle(sf,'white', (x,y), round(self.w))
+                    if self.player.dead:
+                        text = font.render('Respawning...', False, (255,0,0))
+                        text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
+                        sf.blit(text, (300,100))
+                    if self.w<cfg.screen_h-100:self.screen.blit(sf,(0,0))
+                if self.debug:
+                    debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}; Stream FPS:{int(self.stream_fps)}',self.frame)
+                    debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
+                    # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
+                    debug(f'pos: {self.player.rect.center} ang: {self.player.angle} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
+                    debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
+                    debug(f'tick: {self.world_tick}',self.frame,y=60)
+            else:
+                self.frame.fill('black')
+            if self.world.neo_mode:
+                neg = pg.Surface(self.frame.get_size())
+                neg.fill((255, 255, 255))
+                neg.blit(self.frame, (0, 0), special_flags=pg.BLEND_SUB)
+                self.frame = neg
+            if self.pause: self.screen.blit(self.tint2, (0, 0))
         else:
-            self.frame.fill('black')
-        if self.world.neo_mode:
-            neg = pg.Surface(self.frame.get_size())
-            neg.fill((255, 255, 255))
-            neg.blit(self.frame, (0, 0), special_flags=pg.BLEND_SUB)
-            self.frame = neg
-        if self.pause: self.screen.blit(self.tint2, (0, 0))
+            try:
+                data = b''
+                while 1:
+                    d,add = self.sock.recvfrom(1024)
+                    if add == self.addr:
+                        if d == b'stop': break
+                        else: data += d
+                img = pg.image.fromstring(zlib.decompress(data),(854,480),'RGB')
+                self.screen.blit(img,(0,0))
+                pg.display.flip()
+            except socket.timeout: print('timeout'); exit()
+            except zlib.error: pass
+            except Exception as e: print(e)
         self.ui.render(self.screen)
 
     def event_loop(self):
@@ -501,16 +533,16 @@ class Game:
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
             self.world.update_actors(self.delta*self.world_tick, self.player)
 
-            if self.online:
-                try:
-                    self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
-                                                    'n': self.player.n, 'xspeed': self.player.xspeed,
-                                                    'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
-                                                    'look_r': self.player.look_r}))
-                except ConnectionResetError:
-                    print('conn err')
-                    self.online = self.playing= False
-                    self.main_menu([Button((75, 290), 'white', 'Connection error', 30,bg='darkgrey'),])
+            # if self.online:
+            #     try:
+            #         self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
+            #                                         'n': self.player.n, 'xspeed': self.player.xspeed,
+            #                                         'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
+            #                                         'look_r': self.player.look_r}))
+            #     except ConnectionResetError:
+            #         print('conn err')
+            #         self.online = self.playing= False
+            #         self.main_menu([Button((75, 290), 'white', 'Connection error', 30,bg='darkgrey'),])
             self.camera_update()
             self.process_zoom()
             if self.clock.get_fps()<=35: self.fps_alert=True

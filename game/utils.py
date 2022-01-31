@@ -171,3 +171,7 @@ def remap(val: float, in_boubds: Tuple[float, float], out_bounds: Tuple[float, f
 def timer(t):
     time.sleep(t)
     print(t)
+class Status:
+    Offline='f'
+    Host='h'
+    Listen='l'
