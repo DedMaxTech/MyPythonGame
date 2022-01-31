@@ -1,7 +1,7 @@
 from time import sleep
+from numpy import add
 import pygame as pg
-import cProfile, pstats, sys
-import os, traceback, socket, pickle, math, glob, subprocess
+import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats
 from random import randint as rd
 from typing import List
 
@@ -61,12 +61,13 @@ class Game:
         self.players:List[player.Player] = []
         self.ais: List[enemies.MeleeAI] = []
         self.shits: List[core.Actor] = []
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.port = 5001
         self.n = 0
 
         self.playing = False  # TODO: меню
         self.online,self.host = False,False
+        self.addrs = []
         self.pause = False
         self.searching = False
         self.shake = 0
@@ -198,14 +199,13 @@ class Game:
                 print(traceback.format_exc())
     @threaded()
     def awaiting_conn(self):
-        try:
-            self.sock.listen()
-            while self.host:
-                conn, addr = self.sock.accept()
-                print('new player ', addr)
-
-        except Exception as e:
-            print(e)
+        while 1:
+            try:
+                d,addr = self.sock.recvfrom(1024)
+                if d == b'hello':
+                    self.addrs.append(addr)
+            except socket.timeout:
+                pass
 
     @threaded()
     def awaiting_player_data(self,conn,addr):
@@ -270,6 +270,33 @@ class Game:
     #                        [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
 
     #     self.loop()
+    
+    @threaded()
+    def screen_stream(self,fps=60):
+        self.sock.bind((socket.gethostbyname(socket.gethostname()),5001))
+        # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 262144*2)
+        print(self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF))
+        
+        buf_size = 1024
+        self.awaiting_conn()
+        kd = pg.time.Clock()
+        while 'always':
+            # if not self.online: kd.tick(fps)
+            predata = zlib.compress(pg.image.tostring(self.screen,'RGB'),1)
+            k = len(predata)//buf_size
+            data = []
+            for i in range(k):
+                data.append(predata[:buf_size])
+                predata = predata[buf_size:]
+            data.append(predata)
+            for addr in self.addrs:
+                for d in data:
+                    self.sock.sendto(d,addr)
+                self.sock.sendto(b'stop',addr)
+            kd.tick(fps)
+            print(kd.get_fps())
+    
+    
     def join_game(self, port):
         try:
             ip = socket.gethostbyname(socket.getservbyname()).split('.')
@@ -492,6 +519,7 @@ class Game:
     def run(self):
         print(repr(get_stat()))
         # self.resize()
+        self.screen_stream()
         while True:
             if writing:
                 with cProfile.Profile() as pr:
