@@ -83,6 +83,8 @@ class Game:
         self.camera_target = None
         self.debug = False
 
+        self.stream_fps = 0
+
         pg.display.set_caption(cfg.GAMENAME)
         # pg.display.toggle_fullscreen()
         self.main_menu()
@@ -273,7 +275,9 @@ class Game:
     
     @threaded()
     def screen_stream(self,fps=60):
-        self.sock.bind((socket.gethostbyname(socket.gethostname()),5001))
+        ip = (socket.gethostbyname(socket.gethostname()),5001)
+        print('Self ip:',ip)
+        self.sock.bind(ip)
         # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 262144*2)
         print(self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF))
         
@@ -294,7 +298,7 @@ class Game:
                     self.sock.sendto(d,addr)
                 self.sock.sendto(b'stop',addr)
             kd.tick(fps)
-            print(kd.get_fps())
+            self.stream_fps = kd.get_fps()
     
     
     def join_game(self, port):
@@ -449,7 +453,7 @@ class Game:
                     sf.blit(text, (300,100))
                 if self.w<cfg.screen_h-100:self.screen.blit(sf,(0,0))
             if self.debug:
-                debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}',self.frame)
+                debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}; Stream FPS:{int(self.stream_fps)}',self.frame)
                 debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)
                 # debug(f'up:{self.player.on_ground} r:{self.player.right} l:{self.player.left}', self.frame, y=30)
                 debug(f'pos: {self.player.rect.center} ang: {self.player.angle} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
