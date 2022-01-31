@@ -283,6 +283,7 @@ class Game:
     @threaded()
     def screen_stream(self,fps=60):
         ip = (socket.gethostbyname(socket.gethostname()),5001)
+        self.addr = ip
         print('Self ip:',ip)
         self.sock.bind(ip)
         # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 262144*2)
@@ -449,7 +450,7 @@ class Game:
     
     @threaded()
     def get_frames(self):
-        while self.online is Status.Listen:
+        while 1:
             try:
                 data = b''
                 while 1:
@@ -459,9 +460,10 @@ class Game:
                         else: data += d
                 img = pg.image.fromstring(zlib.decompress(data),(854,480),'RGB')
                 self.screen.blit(img,(0,0))
-            except socket.timeout: print('timeout'); exit()
-            except zlib.error: pass
-            except Exception as e: print(e)
+            except socket.timeout: print('Frame recive timeout'); exit()
+            except zlib.error: print('Bad frame')
+            except Exception as e: print(e), exit()
+
     def draw(self):
         if self.online is not Status.Listen:
             if self.playing:
@@ -550,8 +552,9 @@ class Game:
             self.process_zoom()
             if self.clock.get_fps()<=35: self.fps_alert=True
         # pg.transform.scale(self.frame, self.res, self.screen)
-        self.screen.blit(pg.transform.scale(self.frame, self.res), self.procces_camera_shake())
-        self.draw()
+        if self.online!=Status.Listen:
+            self.screen.blit(pg.transform.scale(self.frame, self.res), self.procces_camera_shake())
+            self.draw()
         pg.display.update()
 
 
