@@ -326,6 +326,7 @@ class Game:
         self.sock.sendto(b'hello',addr)
         self.online = Status.Listen
         self.addr = addr
+        self.get_frames()
         #     self.world.open_world(data.get('level'))
         #     self.ui.clear()
         #     self.camera.x = 0
@@ -445,6 +446,22 @@ class Game:
         #     self.shake = self.shake*0.9       
         #     return self.shake,self.shake
         # return x, y
+    
+    @threaded()
+    def get_frames(self):
+        while self.online is Status.Listen:
+            try:
+                data = b''
+                while 1:
+                    d,add = self.sock.recvfrom(1024)
+                    if add == self.addr:
+                        if d == b'stop': break
+                        else: data += d
+                img = pg.image.fromstring(zlib.decompress(data),(854,480),'RGB')
+                self.screen.blit(img,(0,0))
+            except socket.timeout: print('timeout'); exit()
+            except zlib.error: pass
+            except Exception as e: print(e)
     def draw(self):
         if self.online is not Status.Listen:
             if self.playing:
@@ -485,20 +502,6 @@ class Game:
                 neg.blit(self.frame, (0, 0), special_flags=pg.BLEND_SUB)
                 self.frame = neg
             if self.pause: self.screen.blit(self.tint2, (0, 0))
-        else:
-            try:
-                data = b''
-                while 1:
-                    d,add = self.sock.recvfrom(1024)
-                    if add == self.addr:
-                        if d == b'stop': break
-                        else: data += d
-                img = pg.image.fromstring(zlib.decompress(data),(854,480),'RGB')
-                self.screen.blit(img,(0,0))
-                pg.display.flip()
-            except socket.timeout: print('timeout'); exit()
-            except zlib.error: pass
-            except Exception as e: print(e)
         self.ui.render(self.screen)
 
     def event_loop(self):
