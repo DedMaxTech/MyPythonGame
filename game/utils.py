@@ -51,7 +51,7 @@ def debug(var:Any, screen: pg.Surface, x=0, y=0):
     screen.blit(font.render(str(var), True, 'red'), (x, y))
 
 
-def distanse(pos1: Tuple[int,int] | pg.Rect, pos2:Tuple[int,int] | pg.Rect) -> float:
+def distanse(pos1: Tuple[int,int], pos2:Tuple[int,int]) -> float:
     """Distance for 2 objects
     Args:
         pos1 (Tuple[int,int] or pg.Rect): Rect obj or coordinates

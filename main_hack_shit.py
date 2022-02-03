@@ -1,7 +1,6 @@
 from time import sleep
-from numpy import add
 import pygame as pg
-import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats,textwrap
+import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats
 from random import randint as rd
 from typing import List
 
@@ -44,6 +43,9 @@ load_screen.blit(font.render('Loading...', False, 'white'),(300,190))
 
 writing = False
 
+bad_data = pg.Surface((854,480))
+bad_data.fill('white')
+bad_data = bad_data.get_view()
 
 class Game:
     def __init__(self):
@@ -70,7 +72,7 @@ class Game:
         self.playing = False  # TODO: меню
         self.online,self.host = Status.Offline,False
         self.addr = ('',0)
-        self.addrs = []
+        self.addrs = {}
         self.pause = False
         self.searching = False
         self.shake = 0
@@ -107,7 +109,7 @@ class Game:
         self.pause = False
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
-        tf = TextField((220,195+36), 'black', 'Code:',30,bg='white')
+        tf = TextField((220,195+36), 'black', 'Code:',30,bg='white',clear_on_click=True)
         b = Button((0,0), 'white', 'delete', 30, bg='darkgrey')
         b.func=b.delete
         self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),]+
@@ -209,16 +211,29 @@ class Game:
             try:
                 if self.online is Status.Host:
                     d,addr = self.sock.recvfrom(1024)
-                    if d == b'hello':
-                        self.addrs.append(addr)
+                    if d == b'hello' and addr not in self.addrs.keys():
+                        p = player.Player(self.world.spawn_pos)
+                        self.addrs[addr] = [5,p]
+                        self.world.actors.append(p)
                 else:
                     time.sleep(1)
             except socket.timeout:
                 pass
 
     @threaded()
-    def awaiting_player_data(self,conn,addr):
-        pass
+    def awaiting_player_data(self):
+        while 1:
+            try:
+                if self.online is Status.Host:
+                    d,addr = self.sock.recvfrom(4096)
+                    if addr in self.addrs.keys():
+                        p = self.addrs[addr][1]
+                        p.process_move(pickle.loads(d))
+                        self.addrs[addr] = [5,p]
+                else:
+                    time.sleep(1)
+            except socket.timeout:
+                pass
 
     def join_menu(self, text, add=[]):
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -291,6 +306,7 @@ class Game:
         
         buf_size = 1024
         self.awaiting_conn()
+        self.awaiting_player_data()
         kd = pg.time.Clock()
         while 'always':
             if self.online is not Status.Host: kd.tick(fps)
@@ -351,7 +367,7 @@ class Game:
     
     def close_game(self):
         self.online = Status.Offline
-        self.sock.close()
+        # self.sock.close()
 
     def death(self):
         self.zoom(1.5)
@@ -459,6 +475,8 @@ class Game:
                         if d == b'stop': break
                         else: data += d
                 img = pg.image.fromstring(zlib.decompress(data),(854,480),'RGB')
+                avg_color= pg.transform.average_color(img)
+                if sum(avg_color)>700:continue
                 self.screen.blit(img,(0,0))
             except socket.timeout: print('Frame recive timeout'); exit()
             except zlib.error: print('Bad frame')
@@ -509,7 +527,8 @@ class Game:
     def event_loop(self):
         global writing
         writing = pg.key.get_pressed()[pg.K_m]
-        for event in pg.event.get():
+        events = pg.event.get()
+        for event in events:
             if pg.mouse.get_focused() :self.ui.update(event, self.delta)
             if hasattr(event, 'pos'):
                 x,y = self.frame.get_size()
@@ -523,10 +542,11 @@ class Game:
             if event.type == AUTOSAVE_EVENT:
                 write_stats(self.stats)
                 # write_stat('time', self.millis)
+        return events
 
 
     def loop(self):
-        self.event_loop()
+        events = self.event_loop()
         self.stats['time']+=self.delta/1000
         if self.playing and not self.pause:
             
@@ -538,23 +558,34 @@ class Game:
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
             self.world.update_actors(self.delta*self.world_tick, self.player)
 
-            # if self.online:
-            #     try:
-            #         self.sock.sendall(pickle.dumps({'pos': self.player.rect.topleft, 'gun': self.player.gun,
-            #                                         'n': self.player.n, 'xspeed': self.player.xspeed,
-            #                                         'on_ground': self.player.on_ground, 'r_leg': self.player.r_leg,
-            #                                         'look_r': self.player.look_r}))
-            #     except ConnectionResetError:
-            #         print('conn err')
-            #         self.online = self.playing= False
-            #         self.main_menu([Button((75, 290), 'white', 'Connection error', 30,bg='darkgrey'),])
+
             self.camera_update()
             self.process_zoom()
             if self.clock.get_fps()<=35: self.fps_alert=True
         # pg.transform.scale(self.frame, self.res, self.screen)
+
+        # ONLINE PROTOTYPE ----------------------
         if self.online!=Status.Listen:
             self.screen.blit(pg.transform.scale(self.frame, self.res), self.procces_camera_shake())
             self.draw()
+        else:
+            d= {}
+            for e in events:
+                if e.type in [pg.KEYUP, pg.KEYDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONDOWN,pg.MOUSEBUTTONUP, pg.MOUSEWHEEL, pg.USEREVENT]:
+                    d = {**d, **self.update_control(e, self.camera)}
+            data = pickle.dumps(d)
+            self.sock.sendto(data,self.addr)
+        
+        if self.online == Status.Host:
+            for k in self.addrs.keys():
+                self.addrs[k][0]-=self.delta
+                if self.addrs[k][0]<=0: 
+                    v = self.addrs.pop(k)
+                    self.world.actors.remove(v[1])
+
+        # ---------------------------------------
+
+        
         pg.display.update()
 
 
