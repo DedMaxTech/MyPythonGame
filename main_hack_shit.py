@@ -212,7 +212,7 @@ class Game:
                 if self.online is Status.Host:
                     d,addr = self.sock.recvfrom(1024)
                     if d == b'hello' and addr not in self.addrs.keys():
-                        p = player.Player(self.world.spawn_pos)
+                        p = player.Player(self.world.spawn_pos, game_inst=self)
                         self.addrs[addr] = [5,p]
                         self.world.actors.append(p)
                 else:
@@ -412,18 +412,18 @@ class Game:
             if event.key == pg.K_d: d['right'] = False
             if event.key == pg.K_a: d['left'] = False
             if event.key == pg.K_SPACE: d['up'] = False
-        if event.type == pg.MOUSEMOTION:
-            if self.player.rect.centerx <= event.pos[0] + camera.x:
-                d['look_r'] = True
-            else:
-                d['look_r'] = False
-            # x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
-            x, y = event.pos[0] + camera.x - self.player.rect.centerx,-((event.pos[1] + 10) + camera.y - self.player.rect.centery) 
-            if x == 0: x = 1
-            ang = int(math.degrees(math.atan(y / abs(x))))
-            d['angle'] = ang
-        if event.type == pg.USEREVENT:
-            self.player.r_leg = not self.player.r_leg
+        # if event.type == pg.MOUSEMOTION:
+        #     if self.player.rect.centerx <= event.pos[0] + camera.x:
+        #         d['look_r'] = True
+        #     else:
+        #         d['look_r'] = False
+        #     # x, y = event.pos[0] + camera.x - self.player.rect.centerx, self.player.rect.centery - (event.pos[1] - 25)
+        #     x, y = event.pos[0] + camera.x - self.player.rect.centerx,-((event.pos[1] + 10) + camera.y - self.player.rect.centery) 
+        #     if x == 0: x = 1
+        #     ang = int(math.degrees(math.atan(y / abs(x))))
+        #     d['angle'] = ang
+        # if event.type == pg.USEREVENT:
+        #     self.player.r_leg = not self.player.r_leg
         if event.type == pg.MOUSEBUTTONDOWN:
             if event.button == pg.BUTTON_LEFT:
                 d['shoot'] = True
@@ -442,13 +442,13 @@ class Game:
                 d['aim'] = False
                 # self.world_tick = 1.0
         
-        x,y = pg.mouse.get_pos()
-        w,h = self.frame.get_size()
-        x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
-        x, y =x+camera.x - self.player.rect.centerx, self.player.rect.centery - y - camera.y
+        d['coords'] = pg.mouse.get_pos()
+        # w,h = self.frame.get_size()
+        # x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
+        # x, y =x+camera.x - self.player.rect.centerx, self.player.rect.centery - y - camera.y
 
-        d['look_r'] = x>=0
-        d['angle'] = angle((abs(x),-y))
+        # d['look_r'] = x>=0
+        # d['angle'] = angle((abs(x),-y))
         return d
 
     def procces_camera_shake(self):

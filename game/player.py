@@ -276,6 +276,7 @@ class Player(core.Actor):
         self.to_ang=0
         self.recoil=0
         self.wall_jump_kd = 0
+        self.m_coords = (0,0)
 
         self.gun = 0
         self.guns = ['pistol']
@@ -322,10 +323,10 @@ class Player(core.Actor):
             self.move_left = d['left']
         if d.get('up') is not None:
             self.jump = d['up']
-        if d.get('look_r') is not None:
-            self.look_r = d['look_r']
-        if d.get('angle') is not None:
-            self.angle = d['angle']
+        # if d.get('look_r') is not None:
+        #     self.look_r = d['look_r']
+        # if d.get('angle') is not None:
+        #     self.angle = d['angle']
         if d.get('shoot') is not None:
             self.shoot = d['shoot']
         if d.get('tp') is not None:
@@ -341,6 +342,9 @@ class Player(core.Actor):
             self.reload()
         if d.get('aim') is not None:
             self.aiming = d['aim']
+        if d.get('coords') is not None:
+            self.m_coords = d['coords']
+        
 
 
     def to_death(self):
@@ -358,6 +362,7 @@ class Player(core.Actor):
             # i.yspeed = self.yspeed-5
         self.game.world.actors += prts
         fx.blood(self.rect.center, self.game.world, 50)
+
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
         # UI
@@ -397,6 +402,15 @@ class Player(core.Actor):
         if self.wall_jump_kd>0: self.wall_jump_kd-=delta
         for k,v in self.bonus.items():
             if v>0: self.bonus[k]-=delta
+
+        # ANGLE AND LOOK DIRECTION
+        x,y = self.m_coords
+        w,h = self.game.frame.get_size()
+        x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
+        x, y =x+self.game.camera.x - self.rect.centerx, self.rect.centery - y - self.game.camera.y
+
+        self.look_r = x>=0
+        self.angle = angle((abs(x),-y))
 
         # RELOAD
         if self._reload:
