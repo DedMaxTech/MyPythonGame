@@ -210,11 +210,20 @@ class Game:
         while 1:
             try:
                 if self.online is Status.Host:
-                    d,addr = self.sock.recvfrom(1024)
-                    if d == b'hello' and addr not in self.addrs.keys():
-                        p = player.Player(self.world.spawn_pos, game_inst=self)
-                        self.addrs[addr] = [5,p]
-                        self.world.actors.append(p)
+                    d,addr = self.sock.recvfrom(4096)
+                    # print(d,addr,d == b'hello',addr not in self.addrs.keys())
+                    if addr not in self.addrs.keys():
+                        if d == b'hello':
+                            print('sana pidor')
+                            p = player.Player(*self.world.spawn_pos, game_inst=self)
+                            self.addrs[addr] = [5000,p]
+                            self.world.actors.append(p)
+                    else:
+                        p = self.addrs[addr][1]
+                        data = pickle.loads(d)
+                        print(data)
+                        p.process_move(data)
+                        self.addrs[addr] = [5000,p]
                 else:
                     time.sleep(1)
             except socket.timeout:
@@ -226,10 +235,7 @@ class Game:
             try:
                 if self.online is Status.Host:
                     d,addr = self.sock.recvfrom(4096)
-                    if addr in self.addrs.keys():
-                        p = self.addrs[addr][1]
-                        p.process_move(pickle.loads(d))
-                        self.addrs[addr] = [5,p]
+                    
                 else:
                     time.sleep(1)
             except socket.timeout:
@@ -306,7 +312,7 @@ class Game:
         
         buf_size = 1024
         self.awaiting_conn()
-        self.awaiting_player_data()
+        # self.awaiting_player_data()
         kd = pg.time.Clock()
         while 'always':
             if self.online is not Status.Host: kd.tick(fps)
@@ -514,6 +520,8 @@ class Game:
                     debug(f'pos: {self.player.rect.center} ang: {self.player.angle} hp: {self.player.hp} slow_mo: {self.player.aim_time}', self.frame,y = 30,)
                     debug(f'{self.frame.get_size()} {self.camera.size}', self.frame,y = 45,)
                     debug(f'tick: {self.world_tick}',self.frame,y=60)
+                    if self.online is Status.Host:
+                        debug(f'players: {", ".join([f"{a}: {v[0]}" for a,v in self.addrs])}',self.frame,y=75)
             else:
                 self.frame.fill('black')
             if self.world.neo_mode:
