@@ -221,7 +221,7 @@ class Game:
                     else:
                         p = self.addrs[addr][1]
                         data = pickle.loads(d)
-                        print(data)
+                        if data: print(data)
                         p.process_move(data)
                         self.addrs[addr] = [5000,p]
                 else:
@@ -229,17 +229,17 @@ class Game:
             except socket.timeout:
                 pass
 
-    @threaded()
-    def awaiting_player_data(self):
-        while 1:
-            try:
-                if self.online is Status.Host:
-                    d,addr = self.sock.recvfrom(4096)
+    # @threaded()
+    # def awaiting_player_data(self):
+    #     while 1:
+    #         try:
+    #             if self.online is Status.Host:
+    #                 d,addr = self.sock.recvfrom(4096)
                     
-                else:
-                    time.sleep(1)
-            except socket.timeout:
-                pass
+    #             else:
+    #                 time.sleep(1)
+    #         except socket.timeout:
+    #             pass
 
     def join_menu(self, text, add=[]):
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -272,6 +272,10 @@ class Game:
         self.camera_target=None
         if self.pause: self.pause = False
         self.player = player.Player(*pos, 0, self)
+        for i in self.addrs.values():
+            p = player.Player(*pos, 0, self)
+            i[1] = p
+            self.world.actors.append(p)
         s = objects.SpawningPortal(*pos, self)
         self.player.guns = list(set(self.player.guns+guns))
         self.camera.center = pos
@@ -369,11 +373,15 @@ class Game:
     
     def create_game(self):
         self.online = Status.Host
+        self.pause_menu()
+        self.pause_menu()
 
     
     def close_game(self):
         self.online = Status.Offline
         # self.sock.close()
+        self.pause_menu()
+        self.pause_menu()
 
     def death(self):
         self.zoom(1.5)
@@ -491,7 +499,7 @@ class Game:
     def draw(self):
         if self.online is not Status.Listen:
             if self.playing:
-                self.world.draw(self.frame, self.camera,self.debug)
+                self.world.draw(self.frame, pg.Rect(self.camera.x-40, self.camera.y-40,self.frame.get_width()+40,self.frame.get_width()+40),self.debug)
                 # self.player.draw(self.frame, self.camera)
 
                 # for p in self.players:
@@ -564,6 +572,8 @@ class Game:
             self.world_tick = 0.3 if self.player.aiming else 1.0
             self.stats['time on ground' if self.player.on_ground else 'time in air']+=self.delta/1000
             self.player.update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
+            for i in self.addrs.values():
+                i[1].update_control(self.delta*self.world_tick,self.world.get_blocks(self.player.pre_rect), self.world, self.world_tick)
             self.world.update_actors(self.delta*self.world_tick, self.player)
 
 

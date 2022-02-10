@@ -455,6 +455,7 @@ class Player(core.Actor):
         
         # JUMP
         self._jump(tick)
+        if not self.on_ground and 450>self.wall_jump_kd>0 and (self.right or self.left): self.wall_jump_kd = 0
 
         # SHOOT
         if self.shoot and self.shoot_kd<=0: self._shoot()
@@ -594,8 +595,9 @@ class Player(core.Actor):
         if self.wall_jump_kd>0:
             w,h = self.img.get_size()
             wall_ang = remap(self.wall_jump_kd, (0,500),(0,360))
+            pivot = (12,10) if self.look_r else (5, 10)
             self.img = pg.transform.rotate(self.img, wall_ang)
-            dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(12,10).rotate(-wall_ang)-(24,20)
+            dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(*pivot).rotate(-wall_ang)-(24,20)
         
         if self.dead: self.img = PLAYER_IMG_DEAD
         if not self.look_r: self.rotate()

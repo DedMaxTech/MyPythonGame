@@ -179,7 +179,7 @@ class ShoterAI(BaseAI, core.Saving):
         x,y = real(self.rect.center,target.rect)
         x,y = -x,y-40
         self.look_r=x>0
-        ang = angle((-x,y if x<0 else -y))
+        ang = angle((-x if x<0 else x,y))
         self.angle = ang if x>0 else -ang+180
         self.d = d
         if target is not None and d < self.START_AGR:

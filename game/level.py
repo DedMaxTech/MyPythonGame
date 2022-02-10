@@ -5,19 +5,27 @@ from . import enemies,core, objects
 from . utils import *
 
 img_rock = 'game/content/blocks/block_rock.png'
+img_rock2 = 'game/content/blocks/block_rock2.png'
 img_wood = 'game/content/blocks/block_wood.png'
 img_leaves = 'game/content/blocks/block_leaves.png'
 img_lastick = 'game/content/blocks/block_nthg.png'
 img_metal = 'game/content/blocks/block_metal.png'
 img_glass = 'game/content/blocks/block_glass.png'
+img_brick = 'game/content/blocks/block_bricks.png'
+img_concrete = 'game/content/blocks/block_concrete.png'
+img_boards = 'game/content/blocks/block_boards.png'
 
 block_s = {
     '0': {'img': img_lastick, 'dest': False},
     '=': {'img': img_rock, 'dest': False},
+    '!': {'img': img_rock2, 'dest': False},
     '|': {'img': img_wood, 'dest': False},
     '+': {'img': img_leaves, 'dest': True},
     '-': {'img': img_metal, 'dest': False},
     '/': {'img': img_glass, 'dest': True},
+    '#': {'img': img_brick, 'dest':False},
+    '%': {'img': img_concrete, 'dest':False},
+    '*': {'img': img_boards, 'dest':False},
 }
 
 conf = '''# Full auto-generated, can be edited
