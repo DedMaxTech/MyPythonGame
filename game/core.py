@@ -184,6 +184,9 @@ class Actor:
     
     def hit(self, actor):
         pass
+
+    def light_draw(self, screen:pg.Surface, camera:pg.Rect): pass
+
     def draw(self, screen:pg.Surface, camera:pg.Rect):
         # pg.draw.circle(screen, 'green',(self.rect.centerx - camera.x, self.rect.centery + camera.y,), 20)
         # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))

@@ -39,7 +39,7 @@ sf.set_colorkey('white')
 font = pg.font.Font(cfg.font,60)
 
 load_screen = pg.Surface((cfg.screen_h,cfg.screen_v))
-load_screen.blit(font.render('Loading...', False, 'white'),(300,190))
+load_screen.blit(font.render('Loading...', False, 'white'),(320,190))
 
 writing = False
 

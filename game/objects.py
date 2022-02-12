@@ -546,3 +546,27 @@ class CameraTargetTriger(BaseTriger, core.Saving):
     def debug_draw(self, screen, camera):
         super().debug_draw(screen, camera)
         pg.draw.rect(screen,'red',(*real((self.target.x-(854/2),self.target.y-(480/2)), camera),854,480), 2)
+
+
+class PointLight(core.Actor, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'rotation':['rot',int]
+    }
+    def __init__(self, x=0, y=0, rotation=0):
+        super().__init__(x, y,80,80,gravity=0, static=True,friction=0,collision=False, image=pg.image.load('game/content/light.png').convert_alpha())
+        self.rot = rotation
+        self.img_orig = self.img
+        self.img = pg.transform.rotate(self.img,rotation)
+    
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        ...
+    
+    def reset(self):
+        self.img = pg.transform.rotate(self.img_orig,self.rot)
+        return super().reset()
+
+    def light_draw(self, screen: pg.Surface, camera: pg.Rect):
+        screen.blit(self.img, real(self.rect.topleft, camera))
+        # pg.draw.rect(screen,'black', (*real(self.rect.topleft, camera),20,20))

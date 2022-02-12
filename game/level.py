@@ -3,6 +3,7 @@ import pygame as pg
 import sys,importlib
 from . import enemies,core, objects
 from . utils import *
+import cfg
 
 img_rock = 'game/content/blocks/block_rock.png'
 img_rock2 = 'game/content/blocks/block_rock2.png'
@@ -70,7 +71,8 @@ class Block(core.Actor):
     def __str__(self):
         return f'level.Block({self.rect.x},{self.rect.y},{repr(self.type)})'
 
-
+black_sf = pg.Surface((cfg.screen_h*2,cfg.screen_v*2), flags=pg.SRCALPHA)
+black_sf.fill('black')
 class World(core.Saving):
     slots = {
         # 'spawn_x':['spawn_pos[0]', int],
@@ -91,6 +93,7 @@ class World(core.Saving):
         self.spawn_pos = (40,40)
         self.bg_name = 'game/content/blocks/bg.png'
         self.neo_mode = False
+        self.sun = False
         # self.bg = pg.image.load(self.bg_name).convert()
         self.rect: pg.Rect = None
         if level: self.open_world(level)
@@ -202,6 +205,16 @@ class World(core.Saving):
         for sf,_, pos in self.images: screen.blit(sf, real(pos, camera))
         [a.draw(screen, camera) for a in self.actors]
         if debug: [a.debug_draw(screen, camera) for a in self.actors]
+
+        if not self.sun: 
+            sf = pg.Surface((cfg.screen_h*2, cfg.screen_v*2), pg.SRCALPHA)
+            # sf.fill((255, 255, 255))
+            [a.light_draw(sf, camera) for a in self.actors]
+            b = black_sf.copy()
+            b.blit(sf,(0,0), special_flags=pg.BLEND_RGBA_SUB)
+
+            screen.blit(b, (0, 0))
+
 
     def reset(self):
         self.bg = pg.image.load(self.bg_name).convert_alpha()

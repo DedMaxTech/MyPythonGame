@@ -9,7 +9,9 @@ ais = [
 	
 ]
 actors = [
-	
+	objects.PointLight(x=32, y=526, rotation=0),
+	objects.PointLight(x=220, y=355, rotation=220),
+	objects.PointLight(x=432, y=534, rotation=270)
 ]
 blocks = [
 	level.Block(0,1000,'%'),

@@ -47,9 +47,9 @@ class Editor:
             a += 1
         a = 0
         bs.append(Button((1000,100), 'white', 'Blocks:', 80, ),)
-        for i in glob('levels/blocks/*.txt'):
-            bs.append(Button((1050, 200 + a * 45), 'white', i, 30, self.open_level, 'red', args=(i)));
-            a += 1
+        # for i in glob('levels/blocks/*.txt'):
+        #     bs.append(Button((1050, 200 + a * 45), 'white', i, 30, self.open_level, 'red', args=(i)));
+        #     a += 1
         bs+=[Button((150,600), 'white', 'Exit', 50,exit,'darkgrey')]
         self.ui.set_ui(bs)
 
