@@ -48,3 +48,6 @@ class ExploseParticle(core.Actor):
         if self.side==3: coord = (w,0)
         if self.side==4: coord = (w,w)
         pg.draw.circle(self.img, 'black', coord, self.w,)
+    
+    def light_draw(self, screen: pg.Surface, camera: pg.Rect):
+        screen.blit(self.img, real(self.rect.topleft, camera))

@@ -1,6 +1,6 @@
 import pygame as pg
 import math
-from . import enemies, core, fx, level
+from . import enemies, core, fx, level, objects
 from .UI import HBox, Interface, Button,ProgressBar, VBox, RIGHT,LEFT,FILL,DOWN,UP
 from . utils import *
 from random import randint as rd
@@ -292,6 +292,9 @@ class Player(core.Actor):
             'Time stop':0,
         }
 
+        self.flashlight = objects.PointLight(*self.rect.center)
+        self.self_light = objects.Light(*self.rect.center, scale=1.2)
+
         self.dead = False
         self.dead_kd = 2000
 
@@ -464,6 +467,13 @@ class Player(core.Actor):
         if self.grenade: self.throw_genade()
         
         if self.game and self.on_fire>0: fx.fire(self.rect.center,self.game.world,6)
+
+        # LIGHT
+        self.flashlight.rect.topleft = self.rect.center
+        self.flashlight.rot = (-self.angle if self.look_r else self.angle+180)-100
+        self.flashlight.reset()
+
+        self.self_light.rect.topleft = self.rect.center
     
     def damage(self, hp):
         if self.bonus['Armor']: hp/=4
@@ -563,6 +573,11 @@ class Player(core.Actor):
         x,y = pg.mouse.get_pos()
         pg.draw.line(screen,'yellow', real(self.rect.center, camera),pg.mouse.get_pos())
         return super().debug_draw(screen, camera)
+    
+    def light_draw(self, screen: pg.Surface, camera: pg.Rect):
+        self.flashlight.light_draw(screen,camera)
+        self.self_light.light_draw(screen, camera)
+        return super().light_draw(screen, camera)
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         self.img = IMGS['BACK'].copy()

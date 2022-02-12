@@ -199,6 +199,24 @@ class Trigger(BaseTriger, core.Saving):
         exec(f'{self.func}')
         self.delete()
 
+class SunLevelTrigger(BaseTriger, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'level':['level', int]
+    }
+    def __init__(self, x=0, y=0, w=40, h=40, level = 240):
+        super().__init__(x, y, w, h)
+        self.level = level
+
+    def update(self, delta, blocks, actors):
+        self._collide_actors(actors)
+    def triggered(self, actor):
+        self.game.world.sun = limit(self.level, 0, 255)
+        self.delete()
+
 class DoubleGunBonus(BaseTriger, core.Saving):
     slots = {
         'x':['rect.x', int],
@@ -558,15 +576,64 @@ class PointLight(core.Actor, core.Saving):
         super().__init__(x, y,80,80,gravity=0, static=True,friction=0,collision=False, image=pg.image.load('game/content/light.png').convert_alpha())
         self.rot = rotation
         self.img_orig = self.img
-        self.img = pg.transform.rotate(self.img,rotation)
-    
+        # self.img = pg.transform.rotate(self.img,rotation)
+        self.img, pos = offset_rotation(self.img,rotation+80, pos=(x,y))
+        self.offset = vec_delta( pos, self.rect.topleft,)
+        # print(self.rect.topleft,pos,self.offset)
+
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         ...
     
     def reset(self):
-        self.img = pg.transform.rotate(self.img_orig,self.rot)
-        return super().reset()
+        # self.img = pg.transform.rotate(self.img_orig,self.rot)
+        self.img, pos = offset_rotation(self.img_orig,self.rot+80, pos=self.rect.topleft)
+        self.offset = vec_delta( pos, self.rect.topleft,)
 
     def light_draw(self, screen: pg.Surface, camera: pg.Rect):
-        screen.blit(self.img, real(self.rect.topleft, camera))
+        screen.blit(self.img, real(vec_sum(self.rect.topleft, self.offset), camera))
         # pg.draw.rect(screen,'black', (*real(self.rect.topleft, camera),20,20))
+
+class Light(core.Actor, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'scale':['scale', float]
+    }
+    def __init__(self, x=0, y=0, scale=1):
+        super().__init__(x, y,int(100*scale),int(100*scale),gravity=0, static=True,friction=0,collision=False, image=pg.image.load('game/content/lamp_light.png').convert_alpha())
+        self.scale = scale
+        self.img_orig = self.img
+        # self.img = pg.transform.rotate(self.img,rotation)
+        self.reset()
+        # print(self.rect.topleft,pos,self.offset)
+
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        ...
+    
+    def reset(self):
+        # self.img = pg.transform.rotate(self.img_orig,self.rot)
+        self.img = pg.transform.scale(self.img_orig,(int(self.rect.w*self.scale), int(self.rect.h*self.scale)))
+        self.offset = (-self.rect.w*self.scale/2 , -self.rect.h*self.scale/2)
+
+    def light_draw(self, screen: pg.Surface, camera: pg.Rect):
+        screen.blit(self.img, real(vec_sum(self.rect.topleft, self.offset), camera))
+        # pg.draw.rect(screen,'black', (*real(self.rect.topleft, camera),20,20))
+
+
+class LightZone(core.Actor, core.Saving):
+    slots = {
+        'x':['rect.x', int],
+        'y':['rect.y', int],
+        'w':['rect.w', int],
+        'h':['rect.h', int],
+        'opacity':['op', int]
+    }
+    def __init__(self, x=0, y=0, w=100, h=100, opacity=255):
+        super().__init__(x, y, w, h, 0, 0, False, 0, False)
+        self.op = opacity
+
+    def light_draw(self, screen: pg.Surface, camera: pg.Rect):
+        pg.draw.rect(screen, (0,0,0,limit(self.op,0, 255)),(*real(self.rect.topleft, camera),self.rect.w,self.rect.h))
+    
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        pass

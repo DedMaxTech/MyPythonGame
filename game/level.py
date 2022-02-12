@@ -93,13 +93,14 @@ class World(core.Saving):
         self.spawn_pos = (40,40)
         self.bg_name = 'game/content/blocks/bg.png'
         self.neo_mode = False
-        self.sun = False
+        self.sun = 0
         # self.bg = pg.image.load(self.bg_name).convert()
         self.rect: pg.Rect = None
         if level: self.open_world(level)
 
     def open_world(self, levelname, game_inst=None, video=True):
         self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
+        self.sun = 0
         self.neo_mode = False
         # with open(f'levels/{levelname}.py', 'r') as file:
         #     self.ignore_str, _ = ''.join(file.readlines()).split('####DONT TOUCH####')
@@ -206,13 +207,13 @@ class World(core.Saving):
         [a.draw(screen, camera) for a in self.actors]
         if debug: [a.debug_draw(screen, camera) for a in self.actors]
 
-        if not self.sun: 
+        if 0<self.sun<=255: 
             sf = pg.Surface((cfg.screen_h*2, cfg.screen_v*2), pg.SRCALPHA)
             # sf.fill((255, 255, 255))
             [a.light_draw(sf, camera) for a in self.actors]
             b = black_sf.copy()
+            b.set_alpha(self.sun)
             b.blit(sf,(0,0), special_flags=pg.BLEND_RGBA_SUB)
-
             screen.blit(b, (0, 0))
 
 

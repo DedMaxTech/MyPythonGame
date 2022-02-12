@@ -1,40 +1,56 @@
 import pygame as pg
-import time
-import zlib,socket
+from pygame import image
 
-screen = pg.display.set_mode((854,480),pg.SCALED)
-sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-sock.settimeout(2)
-addr = socket.gethostbyname(socket.gethostname()), 5001
-sock.sendto(b'hello',addr)
-while 1:
+def rotate(surface, angle, pivot, offset):
+    rotated_image = pg.transform.rotozoom(surface, -angle, 1)  # Rotate the image.
+    rotated_offset = offset.rotate(angle)  # Rotate the offset vector.
+    # Add the offset vector to the center/pivot point to shift the rect.
+    rect = rotated_image.get_rect(center=pivot+rotated_offset)
+    return rotated_image, rect  # Return the rotated image and shifted rect.
 
-        
-# for _ in range(10):
-#     print('||||||||||||||||||||||||||||||||||||\n||||||||||||||||||||||||||||||||||||')
-#     for cl in range(-1,10):
-#         print('уровень сжатия:', cl)
-#         img = pg.transform.scale(pg.image.load('game/content/bg2.png'),(854,480))
-#         print(img.get_size())
 
-#         t=time.time()
-#         a = pg.image.tostring(img,'RGB')
-#         print('img to str',(time.time()-t)*1000,'ms')
-#         l = len(a)
-#         print('размер до сжатия',l)
 
-#         t=time.time()
-#         a = zlib.compress(a,cl)
-#         print('compress',(time.time()-t)*1000,'ms')
-#         print('размер после', len(a), ', меньше в', l/len(a),'раз')
+pg.init()
+screen = pg.display.set_mode((640, 480))
+clock = pg.time.Clock()
+BG_COLOR = pg.Color('gray12')
+# The original image will never be modified.
+IMAGE = pg.Surface((140, 60), pg.SRCALPHA)
+pg.draw.polygon(IMAGE, pg.Color('dodgerblue3'), ((0, 0), (140, 30), (0, 60)))
+# IMAGE = pg.image.load('game/content/player2/player.png')
+# Store the original center position of the surface.
+pivot = [200, 250]
+# This offset vector will be added to the pivot point, so the
+# resulting rect will be blitted at 'rect.topleft + offset'.
+offset = pg.math.Vector2(70,30)
+print((5,5)-offset.xy)
+angle = 0
 
-#         t=time.time()
-#         a = zlib.decompress(a)
-#         print('decompress',(time.time()-t)*1000,'ms')
+running = True
+while running:
+    # angle+=1
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            running = False
 
-#         t=time.time()
-#         img = pg.image.fromstring(a,screen.get_size(),'RGB')
-#         print('img from str',(time.time()-t)*1000,'ms')
-#         print('------------------------------')
-#         screen.blit(img,(0,0))
-#         pg.display.flip()
+    keys = pg.key.get_pressed()
+    if keys[pg.K_d] or keys[pg.K_RIGHT]:
+        angle += 1
+    elif keys[pg.K_a] or keys[pg.K_LEFT]:
+        angle -= 1
+    if keys[pg.K_f]:
+        pivot[0] += 2
+
+    # Rotated version of the image and the shifted rect.
+    rotated_image, rect = rotate(IMAGE, angle, pivot, offset)
+
+    # Drawing.
+    screen.fill(BG_COLOR)
+    screen.blit(rotated_image, rect)  # Blit the rotated image.
+    pg.draw.circle(screen, (30, 250, 70), pivot, 3)  # Pivot point.
+    pg.draw.rect(screen, (30, 250, 70), rect, 1)  # The rect.
+    pg.display.set_caption('Angle: {}'.format(angle))
+    pg.display.flip()
+    clock.tick(30)
+
+pg.quit()

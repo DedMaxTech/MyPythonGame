@@ -131,6 +131,14 @@ def real(pos: Union[Tuple[int, int], pg.Rect], camera: pg.Rect, invert=False) ->
             return pos[0] + camera.x, pos[1] + camera.y
 
 
+def offset_rotation(img:pg.Surface, angle, offset=(0,0),pos=(0,0)):
+    offset = pg.Vector2(img.get_width()/2-offset[0],img.get_height()/2-offset[1])
+    img = pg.transform.rotate(img, -angle)
+    off = offset.rotate(angle)
+    pos = off.xy + (pos[0]-(img.get_width()/2),pos[1]-(img.get_height()/2))
+    return img, pos
+
+
 def limit(val: float, min:float=None, max:float =None) -> float:
     """Return value in min&max bounds
 

@@ -9,9 +9,12 @@ ais = [
 	
 ]
 actors = [
+	objects.LightZone(x=918, y=637, w=200, h=200, opacity=270),
 	objects.PointLight(x=32, y=526, rotation=0),
-	objects.PointLight(x=220, y=355, rotation=220),
-	objects.PointLight(x=432, y=534, rotation=270)
+	objects.PointLight(x=577, y=559, rotation=30),
+	objects.PointLight(x=303, y=555, rotation=-30),
+	objects.Light(x=204, y=739, scale=2.0),
+	objects.SunLevelTrigger(x=-36, y=-89, w=200, h=200, level=240)
 ]
 blocks = [
 	level.Block(0,1000,'%'),
