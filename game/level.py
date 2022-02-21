@@ -98,6 +98,10 @@ class World(core.Saving):
         self.rect: pg.Rect = None
         if level: self.open_world(level)
 
+        self.black_sf = pg.Surface((cfg.screen_h*2,cfg.screen_v*2), flags=pg.SRCALPHA)
+        self.black_sf.fill('black')
+        self.lighting = pg.Surface((cfg.screen_h*2,cfg.screen_v*2), flags=pg.SRCALPHA)
+
     def open_world(self, levelname, game_inst=None, video=True):
         self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
         self.sun = 0
@@ -205,16 +209,28 @@ class World(core.Saving):
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y - camera.y))
         for sf,_, pos in self.images: screen.blit(sf, real(pos, camera))
         [a.draw(screen, camera) for a in self.actors]
-        if debug: [a.debug_draw(screen, camera) for a in self.actors]
+
+        if self.neo_mode:
+            neg = pg.Surface(screen.get_size())
+            neg.fill((255, 255, 255))
+            neg.blit(screen, (0, 0), special_flags=pg.BLEND_SUB)
+            screen.blit(neg,(0,0))
 
         if 0<self.sun<=255: 
-            sf = pg.Surface((cfg.screen_h*2, cfg.screen_v*2), pg.SRCALPHA)
-            # sf.fill((255, 255, 255))
-            [a.light_draw(sf, camera) for a in self.actors]
-            b = black_sf.copy()
-            b.set_alpha(self.sun)
-            b.blit(sf,(0,0), special_flags=pg.BLEND_RGBA_SUB)
-            screen.blit(b, (0, 0))
+            # sf = pg.Surface((cfg.screen_h*2, cfg.screen_v*2), pg.SRCALPHA)
+            # [a.light_draw(sf, camera) for a in self.actors]
+            # b = black_sf.copy()
+            # b.set_alpha(self.sun)
+            # b.blit(sf,(0,0), special_flags=pg.BLEND_RGBA_SUB)
+            # screen.blit(b, (0, 0))
+            self.lighting.fill((0,0,0,0))
+            [a.light_draw(self.lighting, camera) for a in self.actors]
+            self.black_sf.fill('black')
+            self.black_sf.set_alpha(self.sun)
+            self.black_sf.blit(self.lighting,(0,0), special_flags=pg.BLEND_RGBA_SUB)
+            screen.blit(self.black_sf, (0, 0))
+        
+        if debug: [a.debug_draw(screen, camera) for a in self.actors]
 
 
     def reset(self):

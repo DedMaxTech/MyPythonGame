@@ -414,6 +414,13 @@ class Player(core.Actor):
 
         self.look_r = x>=0
         self.angle = angle((abs(x),-y))
+        # x,y = self.m_coords
+        # w,h = self.game.frame.get_size()
+        # x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
+        # # x, y =x+self.game.camera.x - self.rect.centerx, self.rect.centery - y - self.game.camera.y
+        
+        # self.look_r = x>=0
+        # self.angle = angle(self.rect.center, (self.game.camera.x+x,))
 
         # RELOAD
         if self._reload:

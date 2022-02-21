@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from time import sleep
 import pygame as pg
 import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats
@@ -532,11 +533,11 @@ class Game:
                         debug(f'players: {", ".join([f"{a}: {v[0]}" for a,v in self.addrs])}',self.frame,y=75)
             else:
                 self.frame.fill('black')
-            if self.world.neo_mode:
-                neg = pg.Surface(self.frame.get_size())
-                neg.fill((255, 255, 255))
-                neg.blit(self.frame, (0, 0), special_flags=pg.BLEND_SUB)
-                self.frame = neg
+            # if self.world.neo_mode:
+            #     neg = pg.Surface(self.frame.get_size())
+            #     neg.fill((255, 255, 255))
+            #     neg.blit(self.frame, (0, 0), special_flags=pg.BLEND_SUB)
+            #     self.frame = neg
             if self.pause: self.screen.blit(self.tint2, (0, 0))
         self.ui.render(self.screen)
 

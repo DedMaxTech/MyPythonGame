@@ -631,6 +631,9 @@ class LightZone(core.Actor, core.Saving):
     def __init__(self, x=0, y=0, w=100, h=100, opacity=255):
         super().__init__(x, y, w, h, 0, 0, False, 0, False)
         self.op = opacity
+    
+    def update(self, delta, blocks, actors):
+        self._collide_actors(actors)
 
     def light_draw(self, screen: pg.Surface, camera: pg.Rect):
         pg.draw.rect(screen, (0,0,0,limit(self.op,0, 255)),(*real(self.rect.topleft, camera),self.rect.w,self.rect.h))

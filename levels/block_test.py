@@ -14,7 +14,7 @@ actors = [
 	objects.PointLight(x=577, y=559, rotation=30),
 	objects.PointLight(x=303, y=555, rotation=-30),
 	objects.Light(x=204, y=739, scale=2.0),
-	objects.SunLevelTrigger(x=-36, y=-89, w=200, h=200, level=240)
+	objects.SunLevelTrigger(x=-36, y=-89, w=200, h=200, level=255)
 ]
 blocks = [
 	level.Block(0,1000,'%'),
