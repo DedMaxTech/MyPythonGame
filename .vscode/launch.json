@@ -8,7 +8,7 @@
             "name": "Game main",
             "type": "python",
             "request": "launch",
-            "program": "main_hack_shit.py",
+            "program": "main.py",
             "console": "integratedTerminal"
         }
     ]

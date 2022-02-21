@@ -1,1 +1,1 @@
-python main_hack_shit.py
+python main.py

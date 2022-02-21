@@ -85,6 +85,9 @@ class Button(Widget):
                 off = 50
                 screen.blit(self.font.render('~ ', False, self.color), (self.rect.x-offset[0]+5-self.font.size('~ ')[0], self.rect.y-offset[1]))
                 screen.fill((abs(self.bg.r-off), abs(self.bg.g-off),abs(self.bg.b-off)), (self.rect.x-offset[0], self.rect.y-offset[1],self.rect.w+20, self.rect.h))
+                w=2
+                pg.draw.rect(screen,'white', (self.rect.x-offset[0]-w, self.rect.y-offset[1]-w,self.rect.w+w + (20 if self.hovered else 0), self.rect.h+w), w)
+            
         if self.img: screen.blit(self.img, (self.rect.x-offset[0], self.rect.y-offset[1]))
         screen.blit(self.font.render(self.text, False, self.color), (self.rect.x-offset[0]+5, self.rect.y-offset[1]))
 
