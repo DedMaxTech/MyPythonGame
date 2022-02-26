@@ -5,7 +5,7 @@ background = 'game\\content/bg2.png'
 guns = [
 	'sniper'
 ]
-sun_level = 0
+sun_level = 255
 ais = [
 	enemies.ShoterAI(x=1140, y=600, gun='rifle'),
 	enemies.MeleeAI(x=960, y=580),

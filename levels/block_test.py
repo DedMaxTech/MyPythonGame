@@ -5,7 +5,7 @@ background = 'game\\content/bg2.png'
 guns = [
 	
 ]
-sun_level = 255
+sun_level = 240
 ais = [
 	
 ]

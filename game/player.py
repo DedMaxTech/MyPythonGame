@@ -448,7 +448,7 @@ class Player(core.Actor):
 
         ps = [real(self.rect.center,camera)]
         for i in range(10):
-            _, p, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+ i * 4 - 10,500, camera=camera)
+            _, p, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+ i*4 - 10,500, camera=camera)
             ps.append(real(p,camera))
         pg.draw.polygon(screen, 'white', ps)
 

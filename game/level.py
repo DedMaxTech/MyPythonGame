@@ -1,6 +1,6 @@
 from typing import List, Union
 import pygame as pg
-import sys,importlib
+import sys,importlib, ctypes
 from . import enemies,core, objects
 from . utils import *
 import cfg
@@ -50,6 +50,16 @@ blocks = [
 
 ]
 '''
+class Point(ctypes.Structure):
+    _fields_ = [
+        ('x', ctypes.c_int),
+        ('y', ctypes.c_int),
+    ]
+game_lib = ctypes.cdll.LoadLibrary('game/Game.dll')
+c_ray_cast = game_lib[1]
+c_ray_cast.argtypes = [ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.c_int,ctypes.POINTER(Point), ctypes.c_size_t]
+c_ray_cast.restype = Point
+
 
 def write_list(name, arr):
     separator = ',\n\t'
@@ -162,15 +172,25 @@ class World(core.Saving):
         # return self.blocks
     
     def raycast(self, pos, ang, max_dist = cfg.screen_h, camera = None):
-        """WARNING! BAD OPTIMIZATION"""
-        x, y = pos; dx,dy = vec_to_speed(1, ang)
-        bl = self.blocks if not camera else self.get_blocks(camera)
-        for w in range(0,max_dist, 4):
-            for b in bl:
-                if b.rect.collidepoint(x,y):
-                    return pos, (x,y), w
-            x,y = x+dx*4, y+dy*4
-        return pos, (x,y), max_dist
+        # """WARNING! BAD OPTIMIZATION"""
+        # x, y = pos; dx,dy = vec_to_speed(1, ang)
+        # bl = self.blocks if not camera else self.get_blocks(camera)
+        # for w in range(0,max_dist, 4):
+        #     for b in bl:
+        #         if b.rect.collidepoint(x,y):
+        #             return pos, (x,y), w
+        #     x,y = x+dx*4, y+dy*4
+        # return pos, (x,y), max_dis
+        """Using C"""
+        ar_type = Point*len(self.blocks)
+        ar_l = ar_type()
+        for i in range(len(self.blocks)):
+            ar_l[i] = Point()
+            ar_l[i].x = self.blocks[i].rect.x
+            ar_l[i].y = self.blocks[i].rect.y
+        ar = ctypes.cast(ar_l, ctypes.POINTER(Point))
+        p = c_ray_cast(int(pos[0]),int(pos[1]), int(ang), int(max_dist), ar, len(self.blocks))
+        return pos, (p.x,p.y), max_dist
 
     
     def get_actors(self, rect:pg.Rect=None):
