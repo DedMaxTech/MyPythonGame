@@ -261,10 +261,10 @@ class Player(core.Actor):
         x,y = self.m_coords
         w,h = self.game.frame.get_size()
         x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
-        x, y =x+self.game.camera.x - self.rect.centerx, self.rect.centery - y - self.game.camera.y
+        x, y =x+self.game.camera.x - self.rect.centerx-42, y + self.game.camera.y - self.rect.centery-40
 
         self.look_r = x>=0
-        self.angle = angle((abs(x),-y))
+        self.angle = angle((abs(x),y))
         # x,y = self.m_coords
         # w,h = self.game.frame.get_size()
         # x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
@@ -328,7 +328,7 @@ class Player(core.Actor):
 
         # LIGHT
         self.flashlight.rect.topleft = self.rect.center
-        self.flashlight.rot = (-self.angle if self.look_r else self.angle+180)-100
+        self.flashlight.rot = (-self.angle if self.look_r else self.angle+180)-90
         self.flashlight.reset()
 
         self.self_light.rect.topleft = self.rect.center
@@ -436,12 +436,22 @@ class Player(core.Actor):
         self.img = pg.transform.flip(self.img, True, False)
         
     def debug_draw(self, screen, camera):
-        x,y = pg.mouse.get_pos()
-        pg.draw.line(screen,'yellow', real(self.rect.center, camera),pg.mouse.get_pos())
+        # pg.draw.line(screen,'yellow', real(self.rect.center, camera),pg.mouse.get_pos())
+        # _, pos1, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)-10)
+        # _, pos2, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+10)
+        # # pg.draw.line(screen,'yellow', real(self.rect.center, camera),real(end, camera))
+        # pg.draw.polygon(screen, 'white', [real(self.rect.center, camera),real(pos1, camera),real(pos2, camera)])
         return super().debug_draw(screen, camera)
     
     def light_draw(self, screen: pg.Surface, camera: pg.Rect):
-        self.flashlight.light_draw(screen,camera)
+        # self.flashlight.light_draw(screen,camera)
+
+        ps = [real(self.rect.center,camera)]
+        for i in range(10):
+            _, p, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+ i * 4 - 10,500, camera=camera)
+            ps.append(real(p,camera))
+        pg.draw.polygon(screen, 'white', ps)
+
         self.self_light.light_draw(screen, camera)
         return super().light_draw(screen, camera)
 

@@ -161,6 +161,18 @@ class World(core.Saving):
         return [self.blocks[i] for i in rect.collidelistall(self.blocks)]
         # return self.blocks
     
+    def raycast(self, pos, ang, max_dist = cfg.screen_h, camera = None):
+        """WARNING! BAD OPTIMIZATION"""
+        x, y = pos; dx,dy = vec_to_speed(1, ang)
+        bl = self.blocks if not camera else self.get_blocks(camera)
+        for w in range(0,max_dist, 4):
+            for b in bl:
+                if b.rect.collidepoint(x,y):
+                    return pos, (x,y), w
+            x,y = x+dx*4, y+dy*4
+        return pos, (x,y), max_dist
+
+    
     def get_actors(self, rect:pg.Rect=None):
         if rect is None:
             return self.actors
@@ -209,7 +221,7 @@ class World(core.Saving):
         for i in self.get_blocks(camera):
             screen.blit(i.img, (i.rect.x - camera.x, i.rect.y - camera.y))
         for sf,_, pos in self.images: screen.blit(sf, real(pos, camera))
-        [a.draw(screen, camera) for a in self.actors]
+        [a.draw(screen, camera) for a in self.get_actors(camera)]
 
         if self.neo_mode:
             neg = pg.Surface(screen.get_size())
@@ -220,7 +232,7 @@ class World(core.Saving):
         if 0<self.sun:
             self.sun = limit(self.sun, 0, 255) 
             self.lighting.fill((0,0,0,0))
-            [a.light_draw(self.lighting, camera) for a in self.actors]
+            [a.light_draw(self.lighting, camera) for a in self.get_actors(camera)]
             self.black_sf.fill('black')
             self.black_sf.set_alpha(self.sun)
             self.black_sf.blit(self.lighting,(0,0), special_flags=pg.BLEND_RGBA_SUB)

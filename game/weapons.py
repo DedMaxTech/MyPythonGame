@@ -29,7 +29,8 @@ class Projectile(core.Actor):
             self.img = pg.transform.flip(self.img,False,True)
         self.ignore_tmr = 200
         self.pre_rect = pg.Rect(x-50,y-50,w+50,h+50)
-        self.rot_timer = 200
+        self.rot_tick = 20000
+        self.rot_timer = self.rot_tick
 
     def update(self, delta, blocks, actors):
         if self.ignore_tmr>0: self.ignore_tmr-=delta
@@ -72,6 +73,8 @@ class Bullet(Projectile):
 class Rocket(Projectile):
     def __init__(self, x, y, xv, yv, img, rot, dmg, parent):
         super().__init__(x, y, xv, yv, img, rot, dmg, parent, 0, 0.3, 0)
+        self.rot_tick = 200
+        self.rot_timer = self.rot_tick
     
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         fx.fire(self.rect.center, self.parent.game.world,2)
@@ -88,7 +91,6 @@ class Rocket(Projectile):
                     if d<r:
                         dmg=int(remap(r-d, (0,r), (20,99)))
                         xv,yv = vec_to_speed(dmg/5, 180-angle(a.rect.center,self.rect.center,))
-                        print(type(a),xv,yv)
                         # a.speed.xy = xv if self.rect.x>a.rect.x else -xv,(yv if self.rect.x>a.rect.x else -yv)-1
                         a.speed.xy = -xv, -yv
                         a.on_fire = rd(5000,8000)

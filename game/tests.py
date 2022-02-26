@@ -1,7 +1,9 @@
 import ctypes
 
 kek = ctypes.cdll.LoadLibrary(r'D:\Projects\Studio\Dll1\x64\Release\Dll1.dll')
-kek.SomeFunction()
+fuck = kek[2]
+fuck()
+for i in kek: print(i)
 # import pygame as pg
 # from pygame import image
 
