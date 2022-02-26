@@ -5,6 +5,7 @@ background = 'game\\content/bg2.png'
 guns = [
 	
 ]
+sun_level = 240
 ais = [
 	enemies.ShoterAI(x=976, y=900, gun='rifle')
 ]
@@ -23,7 +24,8 @@ actors = [
 	objects.ArmorBonus(x=264, y=860, time=50000),
 	objects.TimeStopBonus(x=268, y=954, time=10000),
 	objects.Portal(x1=40, y1=920, x2=500, y2=920, w=40, h=80),
-	objects.SunLevelTrigger(x=12, y=830, w=100, h=100, level=255)
+	objects.GunsCase(x=699, y=706, guns=['rocket_gun']),
+	objects.Ammo(x=749, y=731, ammo={'rocket_gun': 15})
 ]
 blocks = [
 	level.Block(0,-40,'-'),

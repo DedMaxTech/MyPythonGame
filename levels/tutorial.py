@@ -4,6 +4,7 @@ from game import *
 spawn_pos = (40,40)
 background = 'game\content/bg2.png'
 guns = []
+sun_level = 0
 
 ####DONT TOUCH####
 # Auto-generated in game.level

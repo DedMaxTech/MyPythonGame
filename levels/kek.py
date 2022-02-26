@@ -6,6 +6,7 @@ guns = [
 	'rifle',
 	'shootgun'
 ]
+sun_level = 0
 ais = [
 	
 ]

@@ -23,8 +23,6 @@ except pg.error:
 from game import *
 
 
-
-
 with open('game/content/cursor.xbm') as c: 
     m = open('game/content/cursor_mask.xbm')
     cursor = pg.cursors.load_xbm(c,m)
@@ -238,6 +236,7 @@ class Game:
     #                 d,addr = self.sock.recvfrom(4096)
                     
     #             else:
+
     #                 time.sleep(1)
     #         except socket.timeout:
     #             pass
@@ -253,7 +252,9 @@ class Game:
         # os.system('python editor.py')
         subprocess.run('python editor.py')
         pg.display.toggle_fullscreen()
+        self.screen = pg.display.set_mode(size=self.res, flags=pg.SCALED | pg.FULLSCREEN)
         pg.display.set_caption(cfg.GAMENAME)
+
     @threaded()
     def start_zoom(self, level):
         self.zoom(3)
@@ -558,7 +559,6 @@ class Game:
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE: self.pause_menu()
             if event.type == AUTOSAVE_EVENT:
                 write_stats(self.stats)
-                # write_stat('time', self.millis)
         return events
 
 

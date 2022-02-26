@@ -3,7 +3,7 @@ from typing import List
 from pygame import event
 
 from game.UI import Button
-from . import core, player, fx
+from . import core, player, fx, weapons
 from . utils import *
 import cfg
 
@@ -229,7 +229,7 @@ class DoubleGunBonus(BaseTriger, core.Saving):
         self.gravity, self.friction=0.4,0.005
         self.frame_timer = 400
         self.cur_img = 0
-        self.imgs = [player.GUNS[i]['img'] for i in player.GUNS]
+        self.imgs = [weapons.GUNS[i]['img'] for i in weapons.GUNS]
         self.img = self.imgs[0]
         self.time = time
     
@@ -330,12 +330,12 @@ class Aid(BaseTriger, core.Saving):
         self.visible=True
         self.gravity, self.friction=0.4,0.005
         self.img = pg.image.load('game/content/objects/aid.png').convert_alpha()
-        self.hp = hp
+        self.hp = int(hp)
     
     def triggered(self, actor):
         if actor.hp+self.hp>actor.max_hp: actor.hp = actor.max_hp
         else: actor.hp+=self.hp
-        fx.damage(actor.rect.center, self.hp, self.game.world, True)
+        fx.damage(actor.rect.center, int(self.hp), self.game.world, True)
         self.delete()
 class Grenades(BaseTriger, core.Saving):
     slots = {

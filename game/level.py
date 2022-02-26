@@ -35,6 +35,7 @@ from game import *
 spawn_pos = (40,40)
 background = '{bg}'
 guns = []
+sun_level = 0
 
 
 ais = [
@@ -78,18 +79,20 @@ class World(core.Saving):
         # 'spawn_x':['spawn_pos[0]', int],
         # 'spawn_y':['spawn_pos[1]', int],
         # 'spawn_pos':['spawn_pos',list],
+        'sun_debug_level':['sun',int],
         'background':['bg_name',str],
         'guns':['guns',list],
     }
     def __init__(self, level=None):
         self.levelname = level
+        self.cur_level = None
         self.h, self.w = 0, 0
         self.blocks: List[Block] = []
         self.actors: List[core.Actor] = []
         self.ais: List[enemies.MeleeAI] = []
         self.images: List[pg.Surface] = []
         self.guns = []
-        self.ignore_str = []
+        self.ignore_str = ''
         self.spawn_pos = (40,40)
         self.bg_name = 'game/content/blocks/bg.png'
         self.neo_mode = False
@@ -106,13 +109,10 @@ class World(core.Saving):
         self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
         self.sun = 0
         self.neo_mode = False
-        # with open(f'levels/{levelname}.py', 'r') as file:
-        #     self.ignore_str, _ = ''.join(file.readlines()).split('####DONT TOUCH####')
         level = importlib.import_module(f'levels.{levelname}')
-        # if f'levels.{levelname}' in sys.modules:
         importlib.reload(level)
-        # exec(f'from levels import {level}')
-        print(f'Open level - {levelname}, {video=}')
+        self.cur_level = level
+        print(f'Open level - {levelname}, optimization = {video}')
         self.bg_name = level.background
         if video:self.bg = pg.image.load(level.background).convert()
         else:self.bg = pg.image.load(level.background)
@@ -120,6 +120,7 @@ class World(core.Saving):
         self.guns = level.guns.copy()
         self.ais = level.ais.copy()
         self.actors = level.actors.copy()+self.ais
+        self.sun = level.sun_level
         [a.set_game(game_inst) for a in self.actors]
         # print([(a,a._delete) for a in self.actors])
         for a in self.actors: 
@@ -131,7 +132,7 @@ class World(core.Saving):
 
     def save_world(self, levelname):
         with open(f'levels/{levelname}.py', 'w') as file:
-            file.write(f'from game import *\n\nspawn_pos = {repr(self.spawn_pos)}\nbackground = {repr(self.bg_name)}\n'+write_list('guns', [repr(i) for i in self.guns]))
+            file.write(f'from game import *\n\nspawn_pos = {repr(self.spawn_pos)}\nbackground = {repr(self.bg_name)}\n'+write_list('guns', [repr(i) for i in self.guns])+f'sun_level = {self.sun}\n')
             # file.write('####DONT TOUCH####\n# Auto-generated in '+__name__+'\n')
             ais = write_list('ais',[i.save() for i in self.ais if isinstance(i,core.Saving)])
             acts = write_list('actors',[i.save() for i in self.actors if isinstance(i,core.Saving) and not isinstance(i, enemies.BaseAI)])
@@ -216,13 +217,8 @@ class World(core.Saving):
             neg.blit(screen, (0, 0), special_flags=pg.BLEND_SUB)
             screen.blit(neg,(0,0))
 
-        if 0<self.sun<=255: 
-            # sf = pg.Surface((cfg.screen_h*2, cfg.screen_v*2), pg.SRCALPHA)
-            # [a.light_draw(sf, camera) for a in self.actors]
-            # b = black_sf.copy()
-            # b.set_alpha(self.sun)
-            # b.blit(sf,(0,0), special_flags=pg.BLEND_RGBA_SUB)
-            # screen.blit(b, (0, 0))
+        if 0<self.sun:
+            self.sun = limit(self.sun, 0, 255) 
             self.lighting.fill((0,0,0,0))
             [a.light_draw(self.lighting, camera) for a in self.actors]
             self.black_sf.fill('black')

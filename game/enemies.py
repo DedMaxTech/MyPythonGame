@@ -3,7 +3,7 @@ import math
 # from game.level import block_s
 from random import randint as rd
 # from .player import Player
-from . import player, core,fx
+from . import player, core,fx,weapons
 from . utils import *
 
 import cfg
@@ -218,12 +218,12 @@ class ShoterAI(BaseAI, core.Saving):
     def shoot(self, target,world):
         if self.shoot_kd >0: return
         
-        gun = player.GUNS[self.gun]
+        gun = weapons.GUNS[self.gun]
         acc = gun['acc']*2
         for i in range(gun['amount']):
             ang = self.angle+(rd(-acc*5, acc*5)/2)
             xvel, yvel = vec_to_speed(gun['speed'],ang)
-            b = player.Bullet(
+            b = weapons.Bullet(
                 self.rect.centerx, self.rect.centery-15,
                 xvel, yvel, gun['bull_img'], ang, gun['dmg']/4, self
             )
@@ -261,7 +261,7 @@ class ShoterAI(BaseAI, core.Saving):
         # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
         pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+(30*self.hp/100),self.rect.y-camera.y),4)
         ang = (-self.angle+90)%180 - 90
-        gun_img = pg.transform.rotate(player.GUNS[self.gun]['img'].copy(), ang if self.look_r else -ang)
+        gun_img = pg.transform.rotate(weapons.GUNS[self.gun]['img'].copy(), ang if self.look_r else -ang)
         # if not self.look_r: gun_img=pg.transform.flip(gun_img, False,True)
         # debug(gun_img.get_rect().center, screen)
         img.blit(gun_img, (gun_img.get_rect().x, gun_img.get_rect().y+25))
