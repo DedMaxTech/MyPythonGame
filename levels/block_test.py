@@ -6,6 +6,19 @@ guns = [
 	
 ]
 sun_level = 240
+
+#### Dont delete this comment, edit only script inside ####
+
+# called once on level loading
+def load(game):
+	pass
+
+# called every frame update
+def update(game):
+	pass
+
+###########################################################
+
 ais = [
 	
 ]

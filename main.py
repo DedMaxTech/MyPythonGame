@@ -390,7 +390,7 @@ class Game:
 
     def camera_update(self):
         k = self.delta/core.def_tick
-        d = self.frame.get_height()/15/k/self._curzoom
+        d = self.frame.get_height()/15/k/self._curzoom 
         r = self.player.rect
         
         if self.camera_target:
@@ -424,10 +424,12 @@ class Game:
             if event.key == pg.K_r: d['reload'] = True
             if event.key == pg.K_g: d['grenade']=True
             if event.key == pg.K_n: self.debug = not self.debug
+            if event.key == pg.K_e: d['hook']=True
         if event.type == pg.KEYUP:
             if event.key == pg.K_d: d['right'] = False
             if event.key == pg.K_a: d['left'] = False
             if event.key == pg.K_SPACE: d['up'] = False
+            if event.key == pg.K_e: d['hook']=False
         # if event.type == pg.MOUSEMOTION:
         #     if self.player.rect.centerx <= event.pos[0] + camera.x:
         #         d['look_r'] = True
@@ -450,12 +452,14 @@ class Game:
                 d['wheel'] = -1
             elif event.button == pg.BUTTON_RIGHT:
                 d['aim'] = True
+            # if event.button == pg.BUTTON_MIDDLE: d['hook']=True
                 # self.world_tick = 0.3
         if event.type == pg.MOUSEBUTTONUP:
             if event.button == pg.BUTTON_LEFT:
                 d['shoot'] = False
             elif event.button == pg.BUTTON_RIGHT:
                 d['aim'] = False
+            # if event.button == pg.BUTTON_MIDDLE: d['hook']=False
                 # self.world_tick = 1.0
         
         d['coords'] = pg.mouse.get_pos()
@@ -513,7 +517,7 @@ class Game:
                         self.screen.blit(self.tint_slow, (0, 0))
                     else:
                         self.screen.blit(self.tint, (0, 0))
-                if self.w< sf.get_width():
+                if self.w<cfg.screen_h-100 and self.w< sf.get_width():
                     sf.fill('black')
                     x,y = self.player.rect.centerx-self.camera.x, self.player.rect.centery-self.camera.y
                     x,y = remap(x, (0,854*self._curzoom),(0,cfg.screen_h)),remap(y, (0,480*self._curzoom),(0,cfg.screen_v))
@@ -522,7 +526,7 @@ class Game:
                         text = font.render('Respawning...', False, (255,0,0))
                         text.set_alpha(remap(3000-self.player.die_kd, (1500,3000),(0,255)))
                         sf.blit(text, (300,100))
-                    if self.w<cfg.screen_h-100:self.screen.blit(sf,(0,0))
+                    self.screen.blit(sf,(0,0))
                 if self.debug:
                     debug(f'FPS: {int(self.clock.get_fps())} {"You have low FPS, game may work incorrect!" if self.fps_alert else ""}; Stream FPS:{int(self.stream_fps)}',self.frame)
                     debug(f'Actors: {len(self.world.actors)}', self.frame, y=15)

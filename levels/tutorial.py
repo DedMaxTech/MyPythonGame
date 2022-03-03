@@ -6,6 +6,18 @@ background = 'game\content/bg2.png'
 guns = []
 sun_level = 0
 
+#### Dont delete this comment, edit only script inside ####
+
+# called once on level loading
+def load(game):
+	pass
+
+# called every frame update
+def update(game):
+	pass
+
+###########################################################
+
 ####DONT TOUCH####
 # Auto-generated in game.level
 ais = [

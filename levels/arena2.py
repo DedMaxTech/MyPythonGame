@@ -5,7 +5,20 @@ background = 'game\\content/bg2.png'
 guns = [
 	'sniper'
 ]
-sun_level = 255
+sun_level = 0
+
+#### Dont delete this comment, edit only script inside ####
+
+# called once on level loading
+def load(game):
+	pass
+
+# called every frame update
+def update(game):
+	pass
+
+###########################################################
+
 ais = [
 	enemies.ShoterAI(x=1140, y=600, gun='rifle'),
 	enemies.MeleeAI(x=960, y=580),

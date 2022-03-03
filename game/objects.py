@@ -640,3 +640,18 @@ class LightZone(core.Actor, core.Saving):
     
     def draw(self, screen: pg.Surface, camera: pg.Rect):
         pass
+
+# class RayCastLight(core.Actor, core.Saving):
+#     slots = {
+#         'x':['rect.x', int],
+#         'y':['rect.y', int],
+#         'diameter':['rect.w', int],
+#         'angle':['angle', int],
+#     }
+#     def __init__(self, x=0, y=0, diameter=80,angle = 45):
+#         super().__init__(x, y,diameter,diameter,gravity=0, static=True,friction=0,collision=False)
+    
+#     def reset(self):
+#         # self.img = pg.transform.rotate(self.img_orig,self.rot)
+#         self.img = pg.transform.scale(self.img_orig,(int(self.rect.w*self.scale), int(self.rect.h*self.scale)))
+#         self.offset = (-self.rect.w*self.scale/2 , -self.rect.h*self.scale/2)

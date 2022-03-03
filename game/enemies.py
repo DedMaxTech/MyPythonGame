@@ -15,6 +15,16 @@ AI_IMG_RIGHT = pg.image.load('game/content/ai/lookr.png')
 AI_IMG_LEFT = pg.transform.flip(AI_IMG_RIGHT, True, False)
 
 
+sounds = not pg.mixer.get_init() is None
+# print('sound',sounds)
+if sounds:
+    SOUNDS = {
+        'jump':pg.mixer.Sound('game/content/sounds/jump.wav'),
+        'hurt':pg.mixer.Sound('game/content/sounds/hurt.wav'),
+        'shoot':pg.mixer.Sound('game/content/sounds/shoot.wav'),
+        'expl':pg.mixer.Sound('game/content/sounds/explosion.wav'),
+    }
+
 class BaseAI(core.Actor):
     def update_ai(self,delta, world):
         pass
@@ -230,6 +240,7 @@ class ShoterAI(BaseAI, core.Saving):
             world.actors.append(b)
 
         self.shoot_kd = gun['kd']*1.5
+        if sounds: SOUNDS['shoot'].play()
 
     def pick_state(self):
         states = [self.WAIT]

@@ -1,9 +1,8 @@
-import ctypes
+import re
 
-kek = ctypes.cdll.LoadLibrary(r'D:\Projects\Studio\Dll1\x64\Release\Dll1.dll')
-fuck = kek[2]
-fuck()
-for i in kek: print(i)
+with open(f'./levels/empty.py', 'r') as file:
+    r = re.search(r'#### Dont delete this comment, edit only script inside ####\n(.*\n)*###########################################################', file.read())
+    print(r.group(0))
 # import pygame as pg
 # from pygame import image
 

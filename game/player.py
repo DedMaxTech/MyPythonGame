@@ -1,3 +1,4 @@
+from re import T
 import pygame as pg
 import math
 from . import enemies, core, fx, level, objects, weapons
@@ -47,9 +48,6 @@ if sounds:
         'expl':pg.mixer.Sound('game/content/sounds/explosion.wav'),
     }
 
-
-
-
 def convert():
     for key, val in IMGS.items():
         IMGS[key] = val.convert_alpha()
@@ -57,7 +55,6 @@ def convert():
         d['img'] = d['img'].convert_alpha()
         d['bull_img'] = d['bull_img'].convert_alpha()
 
-            
 class Grenade(core.Actor):
     def __init__(self, x, y, xv,yv, game):
         super().__init__(x, y, 9,11, bounce=0.45, friction=0.1,image=IMGS['GRENADE'])
@@ -136,6 +133,11 @@ class Player(core.Actor):
         self.grenade=False
         self._reload = False
         self.reload_kd = 0
+
+        self._hook = False
+        self.hook_point = Vec(0,0)
+        self.hook_frames = 0
+        self.hook_ang = 0
         
         self.bonus = {
             'Double gun':0,
@@ -198,6 +200,22 @@ class Player(core.Actor):
             self.aiming = d['aim']
         if d.get('coords') is not None:
             self.m_coords = d['coords']
+        if d.get('hook') is not None:
+            self.hook_frames = 0
+            if self._hook and not d['hook']:
+                if not self.on_ground:
+                    if self.right: 
+                        self.speed.x-=WALL_JUMP_FORCE
+                        self.speed.y -= JUMP_FORCE
+                    if self.left: 
+                        self.speed.x+=WALL_JUMP_FORCE
+                        self.speed.y -= JUMP_FORCE
+            self._hook = False
+            if not self._hook and d['hook']:
+                _, self.hook_point.xy, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180), 700,self.game.camera)
+                bl = self.game.world.get_blocks(pg.Rect(self.hook_point-(1,1),(2,2)))
+                self._hook = not not bl
+            if not self._hook: self.hook_ang =0 
         
 
 
@@ -241,7 +259,6 @@ class Player(core.Actor):
                     if v>0:w.text = f'{k}: {v/1000:.1f}'
                     else: w.delete()
 
-    
         if self.reload_kd>0 and self._reload:
             self.reload_but.text = f'{self.reload_kd/1000:.2f}'
         else:
@@ -315,7 +332,7 @@ class Player(core.Actor):
         self.game.world.neo_mode = self.bonus['Time stop']>0
         
         # JUMP
-        self._jump(tick)
+        self._jump()
         if not self.on_ground and 450>self.wall_jump_kd>0 and (self.right or self.left): self.wall_jump_kd = 0
 
         # SHOOT
@@ -332,25 +349,37 @@ class Player(core.Actor):
         self.flashlight.reset()
 
         self.self_light.rect.topleft = self.rect.center
+
+        # HOOK
+        if self._hook: self.hook(level)
     
     def damage(self, hp):
         if self.bonus['Armor']: hp/=4
         self.hp -= hp
         self.damaged(hp)
+    
+    def hook(self, world):
+        ang = angle(self.hook_point.xy,self.rect.center)
+        self.hook_ang = ang
+        self.speed.xy = self.speed * 0.95 + vec_to_speed(1.3, -ang) # (-self.angle if self.look_r else self.angle+180)
+        # if self.on_ground:
+        #     self.speed.y = - self.speed.y*5
+        #     self.on_ground=False
+        #     self._hook = False
         
 
-    def _jump(self, tick):
+    def _jump(self):
         if self.jump:
             # if not self.on_ground and self.double:
             #     self.double = False
                 # self.xspeed = 0
             if not self.on_ground:
-                if self.left and self.move_left and self.look_r and self.wall_jump_kd<=0:
+                if self.left and self.move_left and self.look_r:
                     self.wall_jump_kd=500
                     self.move_left = False
                     self.speed.x += WALL_JUMP_FORCE
                     self.double = True
-                elif self.right and self.move_right and not self.look_r and self.wall_jump_kd<=0:
+                elif self.right and self.move_right and not self.look_r:
                     self.wall_jump_kd=500
                     self.move_right = False
                     self.speed.x -= WALL_JUMP_FORCE
@@ -363,6 +392,7 @@ class Player(core.Actor):
             self.speed.y = -JUMP_FORCE
             self.on_ground = False
             if sounds: SOUNDS['jump'].play()
+
     def reload(self):
         self._reload = True
         self.ammo[self.guns[self.gun]] = [0, self.ammo[self.guns[self.gun]][0]+self.ammo[self.guns[self.gun]][1]]
@@ -441,16 +471,22 @@ class Player(core.Actor):
         # _, pos2, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+10)
         # # pg.draw.line(screen,'yellow', real(self.rect.center, camera),real(end, camera))
         # pg.draw.polygon(screen, 'white', [real(self.rect.center, camera),real(pos1, camera),real(pos2, camera)])
+        pg.draw.rect(screen, 'red', real(pg.Rect(self.hook_point[0]-2,self.hook_point[1]-2,4,4), camera))
+        if not self._hook: pg.draw.line(screen,'yellow', real(self.rect.center, camera), real(self.hook_point, camera))
         return super().debug_draw(screen, camera)
     
     def light_draw(self, screen: pg.Surface, camera: pg.Rect):
         # self.flashlight.light_draw(screen,camera)
-
-        ps = [real(self.rect.center,camera)]
-        for i in range(10):
-            _, p, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+ i*4 - 10,500, camera=camera)
-            ps.append(real(p,camera))
-        pg.draw.polygon(screen, 'white', ps)
+        if not cfg.allow_c:self.flashlight.light_draw(screen,camera)
+        else:
+            # Ray cast light
+            # ps = [real(self.rect.center,camera)]
+            # for i in range(10):
+            #     _, p, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+ i*4 - 10,500, camera=camera)
+            #     ps.append(real(p,camera))
+            ps = [real(self.rect.center,camera), *[real(p,camera) for p in self.game.world.multi_ray_cast(self.rect.center, [(-self.angle if self.look_r else self.angle+180)+ i*4 - 10 for i in range(10)],500, camera=camera)]]
+            pg.draw.polygon(screen, 'white', ps)
+        ################
 
         self.self_light.light_draw(screen, camera)
         return super().light_draw(screen, camera)
@@ -503,9 +539,17 @@ class Player(core.Actor):
         #     neg.blit(self.img, (0, 0), special_flags=pg.BLEND_SUB)
         #     self.img = neg
 
+        if self._hook and not (self.on_ground or self.right or self.left):
+            w,h = self.img.get_size()
+            ang = self.hook_ang-90
+            pivot = (12,10) if self.look_r else (5, 10)
+            self.img = pg.transform.rotate(self.img, ang)
+            dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(*pivot).rotate(-ang)-(24,20)
+
         mask = pg.mask.from_surface(self.img).to_surface()
         mask.set_colorkey('black')
         if not self.dead and self.visible:
+            if self._hook: pg.draw.line(screen, 'black', real(self.rect.center, camera), real(self.hook_point.xy, camera), 3)
             if self.bonus['Armor']>0:
                 screen.blit(mask, (self.rect.x - camera.x+off-3-dw-2, self.rect.y - camera.y-dh))
                 screen.blit(mask, (self.rect.x - camera.x+off-3-dw+2, self.rect.y - camera.y-dh))

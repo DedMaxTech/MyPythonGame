@@ -2,6 +2,7 @@ res=screen_h, screen_v = 854,480
 fps = 60
 
 potato = False
+allow_c = False
 
 font = 'game/content/pixel_font.ttf'
 GAMENAME = 'MyPythonGame'

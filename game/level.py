@@ -1,3 +1,4 @@
+import re
 from typing import List, Union
 import pygame as pg
 import sys,importlib, ctypes
@@ -29,6 +30,18 @@ block_s = {
     '*': {'img': img_boards, 'dest':False},
 }
 
+script_conf = '''#### Dont delete this comment, edit only script inside ####
+
+# called once on level loading
+def load(game):
+	pass
+
+# called every frame update
+def update(game):
+	pass
+
+###########################################################'''
+
 conf = '''# Full auto-generated, can be edited
 from game import *
 
@@ -37,6 +50,7 @@ background = '{bg}'
 guns = []
 sun_level = 0
 
+'''+script_conf+''''
 
 ais = [
 
@@ -119,6 +133,10 @@ class World(core.Saving):
         self.actors, self.images, self.ais, self.ignore_str = [],[], [], ''
         self.sun = 0
         self.neo_mode = False
+        with open(f'levels/{levelname}.py', 'r') as file:
+            r = re.search(r'#### Dont delete this comment, edit only script inside ####\n(.*\n)*###########################################################\n', file.read())
+            if r: self.ignore_str = r.group(0)
+            else: self.ignore_str = script_conf
         level = importlib.import_module(f'levels.{levelname}')
         importlib.reload(level)
         self.cur_level = level
@@ -131,6 +149,7 @@ class World(core.Saving):
         self.ais = level.ais.copy()
         self.actors = level.actors.copy()+self.ais
         self.sun = level.sun_level
+        if game_inst: level.load(game_inst)
         [a.set_game(game_inst) for a in self.actors]
         # print([(a,a._delete) for a in self.actors])
         for a in self.actors: 
@@ -142,7 +161,7 @@ class World(core.Saving):
 
     def save_world(self, levelname):
         with open(f'levels/{levelname}.py', 'w') as file:
-            file.write(f'from game import *\n\nspawn_pos = {repr(self.spawn_pos)}\nbackground = {repr(self.bg_name)}\n'+write_list('guns', [repr(i) for i in self.guns])+f'sun_level = {self.sun}\n')
+            file.write(f'from game import *\n\nspawn_pos = {repr(self.spawn_pos)}\nbackground = {repr(self.bg_name)}\n'+write_list('guns', [repr(i) for i in self.guns])+f'sun_level = {self.sun}\n\n{self.ignore_str}\n')
             # file.write('####DONT TOUCH####\n# Auto-generated in '+__name__+'\n')
             ais = write_list('ais',[i.save() for i in self.ais if isinstance(i,core.Saving)])
             acts = write_list('actors',[i.save() for i in self.actors if isinstance(i,core.Saving) and not isinstance(i, enemies.BaseAI)])
@@ -164,6 +183,12 @@ class World(core.Saving):
     
     def get_colliding(self, pos, obj_class=core.Actor):
         return [a for a in self.actors if isinstance(a,obj_class) and a.rect.collidepoint(*pos)]
+    
+    # def get_block_at(self, pos:Tuple[int,int], camera = None):
+    #     for b in (self.blocks if not camera else self.get_blocks(camera)):
+    #         if b.rect.collidepoint(*pos):
+    #             return b
+    #     return None
 
     def get_blocks(self, rect:pg.Rect=None):
         if rect is None:
@@ -175,12 +200,12 @@ class World(core.Saving):
         # """WARNING! BAD OPTIMIZATION"""
         # x, y = pos; dx,dy = vec_to_speed(1, ang)
         # bl = self.blocks if not camera else self.get_blocks(camera)
-        # for w in range(0,max_dist, 4):
+        # for w in range(0,max_dist):
         #     for b in bl:
         #         if b.rect.collidepoint(x,y):
         #             return pos, (x,y), w
-        #     x,y = x+dx*4, y+dy*4
-        # return pos, (x,y), max_dis
+        #     x,y = x+dx, y+dy
+        # return pos, (x,y), max_dist
         """Using C"""
         ar_type = Point*len(self.blocks)
         ar_l = ar_type()
@@ -191,6 +216,20 @@ class World(core.Saving):
         ar = ctypes.cast(ar_l, ctypes.POINTER(Point))
         p = c_ray_cast(int(pos[0]),int(pos[1]), int(ang), int(max_dist), ar, len(self.blocks))
         return pos, (p.x,p.y), max_dist
+    
+    def multi_ray_cast(self, pos, angles:List[int], max_dist = cfg.screen_h, camera = None):
+        ar_type = Point*len(self.blocks)
+        ar_l = ar_type()
+        for i in range(len(self.blocks)):
+            ar_l[i] = Point()
+            ar_l[i].x = self.blocks[i].rect.x
+            ar_l[i].y = self.blocks[i].rect.y
+        ar = ctypes.cast(ar_l, ctypes.POINTER(Point))
+        r = []
+        for a in angles:
+            p = c_ray_cast(int(pos[0]),int(pos[1]), int(a), int(max_dist), ar, len(self.blocks))
+            r.append((p.x,p.y))
+        return r
 
     
     def get_actors(self, rect:pg.Rect=None):
@@ -216,6 +255,7 @@ class World(core.Saving):
                     a.update(delta, [], self.actors)
         if self.ais and not self.neo_mode:
             [ai.update_ai(delta, self) for ai in self.ais]
+        if player and player.game: self.cur_level.update(player.game)
 
     def set_blocks(self, blocks):
         self.blocks = blocks
@@ -257,6 +297,7 @@ class World(core.Saving):
             self.black_sf.set_alpha(self.sun)
             self.black_sf.blit(self.lighting,(0,0), special_flags=pg.BLEND_RGBA_SUB)
             screen.blit(self.black_sf, (0, 0))
+
         
         if debug: [a.debug_draw(screen, camera) for a in self.actors]
 
