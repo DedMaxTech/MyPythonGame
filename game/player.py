@@ -1,4 +1,3 @@
-from re import T
 import pygame as pg
 import math
 from . import enemies, core, fx, level, objects, weapons
@@ -12,6 +11,22 @@ IMGS = {
     'BACK':pg.image.load('game/content/player2/back.png'),
     'GRENADE':pg.image.load('game/content/player2/guns/grenade.png')
 }
+IMGS2 = {
+    'CENTER':pg.image.load('game/content/slime/center.png'),
+    'DOWN':pg.image.load('game/content/slime/down.png'),
+    'DOWNLEFT':pg.image.load('game/content/slime/downleft.png'),
+    'LEFT':pg.image.load('game/content/slime/left.png'),
+    'DOWNBOTH':pg.image.load('game/content/slime/downboth.png'),
+    'FACE':pg.image.load('game/content/slime/face.png'),
+    'SHADOW':pg.image.load('game/content/slime/shadow.png'),
+}
+
+IMGS2['DOWNRIGHT'] = pg.transform.flip(IMGS2['DOWNLEFT'], True, False)
+IMGS2['RIGHT'] = pg.transform.flip(IMGS2['LEFT'], True, False)
+IMGS2['UP'] = pg.transform.flip(IMGS2['DOWN'], False, True)
+IMGS2['UPLEFT'] = pg.transform.flip(IMGS2['DOWNLEFT'], False, True)
+IMGS2['UPRIGHT'] = pg.transform.flip(IMGS2['DOWNRIGHT'], False, True)
+IMGS2['UPBOTH'] = pg.transform.flip(IMGS2['DOWNBOTH'], False, True)
 
 PLAYER_IMG = pg.image.load('game/content/player2/player.png')
 BACK_IMG = pg.image.load('game/content/player2/back.png')
@@ -126,6 +141,8 @@ class Player(core.Actor):
         self.wall_jump_kd = 0
         self.m_coords = (0,0)
 
+
+        self.up = False
         self.gun = 0
         self.guns = ['pistol']
         self.ammo = {'rifle': [30, 60], 'pistol': [10,50],'shootgun':[5,15], 'minigun':[100,100], 'sniper':[5,15]}
@@ -273,6 +290,9 @@ class Player(core.Actor):
         if self.wall_jump_kd>0: self.wall_jump_kd-=delta
         for k,v in self.bonus.items():
             if v>0: self.bonus[k]-=delta
+
+
+        self.up = self.check_up(blocks)
 
         # ANGLE AND LOOK DIRECTION
         x,y = self.m_coords
@@ -466,11 +486,6 @@ class Player(core.Actor):
         self.img = pg.transform.flip(self.img, True, False)
         
     def debug_draw(self, screen, camera):
-        # pg.draw.line(screen,'yellow', real(self.rect.center, camera),pg.mouse.get_pos())
-        # _, pos1, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)-10)
-        # _, pos2, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+10)
-        # # pg.draw.line(screen,'yellow', real(self.rect.center, camera),real(end, camera))
-        # pg.draw.polygon(screen, 'white', [real(self.rect.center, camera),real(pos1, camera),real(pos2, camera)])
         pg.draw.rect(screen, 'red', real(pg.Rect(self.hook_point[0]-2,self.hook_point[1]-2,4,4), camera))
         if not self._hook: pg.draw.line(screen,'yellow', real(self.rect.center, camera), real(self.hook_point, camera))
         return super().debug_draw(screen, camera)
@@ -486,74 +501,140 @@ class Player(core.Actor):
             #     ps.append(real(p,camera))
             ps = [real(self.rect.center,camera), *[real(p,camera) for p in self.game.world.multi_ray_cast(self.rect.center, [(-self.angle if self.look_r else self.angle+180)+ i*4 - 10 for i in range(10)],500, camera=camera)]]
             pg.draw.polygon(screen, 'white', ps)
-        ################
+            ################
 
         self.self_light.light_draw(screen, camera)
         return super().light_draw(screen, camera)
 
     def draw(self, screen: pg.Surface, camera: pg.Rect):
-        self.img = IMGS['BACK'].copy()
-        self.img.blit(IMGS['PLAYER'].copy(), (0,0))
-        # if self.on_ground:
-        #     if self.xspeed == 0:
-        #         self.img.blit(PLAYER_LEGS_IDLE, (0, 53))
-        #     else:
-        #         self.img.blit(PLAYER_LEGS_R if self.r_leg else PLAYER_LEGS_L, (0, 53))
-        # else:
-        #     self.img.blit(PLAYER_LEGS_AIR, (0, 53))
-        # self.img.blit(PLAYER_LEGS_AIR, (0, 0))
+        # self.img = IMGS['BACK'].copy()
+        # self.img.blit(IMGS['PLAYER'].copy(), (0,0))
+        # # if self.on_ground:
+        # #     if self.xspeed == 0:
+        # #         self.img.blit(PLAYER_LEGS_IDLE, (0, 53))
+        # #     else:
+        # #         self.img.blit(PLAYER_LEGS_R if self.r_leg else PLAYER_LEGS_L, (0, 53))
+        # # else:
+        # #     self.img.blit(PLAYER_LEGS_AIR, (0, 53))
+        # # self.img.blit(PLAYER_LEGS_AIR, (0, 0))
         
-        off = 0 if self.look_r else -30
-        offy = 0 if not self.aiming else -5
-        if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)) and self.wall_jump_kd<=0:
-            self.img = pg.transform.rotate(self.img, -30)
-            off = -15 if self.look_r else -55
+        # off = 0 if self.look_r else -30
+        # offy = 0 if not self.aiming else -5
+        # if not self.on_ground and ((self.left and self.move_left and self.look_r) or (self.right and self.move_right and not self.look_r)) and self.wall_jump_kd<=0:
+        #     self.img = pg.transform.rotate(self.img, -30)
+        #     off = -15 if self.look_r else -55
         
-        # GUN IMG PROCC.
+        # # GUN IMG PROCC.
+        # gun_img = pg.transform.rotate(weapons.GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang+(self.recoil*remap(self.shoot_kd, (0,weapons.GUNS[self.guns[self.gun]]['kd']))))
+        # w,h=gun_img.get_width()/2,gun_img.get_height()/2
+        # self.img.blit(gun_img, (gun_img.get_rect().x+30+weapons.GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+35+offy+weapons.GUNS[self.guns[self.gun]]['offy']-h))
+        # if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+35+weapons.GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+30+offy+weapons.GUNS[self.guns[self.gun]]['offy']-h))
+        # # if not self.look_r and self.xspeed > 0: self.rotate()
+        # # if self.look_r and self.xspeed < 0: self.rotate()
+
+        # # WALL JUMP ROTATE
+        # dw,dh=0,0
+        # if self.wall_jump_kd>0:
+        #     w,h = self.img.get_size()
+        #     wall_ang = remap(self.wall_jump_kd, (0,500),(0,360))
+        #     pivot = (12,10) if self.look_r else (-2,10)
+        #     self.img = pg.transform.rotate(self.img, wall_ang)
+        #     dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(*pivot).rotate(-wall_ang)-((24,20) if self.look_r else (35,35))
+        
+        # if self.dead: self.img = PLAYER_IMG_DEAD
+        # if not self.look_r: self.rotate()
+        # if not self.dead:
+        #     if self.dmg_timer > 0: self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
+        #     # if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
+        # # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
+        
+        # # if self.game.world.neo_mode:
+        # #     neg = pg.Surface(self.img.get_size(), pg.SRCALPHA)
+        # #     neg.fill((255, 255, 255))
+        # #     neg.blit(self.img, (0, 0), special_flags=pg.BLEND_SUB)
+        # #     self.img = neg
+
+        # if self._hook and not (self.on_ground or self.right or self.left):
+        #     w,h = self.img.get_size()
+        #     ang = self.hook_ang-90
+        #     pivot = (12,10) if self.look_r else (-2,10)
+        #     self.img = pg.transform.rotate(self.img, ang)
+        #     dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(*pivot).rotate(-ang)-((24,20) if self.look_r else (35,35))
+
+        # mask = pg.mask.from_surface(self.img).to_surface()
+        # mask.set_colorkey('black')
+        # if not self.dead and self.visible:
+        #     if self._hook: pg.draw.line(screen, 'black', real(self.rect.center, camera), real(self.hook_point.xy, camera), 3)
+        #     if self.bonus['Armor']>0:
+        #         screen.blit(mask, (self.rect.x - camera.x+off-3-dw-2, self.rect.y - camera.y-dh))
+        #         screen.blit(mask, (self.rect.x - camera.x+off-3-dw+2, self.rect.y - camera.y-dh))
+        #         screen.blit(mask, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh-2))
+        #         screen.blit(mask, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh+2))
+        #     screen.blit(self.img, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh))
+        # mask = pg.mask.from_surface(self.img).to_surface(setcolor=(0,0,0),unsetcolor=(0,0,0,0))
+        # if not self.dead and self.visible:
+        #     if self._hook: pg.draw.line(screen, 'black', real(self.rect.center, camera), real(self.hook_point.xy, camera), 3)
+        #     screen.blit(mask, (self.rect.x - camera.x-2, self.rect.y - camera.y))
+        #     screen.blit(mask, (self.rect.x - camera.x+2, self.rect.y - camera.y))
+        #     screen.blit(mask, (self.rect.x - camera.x, self.rect.y - camera.y-2))
+        #     screen.blit(mask, (self.rect.x - camera.x, self.rect.y - camera.y+2))
+        self.rect.size = (40,40)
+        
+        # pg.draw.ellipse(screen, 'black', real(pg.Rect(self.rect.x+(self.speed.x/2)-2,self.rect.y+(self.speed.y/2)-2, self.rect.w-self.speed.x+4,self.rect.h-self.speed.y+4), camera))
+        # pg.draw.ellipse(screen, 'lightgreen', real(pg.Rect(self.rect.x+(self.speed.x/2),self.rect.y+(self.speed.y/2), self.rect.w-self.speed.x,self.rect.h-self.speed.y), camera))
+        if self._hook: pg.draw.line(screen, 'black', real(self.rect.center, camera), real(self.hook_point.xy, camera), 3)
+        # SELECT IMAGE
+        if self.on_ground:
+            if self.right or self.left: 
+                if self.right and self.left: self.img = IMGS2['DOWNBOTH'].copy()
+                elif self.right: self.img = IMGS2['DOWNRIGHT'].copy()
+                else: self.img = IMGS2['DOWNLEFT'].copy()
+            else: self.img = IMGS2['DOWN'].copy()
+        elif self.up:
+            if self.right or self.left: 
+                if self.right and self.left: self.img = IMGS2['UPBOTH'].copy()
+                elif self.right: self.img = IMGS2['UPRIGHT'].copy()
+                else: self.img = IMGS2['UPLEFT'].copy()
+            else: self.img = IMGS2['UP'].copy()
+        else:
+            if self.right or self.left: self.img = (IMGS2['LEFT'].copy() if self.left else IMGS2['RIGHT'].copy())
+            else: self.img = IMGS2['CENTER'].copy()
+
+        # self.img.blit(IMGS2['SHADOW'], (0,0), special_flags=pg.BLEND_ALPHA_SDL2)
+        # DRAW FACE
+        self.img.blit(IMGS2['FACE'],self.speed)
+
+
+        # SQISH*
+        offx, offy = 15 + abs(self.speed.x/2), 15 + abs(self.speed.y/2)
+        self.img = pg.transform.scale(self.img, (self.img.get_width()-abs(self.speed.x),self.img.get_height()-abs(self.speed.y)))
+
+        # ROTATE
+        w,h = self.img.get_size()
+        ang = 0
+        if self.wall_jump_kd>0: ang += remap(self.wall_jump_kd, (0,500),(0,360)) * (1 if self.look_r else -1)
+        if self._hook and not (self.on_ground or self.right or self.left or self.up): ang += self.hook_ang-90
+        self.img = pg.transform.rotate(self.img, ang)
+        offx += self.img.get_width()/2 - w/2
+        offy += self.img.get_height()/2 - h/2
+
+        # DRAW GUN AND SECOND GUN
         gun_img = pg.transform.rotate(weapons.GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang+(self.recoil*remap(self.shoot_kd, (0,weapons.GUNS[self.guns[self.gun]]['kd']))))
-        w,h=gun_img.get_width()/2,gun_img.get_height()/2
-        self.img.blit(gun_img, (gun_img.get_rect().x+30+weapons.GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+35+offy+weapons.GUNS[self.guns[self.gun]]['offy']-h))
-        if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+35+weapons.GUNS[self.guns[self.gun]]['offx']-w, gun_img.get_rect().y+30+offy+weapons.GUNS[self.guns[self.gun]]['offy']-h))
+        gnu_w,gun_h=gun_img.get_width()/2,gun_img.get_height()/2
+        if not self.look_r: gun_img = pg.transform.flip(gun_img, True,False)
+        self.img.blit(gun_img, (gun_img.get_rect().x+35+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, gun_img.get_rect().y+40+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
+        if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+40+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, gun_img.get_rect().y+35+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
         # if not self.look_r and self.xspeed > 0: self.rotate()
         # if self.look_r and self.xspeed < 0: self.rotate()
 
-        # WALL JUMP ROTATE
-        dw,dh=0,0
-        if self.wall_jump_kd>0:
-            w,h = self.img.get_size()
-            wall_ang = remap(self.wall_jump_kd, (0,500),(0,360))
-            pivot = (12,10) if self.look_r else (5, 10)
-            self.img = pg.transform.rotate(self.img, wall_ang)
-            dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(*pivot).rotate(-wall_ang)-(24,20)
         
-        if self.dead: self.img = PLAYER_IMG_DEAD
-        if not self.look_r: self.rotate()
-        if not self.dead:
-            if self.dmg_timer > 0: self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
-            # if self.inventory_kd>0:self.img.blit(self.font.render(f'[{self.guns[self.gun]}]',False,'white'), (-off,0))
-        # screen.fill('green',(self.pre_rect.x - camera.x, self.pre_rect.y + camera.y, self.pre_rect.w, self.pre_rect.h))
-        
-        # if self.game.world.neo_mode:
-        #     neg = pg.Surface(self.img.get_size(), pg.SRCALPHA)
-        #     neg.fill((255, 255, 255))
-        #     neg.blit(self.img, (0, 0), special_flags=pg.BLEND_SUB)
-        #     self.img = neg
-
-        if self._hook and not (self.on_ground or self.right or self.left):
-            w,h = self.img.get_size()
-            ang = self.hook_ang-90
-            pivot = (12,10) if self.look_r else (5, 10)
-            self.img = pg.transform.rotate(self.img, ang)
-            dw,dh =(self.img.get_width()/2, self.img.get_height()/2)- pg.math.Vector2(*pivot).rotate(-ang)-(24,20)
-
-        mask = pg.mask.from_surface(self.img).to_surface()
-        mask.set_colorkey('black')
+        mask = pg.mask.from_surface(self.img).to_surface(setcolor=((0,0,0) if not self.bonus['Armor']>0 else (255,255,255)),unsetcolor=(0,0,0,0))
         if not self.dead and self.visible:
-            if self._hook: pg.draw.line(screen, 'black', real(self.rect.center, camera), real(self.hook_point.xy, camera), 3)
-            if self.bonus['Armor']>0:
-                screen.blit(mask, (self.rect.x - camera.x+off-3-dw-2, self.rect.y - camera.y-dh))
-                screen.blit(mask, (self.rect.x - camera.x+off-3-dw+2, self.rect.y - camera.y-dh))
-                screen.blit(mask, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh-2))
-                screen.blit(mask, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh+2))
-            screen.blit(self.img, (self.rect.x - camera.x+off-3-dw, self.rect.y - camera.y-dh))
+            # OUTLINE
+            screen.blit(mask, (self.rect.x - camera.x-2 - offx, self.rect.y - camera.y - offy))
+            screen.blit(mask, (self.rect.x - camera.x+2 - offx, self.rect.y - camera.y - offy))
+            screen.blit(mask, (self.rect.x - camera.x - offx, self.rect.y - camera.y-2 - offy))
+            screen.blit(mask, (self.rect.x - camera.x - offx, self.rect.y - camera.y+2 - offy))
+
+            screen.blit(self.img, (self.rect.x - camera.x - offx, self.rect.y - camera.y - offy))
         self.ui.render(self.game.screen)

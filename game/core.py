@@ -141,6 +141,14 @@ class Actor:
                 return True
         self.rect.x -= 1
         return False
+    def check_up(self, blocks):
+        self.rect.y -= 1
+        for b in blocks:
+            if self.rect.colliderect(b.rect):
+                self.rect.y += 1
+                return True
+        self.rect.y += 1
+        return False
     
     def check_left(self, blocks):
         self.rect.x -= 1
