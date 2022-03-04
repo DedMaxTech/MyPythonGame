@@ -83,7 +83,9 @@ class Actor:
         if self.static:
             return
         if self.collision:
-            self.on_ground = self.check_on_ground(blocks)
+            g = self.check_on_ground(blocks)
+            if g and not self.on_ground: self.land(self.speed)
+            self.on_ground = g
             if self.need_sides: self.right, self.left = self.check_right(blocks), self.check_left(blocks)
         
         if self.on_fire>0: 
@@ -112,6 +114,9 @@ class Actor:
         if self.collision: self._collide_actors(actors)
         self.pre_rect.center = self.rect.center
     
+    def land(self, speed):
+        pass
+
     def delete(self):
         # print('del', self)
         self._delete = True

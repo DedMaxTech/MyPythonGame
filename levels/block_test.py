@@ -1,6 +1,6 @@
 from game import *
 
-spawn_pos = (40, 40)
+spawn_pos = (130, 940)
 background = 'game\\content/bg2.png'
 guns = [
 	

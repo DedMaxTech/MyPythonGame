@@ -11,6 +11,28 @@ class BloodParticle(core.Actor):
         self.speed = Vec(xv,yv)
         self.autodel(1)
 
+
+class SlimeParticle(core.Actor):
+    def __init__(self, x, y, w, xv,yv):
+        super().__init__(x, y, w, w,friction=0,collision=False)
+        self.speed = Vec(xv,yv)
+        self.color = (0,rd(150,250),0, rd(150,255))
+        self.timer = 500
+        self.autodel(4)
+    
+    def update(self, delta, blocks, actors):
+        if self.timer>0: self.timer-=delta
+        else:
+            self.rect.w -=1
+            self.rect.h -=1
+            self.timer=500
+            if self.rect.w ==0:
+                self.delete()
+        return super().update(delta, blocks, actors)
+    
+    def draw(self, screen: pg.Surface, camera: pg.Rect):
+        screen.fill(self.color, real(self.rect, camera))
+
 class DamageParticle(core.Actor):
     def __init__(self, x, y, dmg,w,  xv,yv, heal=False):
         super().__init__(x, y, w, w, gravity=0.2,friction=0,collision=False)

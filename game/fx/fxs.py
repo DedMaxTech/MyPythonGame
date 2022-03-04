@@ -7,6 +7,10 @@ def blood(pos,world, amount=10):
     for i in range(amount):
         world.actors.append(BloodParticle(x,y,3,rd(-10,10)/3,rd(0,40)/10))
 
+def slimes(pos, world,width=4, amount=10):
+    for _ in range(amount):
+        world.actors.append(SlimeParticle(*pos,rd(2, width),rd(-10,10)/3,rd(-40,10)/10))
+
 def damage(pos, dmg, world, heal=False):
     x,y = pos
     world.actors.append(DamageParticle(x,y,dmg,abs(dmg),rd(-1,1),-2,heal))

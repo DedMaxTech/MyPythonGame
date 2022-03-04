@@ -12,14 +12,21 @@ IMGS = {
     'GRENADE':pg.image.load('game/content/player2/guns/grenade.png')
 }
 IMGS2 = {
-    'CENTER':pg.image.load('game/content/slime/center.png'),
-    'DOWN':pg.image.load('game/content/slime/down.png'),
-    'DOWNLEFT':pg.image.load('game/content/slime/downleft.png'),
-    'LEFT':pg.image.load('game/content/slime/left.png'),
-    'DOWNBOTH':pg.image.load('game/content/slime/downboth.png'),
-    'FACE':pg.image.load('game/content/slime/face.png'),
-    'SHADOW':pg.image.load('game/content/slime/shadow.png'),
+    'CENTER':pg.image.load('game/content/slime2/center.png'),
+    'DOWN':pg.image.load('game/content/slime2/down.png'),
+    'DOWNLEFT':pg.image.load('game/content/slime2/downleft.png'),
+    'LEFT':pg.image.load('game/content/slime2/left.png'),
+    'DOWNBOTH':pg.image.load('game/content/slime2/downboth.png'),
+    'DOWNBOTH':pg.image.load('game/content/slime2/downboth.png'),
+    'UPDOWN':pg.image.load('game/content/slime2/updown.png'),
+    'UPDOWNLEFT':pg.image.load('game/content/slime2/updownleft.png'),
+    'FACE':pg.image.load('game/content/slime2/face.png'),
+    'SHADOW':pg.image.load('game/content/slime2/shadow.png'),
+    'ALPHA':pg.Surface((70,70),flags= pg.SRCALPHA),
 }
+
+# alpha_sf = pg.Surface(IMGS2['CENTER'].get_size(),24, pg.SRCALPHA)
+
 
 IMGS2['DOWNRIGHT'] = pg.transform.flip(IMGS2['DOWNLEFT'], True, False)
 IMGS2['RIGHT'] = pg.transform.flip(IMGS2['LEFT'], True, False)
@@ -27,6 +34,7 @@ IMGS2['UP'] = pg.transform.flip(IMGS2['DOWN'], False, True)
 IMGS2['UPLEFT'] = pg.transform.flip(IMGS2['DOWNLEFT'], False, True)
 IMGS2['UPRIGHT'] = pg.transform.flip(IMGS2['DOWNRIGHT'], False, True)
 IMGS2['UPBOTH'] = pg.transform.flip(IMGS2['DOWNBOTH'], False, True)
+IMGS2['UPDOWNRIGHT'] = pg.transform.flip(IMGS2['UPDOWNLEFT'], True, False)
 
 PLAYER_IMG = pg.image.load('game/content/player2/player.png')
 BACK_IMG = pg.image.load('game/content/player2/back.png')
@@ -64,11 +72,19 @@ if sounds:
     }
 
 def convert():
-    for key, val in IMGS.items():
-        IMGS[key] = val.convert_alpha()
+    for key, val in IMGS2.items():
+        IMGS2[key] = val.convert_alpha()
     for d in weapons.GUNS.values():
         d['img'] = d['img'].convert_alpha()
         d['bull_img'] = d['bull_img'].convert_alpha()
+
+def change_color(color):
+    s = pg.Surface(IMGS2['CENTER'].get_size())
+    s.fill(color)
+    for k in IMGS2.keys():
+        IMGS2[k].blit(s, (0,0), special_flags=pg.BLEND_RGBA_MULT)
+
+change_color((50,202,43))
 
 class Grenade(core.Actor):
     def __init__(self, x, y, xv,yv, game):
@@ -140,6 +156,9 @@ class Player(core.Actor):
         self.recoil=0
         self.wall_jump_kd = 0
         self.m_coords = (0,0)
+
+        self.anim_timer = 0
+        self.anim_flag = False
 
 
         self.up = False
@@ -227,6 +246,7 @@ class Player(core.Actor):
                     if self.left: 
                         self.speed.x+=WALL_JUMP_FORCE
                         self.speed.y -= JUMP_FORCE
+                    if not self.up: self.wall_jump_kd = 500
             self._hook = False
             if not self._hook and d['hook']:
                 _, self.hook_point.xy, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180), 700,self.game.camera)
@@ -240,17 +260,20 @@ class Player(core.Actor):
         self.dead=True
         self.autodel(3)
         self.game.death()
-        prts = [
-            core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_BACK),
-            core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_HEAD),
-            core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_LEGS),
-        ]
-        for i in prts:
-            i.speed.xy = self.speed.x+rd(-3,3),self.speed.y-5
-            # i.xspeed = self.xspeed+rd(-3,3)
-            # i.yspeed = self.yspeed-5
-        self.game.world.actors += prts
-        fx.blood(self.rect.center, self.game.world, 50)
+
+        fx.slimes(self.rect.center, self.game.world, 12,50)
+        # prts = [
+        #     core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_BACK),
+        #     core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_HEAD),
+        #     core.Actor(self.rect.centerx, self.rect.centery, 40,30,0.5,friction=0.1, image=PART_LEGS),
+        # ]
+        # for i in prts:
+        #     i.speed.xy = self.speed.x+rd(-3,3),self.speed.y-5
+        #     # i.xspeed = self.xspeed+rd(-3,3)
+        #     # i.yspeed = self.yspeed-5
+        # self.game.world.actors += prts
+        # fx.blood(self.rect.center, self.game.world, 50)
+        
 
     def update_control(self,delta, blocks, level, tick=1):
         # HP MANAGEMENT
@@ -283,6 +306,10 @@ class Player(core.Actor):
         self.gun_but.text = self.guns[self.gun].title()
 
         # TIMERS
+        if self.anim_timer >0: self.anim_timer-=delta
+        else:
+            self.anim_timer=200
+            self.anim_flag = not self.anim_flag
         if self.dmg_timer >0: self.dmg_timer-=delta
         if self.shoot_kd >0: self.shoot_kd -= delta
         if self.inventory_kd>0: self.inventory_kd -= delta
@@ -295,6 +322,9 @@ class Player(core.Actor):
         self.up = self.check_up(blocks)
 
         # ANGLE AND LOOK DIRECTION
+        if self.on_ground and self.speed.x:
+            fx.slimes((rd(self.rect.left,self.rect.right), self.rect.bottom), self.game.world,2,amount=1)
+
         x,y = self.m_coords
         w,h = self.game.frame.get_size()
         x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
@@ -302,6 +332,8 @@ class Player(core.Actor):
 
         self.look_r = x>=0
         self.angle = angle((abs(x),y))
+
+        if self.on_ground: self.wall_jump_kd=0
         # x,y = self.m_coords
         # w,h = self.game.frame.get_size()
         # x,y = remap(x, (0, cfg.screen_h), (0,w)), remap(y, (0, cfg.screen_v), (0,h))
@@ -382,12 +414,7 @@ class Player(core.Actor):
         ang = angle(self.hook_point.xy,self.rect.center)
         self.hook_ang = ang
         self.speed.xy = self.speed * 0.95 + vec_to_speed(1.3, -ang) # (-self.angle if self.look_r else self.angle+180)
-        # if self.on_ground:
-        #     self.speed.y = - self.speed.y*5
-        #     self.on_ground=False
-        #     self._hook = False
         
-
     def _jump(self):
         if self.jump:
             # if not self.on_ground and self.double:
@@ -405,7 +432,8 @@ class Player(core.Actor):
                     self.speed.x -= WALL_JUMP_FORCE
                     self.double = True
                 elif self.double:
-                    fx.fire((self.rect.centerx,self.rect.bottom),self.game.world,20)
+                    # fx.fire((self.rect.centerx,self.rect.bottom),self.game.world,20)
+                    fx.slimes(self.rect.center, self.game.world)
                     self.double = False
                 else:return
             self.jump = False
@@ -459,6 +487,13 @@ class Player(core.Actor):
         # write_stat('shoots', get_stat('shoots')+1)
         if self.ammo[self.guns[self.gun]][0] == 0: self.reload()
     
+    def land(self, speed):
+        fx.slimes(self.rect.center, self.game.world)
+        # if self._hook: 
+        #     self.speed.y = -abs(speed.y)*3
+        #     self._hook = False
+        #     self.on_ground=False
+
     def throw_genade(self):
         self.grenade=False
         if self.grenades<=0: return
@@ -467,7 +502,8 @@ class Player(core.Actor):
         self.game.world.actors.append(Grenade(self.rect.centerx,self.rect.y+10,xv if self.look_r else -xv, -yv, self.game))
     
     # def hit(self, actor):
-    #     if isinstance(actor,level.Block):self.wall_jump_kd=0
+    #     if isinstance(actor,level.Block):
+    #         fx.slimes((self.rect.centerx, self.rect.bottom), self.game.world,2,amount=1)
     #     return super().hit(actor)
 
     def get_point(self, world, rad, ang=None):
@@ -584,7 +620,11 @@ class Player(core.Actor):
         # pg.draw.ellipse(screen, 'lightgreen', real(pg.Rect(self.rect.x+(self.speed.x/2),self.rect.y+(self.speed.y/2), self.rect.w-self.speed.x,self.rect.h-self.speed.y), camera))
         if self._hook: pg.draw.line(screen, 'black', real(self.rect.center, camera), real(self.hook_point.xy, camera), 3)
         # SELECT IMAGE
-        if self.on_ground:
+        if self.on_ground and self.up:
+            if self.left: self.img = IMGS2['UPDOWNLEFT'].copy()
+            elif self.right: self.img = IMGS2['UPDOWNRIGHT'].copy()
+            else: self.img = IMGS2['UPDOWN'].copy()
+        elif self.on_ground:
             if self.right or self.left: 
                 if self.right and self.left: self.img = IMGS2['DOWNBOTH'].copy()
                 elif self.right: self.img = IMGS2['DOWNRIGHT'].copy()
@@ -600,14 +640,16 @@ class Player(core.Actor):
             if self.right or self.left: self.img = (IMGS2['LEFT'].copy() if self.left else IMGS2['RIGHT'].copy())
             else: self.img = IMGS2['CENTER'].copy()
 
-        # self.img.blit(IMGS2['SHADOW'], (0,0), special_flags=pg.BLEND_ALPHA_SDL2)
+        shad = pg.mask.from_surface(self.img).to_surface(IMGS2['ALPHA'].copy(),setsurface=IMGS2['SHADOW'].copy(), unsetcolor=(0,0,0,0))
+        self.img.blit(shad, (0,0))
+
         # DRAW FACE
         self.img.blit(IMGS2['FACE'],self.speed)
 
-
         # SQISH*
-        offx, offy = 15 + abs(self.speed.x/2), 15 + abs(self.speed.y/2)
-        self.img = pg.transform.scale(self.img, (self.img.get_width()-abs(self.speed.x),self.img.get_height()-abs(self.speed.y)))
+        offx, offy = 15 + abs(self.speed.x/2*1.5), 15 + abs(self.speed.y/2*1.5)
+        if self.anim_flag: offy+=3
+        self.img = pg.transform.scale(self.img, (self.img.get_width()-abs(self.speed.x*1.5),self.img.get_height()-abs(self.speed.y*1.5)+ (3 if self.anim_flag else 0)))
 
         # ROTATE
         w,h = self.img.get_size()
@@ -624,10 +666,9 @@ class Player(core.Actor):
         if not self.look_r: gun_img = pg.transform.flip(gun_img, True,False)
         self.img.blit(gun_img, (gun_img.get_rect().x+35+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, gun_img.get_rect().y+40+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
         if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+40+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, gun_img.get_rect().y+35+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
-        # if not self.look_r and self.xspeed > 0: self.rotate()
-        # if self.look_r and self.xspeed < 0: self.rotate()
 
-        
+
+        if self.dmg_timer > 0: self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         mask = pg.mask.from_surface(self.img).to_surface(setcolor=((0,0,0) if not self.bonus['Armor']>0 else (255,255,255)),unsetcolor=(0,0,0,0))
         if not self.dead and self.visible:
             # OUTLINE
