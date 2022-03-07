@@ -17,7 +17,7 @@ class Editor:
         self.clock = pg.time.Clock()
         self.ui = Interface(anims=False)
         self.info_ui = Interface(anims=False)
-        self.info_ui.set_ui([Button((1400+30,50),'white','Press MMB to select obj',50),])
+        self.info_ui.set_ui([Button((1200+30,50),'white','Press MMB to select obj',50),])
         self.world = level.World()
         self.levelname = ''
         self.camera = pg.Rect(0,40,self.res[0], self.res[1])
@@ -87,7 +87,8 @@ class Editor:
         objs = [objects.Aid,objects.Ammo,objects.GunsCase,objects.Grenades,objects.DoubleGunBonus,objects.Portal, enemies.MeleeAI,enemies.ShoterAI,
             objects.ScreenTriger,objects.ScreenConditionTriger, objects.Trigger, objects.LevelTravelTriger,objects.ZoomTriger,objects.CameraTargetTriger,objects.Text,objects.Image]
         objs = [i for i in list(enemies.__dict__.values())+list(objects.__dict__.values()) if type(i)==type and issubclass(i, core.Saving)]
-        bs+=[VBox(3,(1520,580),(400,480), UI.LEFT,UI.DOWN,widgets=[Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs][::-1]+[HBox(3,size=(300,25), anchor_h=UI.FILL, anchor_v=UI.FILL, widgets=[
+        bs+=[VBox(3,(1680,580),(230,480), UI.RIGHT,UI.DOWN,widgets=[Button((1430, 500), 'white', str(i).split('.')[2][:-2], 25, self.create_obj, bg='darkgrey', args=(i)) for i in objs][::-1]+[Button((0,0),'white','Objects:', 30)]),self.select_box]
+        bs += [VBox(3,(1200,580),(400,480), UI.LEFT,UI.DOWN,widgets=[HBox(3,size=(460,25), anchor_h=UI.FILL, anchor_v=UI.FILL, widgets=[
             Button((0,0),'white', k.title(),25),
             TextField((0,0),'white', str(self.world._get_att_val(v[0])) if v[1] is not list else ', '.join(self.world._get_att_val(v[0])),25,'darkgrey',callback_f=self.world.edit, args=(k,),add_text=True)
         ]) for k,v in self.world.slots.items()]),self.select_box]
@@ -124,6 +125,7 @@ class Editor:
             self.world.draw(self.frame, self.camera)
             for a in self.world.actors:
                 a.debug_draw(self.frame, self.camera)
+                # self.frame.fill((0,0,0,25),(1200,0,750,1080))
             pg.draw.rect(self.frame, 'red', (-self.camera.x,-self.camera.y-40,self.camera.w,self.camera.h),1)
             pg.draw.line(self.frame, 'red', (0,-self.camera.y-40),(self.camera.w,-self.camera.y-40),1)
             pg.draw.line(self.frame, 'red', (0,-self.camera.y+self.camera.h-40),(self.camera.w,-self.camera.y+self.camera.h-40),1)
@@ -138,7 +140,7 @@ class Editor:
         utils.debug(self.zoom, self.screen, y=100)
 
     def event_loop(self):
-        w=1400
+        w=1200
         for event in pg.event.get():
             if event.type == pg.QUIT: exit()
             self.ui.update(event)
@@ -197,18 +199,17 @@ class Editor:
 
     def obj_info(self, obj):
         self.object=obj
-        w=1400
+        w=1200
         self.select_box.clear()
         self.info_ui.set_ui([
-            Button((w+30,50),'white','Object info:',50),
-            Button((w+30,110),'white',f'{obj.module}.{obj.__class__.__name__}',40),
-            *vertical(3,[Button((w+30,160),'white',str(i).title(),30) for i in obj.slots]+[Interface([Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj)),Button((100,0), 'white', 'Copy', 30, self.copy_obj, bg='darkgrey', args=(obj))])]),
-            *vertical(3, [TextField((w+150, 160),'black', str(obj._get_att_val(i[0])) if i[1] is not list else ', '.join(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit, args=(key,), add_text=True) for key,i in obj.slots.items()]),
-            
+            Button((w+30,10),'white','Object info:',50),
+            Button((w+30,55),'white',f'{obj.module}.{obj.__class__.__name__}',40),
+            *vertical(3,[Button((w+30,100),'white',str(i).title(),25) for i in obj.slots]+[Interface([Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj)),Button((100,0), 'white', 'Copy', 30, self.copy_obj, bg='darkgrey', args=(obj))])]),
+            *vertical(3, [TextField((w+170, 100),'black', str(obj._get_att_val(i[0])) if i[1] is not list else ', '.join(obj._get_att_val(i[0])), 25,'white',callback_f=obj.edit,size=(300,25), args=(key,), add_text=True) for key,i in obj.slots.items()]),
         ])
     def del_obj(self, obj):
         self.object=None
-        self.info_ui.set_ui([Button((1400+30,50),'white','Press MMB to select obj',50),])
+        self.info_ui.set_ui([Button((1200+30,50),'white','Press MMB to select obj',50),])
         del self.world.actors[self.world.actors.index(obj)]
 
     def loop(self):
