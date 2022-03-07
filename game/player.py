@@ -642,8 +642,9 @@ class Player(core.Actor):
 
         # SQISH*
         offx, offy = 15 + abs(self.speed.x/2*1.5), 15 + abs(self.speed.y/2*1.5)
-        if self.anim_flag and self.on_ground: offy+=3
-        self.img = pg.transform.scale(self.img, (int(self.img.get_width()-abs(self.speed.x*1.5)),int(self.img.get_height()-abs(self.speed.y*1.5)+ (3 if self.anim_flag and self.on_ground else 0))))
+        flag = self.anim_flag and (self.on_ground or self.right or self.left)
+        if self.anim_flag: offy+= 0 if self.up else 3
+        self.img = pg.transform.scale(self.img, (int(self.img.get_width()-abs(self.speed.x*1.5)),int(self.img.get_height()-abs(self.speed.y*1.5)+ (3 if self.anim_flag else 0))))
 
         # ROTATE
         w,h = self.img.get_size()
@@ -662,7 +663,7 @@ class Player(core.Actor):
         self.img.blit(gun_img, (35+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, 40+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
         if self.bonus['Double gun']>0: self.img.blit(gun_img, (40+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, 35+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
 
-
+        offx = int(offx);offy = int(offy)
         if self.dmg_timer > 0: self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
         mask = pg.mask.from_surface(self.img).to_surface(setcolor=((0,0,0) if not self.bonus['Armor']>0 else (255,255,255)),unsetcolor=(0,0,0,0))
         if not self.dead and self.visible:

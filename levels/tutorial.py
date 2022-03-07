@@ -1,9 +1,10 @@
-# Auto-generated, can be edited
 from game import *
 
-spawn_pos = (40,40)
-background = 'game\content/bg2.png'
-guns = []
+spawn_pos = (40, 40)
+background = 'game\\content/bg2.png'
+guns = [
+	
+]
 sun_level = 0
 
 #### Dont delete this comment, edit only script inside ####
@@ -18,8 +19,6 @@ def update(game):
 
 ###########################################################
 
-####DONT TOUCH####
-# Auto-generated in game.level
 ais = [
 	enemies.MeleeAI(x=3382, y=915),
 	enemies.MeleeAI(x=4580, y=900),
@@ -74,7 +73,8 @@ actors = [
 	objects.Text(x=5006, y=903, text='So take this gun and ammo', size=30, color='white'),
 	objects.Image(x=5094, y=921, image='game/content/ui/arrow.png', rotation=-160, scale=1.0),
 	objects.Ammo(x=5057, y=963, ammo={'rifle': 120}),
-	objects.Trigger(x=0, y=612, w=400, h=40, function='game.player.ammo={}')
+	objects.Trigger(x=0, y=612, w=400, h=40, function='game.player.ammo={}'),
+	objects.LevelTravelTriger(x=6640, y=920, w=40, h=80, levelname='arena2')
 ]
 blocks = [
 	level.Block(0,-40,'-'),

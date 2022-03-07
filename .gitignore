@@ -4,3 +4,5 @@ __pycache__/
 # /game/__pycache__
 # /game/fx/__pycache__
 *.pyc
+*.prof
+savegame.json

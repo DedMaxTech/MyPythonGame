@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from time import sleep
 import pygame as pg
-import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats
+import os, traceback, socket, pickle, math, glob, subprocess, zlib,cProfile, pstats,json
 from random import randint as rd
 from typing import List
 
@@ -108,13 +108,16 @@ class Game:
         self.pause = False
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
         self.ui.clear()
-        tf = TextField((220,195+36), 'black', 'Code:',30,bg='white',clear_on_click=True)
+        tf = TextField((220,195+36*2), 'black', 'Code:',30,bg='white',clear_on_click=True)
         b = Button((0,0), 'white', 'delete', 30, bg='darkgrey')
         b.func=b.delete
+        can_load = os.path.exists('savegame.json')
         self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),]+
             vertical(5,[
-            Button((75, 120), 'white', 'New game', 30, self.select_level_menu, 'darkgrey'),
-            Button((75, 155), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
+            Button((75, 120), 'white', 'New game', 30, self.start_game, 'darkgrey'),
+            Button((75, 120), 'white'  if can_load else 'darkred', 'Load game', 30, self.load_game if can_load else lambda: 1, 'darkgrey'),
+            Button((75, 120), 'white', 'Select level', 30, self.select_level_menu, 'darkgrey'),
+            # Button((75, 155), 'white', 'Tutorial', 30, self.start_game, 'darkgrey'),
             Button((75, 190), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
             Button((75, 200), 'white', 'Join game', 30, self.join_game, 'darkgrey',textfield=tf),
             Button((75, 260), 'white', 'Statistics', 30, self.stats_menu, 'darkgrey'),
@@ -154,7 +157,7 @@ class Game:
         #     bs.append(Button((75, y), 'white',f'{key.title()}: {int(d[key])}', 20))
         #     y+=23
         self.ui.set_ui(bs+add)
-        
+    
     def pause_menu(self):
         if not self.pause:
             self.pause = True
@@ -262,7 +265,7 @@ class Game:
         sleep(0.85)
         self.zoom(1)
 
-    def start_game(self, level='tutorial'):
+    def start_game(self, level='tutorial', new_game=True):
         self.screen.blit(load_screen,(0,0))
         pg.display.flip()
         self.playing = True
@@ -272,40 +275,45 @@ class Game:
         self.w=1
         self.v=cfg.screen_h
         self.camera_target=None
-        if self.pause: self.pause = False
+        self.pause = False
+        if not new_game: self.save_game()
         self.player = player.Player(*pos, 0, self)
         for i in self.addrs.values():
             p = player.Player(*pos, 0, self)
+            p.guns = list(set(self.player.guns+guns))
             i[1] = p
             self.world.actors.append(p)
         s = objects.SpawningPortal(*pos, self)
         self.player.guns = list(set(self.player.guns+guns))
+        if not new_game:
+            with open('savegame.json', 'r') as file: data = json.load(file)
+            for k, v in data['player'].items():
+                self.player.__dict__[k] = v
         self.camera.center = pos
         self.world.actors += [self.player,s]
         pg.mouse.set_cursor(*pg.cursors.diamond)
 
         self.start_zoom(level)
 
-    # def join_game(self):
-    #     try:
-    #         self.sock.connect((self.serv_ip, self.port))
-    #         data = pickle.loads(self.sock.recv(1024 * 4))
-    #         self.world.open_world(data.get('level'))
-    #         self.ui.clear()
-    #         self.camera.x = 0
-    #         self.player = player.Player(50, 0, data.get('n'), self)  # TODO: ONLINEEEEEE
-    #         self.playing = True
-    #         self.online = True
-    #         self.pr.start()
-    #     except socket.timeout:
-    #         self.join_menu('Servers dont answer...',
-    #                        [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
-    #     except Exception as e:
-    #         print(e)
-    #         self.join_menu('Cant connect to servers:(',
-    #                        [Button((800, 570), 'white', 'Main menu', 50, self.main_menu, 'darkgrey'), ])
+    def load_game(self):
+        with open('savegame.json', 'r') as file: data = json.load(file)
+        self.start_game(data['level'])
+        for k, v in data['player'].items():
+            self.player.__dict__[k] = v
+    
+    def save_game(self):
+        data = {}
+        data['level'] = self.level
+        data['player'] = {}
+        data['players'] = {}
 
-    #     self.loop()
+        fields = ['guns','hp','ammo','grenades','gun']
+        for k,v in self.player.__dict__.items():
+            if k in fields:
+                data['player'][k] = v
+        # TODO: Load players by addres
+
+        with open('savegame.json','w') as file: json.dump(data,file,indent=4)
     
     @threaded()
     def screen_stream(self,fps=60):

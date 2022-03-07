@@ -204,8 +204,15 @@ class Editor:
         self.info_ui.set_ui([
             Button((w+30,10),'white','Object info:',50),
             Button((w+30,55),'white',f'{obj.module}.{obj.__class__.__name__}',40),
-            *vertical(3,[Button((w+30,100),'white',str(i).title(),25) for i in obj.slots]+[Interface([Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj)),Button((100,0), 'white', 'Copy', 30, self.copy_obj, bg='darkgrey', args=(obj))])]),
-            *vertical(3, [TextField((w+170, 100),'black', str(obj._get_att_val(i[0])) if i[1] is not list else ', '.join(obj._get_att_val(i[0])), 25,'white',callback_f=obj.edit,size=(300,25), args=(key,), add_text=True) for key,i in obj.slots.items()]),
+            VBox(3, (w+30, 100), widgets=[
+                *[HBox(5,size=(1000,30), widgets=[
+                    Button((w+30,100),'white',str(key).title(),25),
+                    TextField((w+170, 100),'black', str(obj._get_att_val(i[0])) if i[1] is not list else ', '.join(obj._get_att_val(i[0])), 30,'white',callback_f=obj.edit,size=(500,27), args=(key,), add_text=True)
+                ]) for key,i in obj.slots.items()],
+                Interface([
+                    Button((0,0), 'white', 'Delete', 30, self.del_obj, bg='darkgrey', args=(obj)),
+                    Button((100,0), 'white', 'Copy', 25, self.copy_obj, bg='darkgrey', args=(obj))])
+            ])
         ])
     def del_obj(self, obj):
         self.object=None
