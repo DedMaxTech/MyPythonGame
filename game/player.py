@@ -25,9 +25,6 @@ IMGS2 = {
     'ALPHA':pg.Surface((70,70),flags= pg.SRCALPHA),
 }
 
-# alpha_sf = pg.Surface(IMGS2['CENTER'].get_size(),24, pg.SRCALPHA)
-
-
 IMGS2['DOWNRIGHT'] = pg.transform.flip(IMGS2['DOWNLEFT'], True, False)
 IMGS2['RIGHT'] = pg.transform.flip(IMGS2['LEFT'], True, False)
 IMGS2['UP'] = pg.transform.flip(IMGS2['DOWN'], False, True)
@@ -243,10 +240,11 @@ class Player(core.Actor):
                     if self.right: 
                         self.speed.x-=WALL_JUMP_FORCE
                         self.speed.y -= JUMP_FORCE
+                        self.wall_jump_kd = 500
                     if self.left: 
                         self.speed.x+=WALL_JUMP_FORCE
                         self.speed.y -= JUMP_FORCE
-                    if not self.up: self.wall_jump_kd = 500
+                        self.wall_jump_kd = 500
             self._hook = False
             if not self._hook and d['hook']:
                 _, self.hook_point.xy, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180), 700,self.game.camera)
@@ -531,10 +529,6 @@ class Player(core.Actor):
         if not cfg.allow_c:self.flashlight.light_draw(screen,camera)
         else:
             # Ray cast light
-            # ps = [real(self.rect.center,camera)]
-            # for i in range(10):
-            #     _, p, _ = self.game.world.raycast(self.rect.center, (-self.angle if self.look_r else self.angle+180)+ i*4 - 10,500, camera=camera)
-            #     ps.append(real(p,camera))
             ps = [real(self.rect.center,camera), *[real(p,camera) for p in self.game.world.multi_ray_cast(self.rect.center, [(-self.angle if self.look_r else self.angle+180)+ i*4 - 10 for i in range(10)],500, camera=camera)]]
             pg.draw.polygon(screen, 'white', ps)
             ################
@@ -648,24 +642,25 @@ class Player(core.Actor):
 
         # SQISH*
         offx, offy = 15 + abs(self.speed.x/2*1.5), 15 + abs(self.speed.y/2*1.5)
-        if self.anim_flag: offy+=3
-        self.img = pg.transform.scale(self.img, (self.img.get_width()-abs(self.speed.x*1.5),self.img.get_height()-abs(self.speed.y*1.5)+ (3 if self.anim_flag else 0)))
+        if self.anim_flag and self.on_ground: offy+=3
+        self.img = pg.transform.scale(self.img, (int(self.img.get_width()-abs(self.speed.x*1.5)),int(self.img.get_height()-abs(self.speed.y*1.5)+ (3 if self.anim_flag and self.on_ground else 0))))
 
         # ROTATE
         w,h = self.img.get_size()
         ang = 0
         if self.wall_jump_kd>0: ang += remap(self.wall_jump_kd, (0,500),(0,360)) * (1 if self.look_r else -1)
         if self._hook and not (self.on_ground or self.right or self.left or self.up): ang += self.hook_ang-90
-        self.img = pg.transform.rotate(self.img, ang)
-        offx += self.img.get_width()/2 - w/2
-        offy += self.img.get_height()/2 - h/2
+        if ang: 
+            self.img = pg.transform.rotate(self.img, ang)
+            offx += self.img.get_width()/2 - w/2
+            offy += self.img.get_height()/2 - h/2
 
         # DRAW GUN AND SECOND GUN
         gun_img = pg.transform.rotate(weapons.GUNS[self.guns[self.gun]]['img'].copy(), self.angle-self.to_ang+(self.recoil*remap(self.shoot_kd, (0,weapons.GUNS[self.guns[self.gun]]['kd']))))
         gnu_w,gun_h=gun_img.get_width()/2,gun_img.get_height()/2
         if not self.look_r: gun_img = pg.transform.flip(gun_img, True,False)
-        self.img.blit(gun_img, (gun_img.get_rect().x+35+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, gun_img.get_rect().y+40+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
-        if self.bonus['Double gun']>0: self.img.blit(gun_img, (gun_img.get_rect().x+40+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, gun_img.get_rect().y+35+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
+        self.img.blit(gun_img, (35+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, 40+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
+        if self.bonus['Double gun']>0: self.img.blit(gun_img, (40+weapons.GUNS[self.guns[self.gun]]['offx']-gnu_w + self.img.get_width()/2 - w/2, 35+weapons.GUNS[self.guns[self.gun]]['offy']-gun_h + self.img.get_height()/2 - h/2))
 
 
         if self.dmg_timer > 0: self.img.blit(RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
