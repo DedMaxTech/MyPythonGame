@@ -130,7 +130,7 @@ class Editor:
             pg.draw.line(self.frame, 'red', (0,-self.camera.y-40),(self.camera.w,-self.camera.y-40),1)
             pg.draw.line(self.frame, 'red', (0,-self.camera.y+self.camera.h-40),(self.camera.w,-self.camera.y+self.camera.h-40),1)
         x,y= pg.mouse.get_pos()
-        x,y=utils.real((-x,-y-40), self.camera)
+        x,y=utils.real((-x,-y), self.camera)
         
 
         self.screen.blit(pg.transform.scale(self.frame, (int(self.res[0]/self.zoom),int(self.res[1]/self.zoom),)),(0,0))

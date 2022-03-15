@@ -112,7 +112,7 @@ class Game:
         b = Button((0,0), 'white', 'delete', 30, bg='darkgrey')
         b.func=b.delete
         can_load = os.path.exists('savegame.json')
-        self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),]+
+        self.ui.set_ui([Button((50, 50), 'white', 'MENU', 60, ),Button((800, 420), 'white','v'+ cfg.version, 15, ),]+
             vertical(5,[
             Button((75, 120), 'white', 'New game', 30, self.start_game, 'darkgrey'),
             Button((75, 120), 'white'  if can_load else 'darkred', 'Load game', 30, self.load_game if can_load else lambda: 1, 'darkgrey'),
@@ -121,9 +121,33 @@ class Game:
             Button((75, 190), 'white', 'Level editor', 30, self.editor, 'darkgrey'),
             Button((75, 200), 'white', 'Join game', 30, self.join_game, 'darkgrey',textfield=tf),
             Button((75, 260), 'white', 'Statistics', 30, self.stats_menu, 'darkgrey'),
+            Button((75, 260), 'white', 'Credits', 30, self.credits, 'darkgrey'),
             Button((75, 295), 'white', 'Exit', 30, exit, 'darkgrey'),
         ])+add+[tf,])
     
+    def credits(self):
+        self.ui.set_ui([
+            Button((50, 50), 'white', 'Code, arts, animation and sfx by MaxGyverTech (Maxim Fadeenko)', 30, ),
+            VBox(3,(50,100),widgets=[
+                Button((50, 50), 'white', 'Used to run app:', 35, ),
+                Button((50, 50), 'white', 'Python 3.9.7', 25, ),
+                Button((50, 50), 'white', 'Site modules:', 35, ),
+                Button((50, 50), 'white', 'Pygame 2.0.2 (SDL 2.0.16)', 25, ),
+            ]),
+            VBox(3,(450,100),widgets=[
+                Button((50, 50), 'white', 'Used software:', 35, ),
+                Button((50, 50), 'white', 'IDE - Visual Studio Code', 25, ),
+                Button((50, 50), 'white', 'Art - Adobe Photoshop', 25, ),
+                Button((50, 50), 'white', 'Sfx - sfxr by DrPetter', 25, ),
+            ]),
+            HBox(3,(50,300),widgets=[
+                Button((50, 50), 'white', '"C" version:', 30, ),
+                Button((50, 50), 'white', 'MSVC 143,', 30, ),
+                Button((50, 50), 'white', 'IDE - Visual Studio 2022', 30, ),
+            ]),
+            Button((75, 400), 'white', 'Back', 25, self.main_menu, 'darkgrey'),
+        ])
+
     def select_level_menu(self):
         levels = dict()
         for i in glob.glob('levels/*.py'):
@@ -163,7 +187,7 @@ class Game:
             self.pause = True
             self.ui.set_ui([
                 Button((400, 200), 'white', 'Continue', 25, self.pause_menu, 'darkgrey'),
-                Button((400, 230), 'white', 'Respawn', 25, self.start_game, 'darkgrey', args=(self.level)),
+                Button((400, 230), 'white', 'Respawn', 25, self.load_game, 'darkgrey'),
                 Button((400, 290), 'white', 'Main menu', 25, self.main_menu, 'darkgrey'),
                 Button((400, 320), 'white', 'Exit', 25, exit, 'darkgrey'),
             ] + ([Button((400, 260), 'white', 'Online', 25, self.create_game, 'darkgrey', ),] if self.online == Status.Offline else horizontal(5, [Button((400, 260), 'white', 'Offline', 25, self.close_game, 'darkgrey', ), Button((400, 260), 'white', f'Code to cennect: {self.addr[0].split(".")[-1]}', 25),])), anim=False)
@@ -216,33 +240,18 @@ class Game:
                     # print(d,addr,d == b'hello',addr not in self.addrs.keys())
                     if addr not in self.addrs.keys():
                         if d == b'hello':
-                            print('sana pidor')
                             p = player.Player(*self.world.spawn_pos, game_inst=self)
                             self.addrs[addr] = [5000,p]
                             self.world.actors.append(p)
                     else:
                         p = self.addrs[addr][1]
                         data = pickle.loads(d)
-                        if data: print(data)
                         p.process_move(data)
                         self.addrs[addr] = [5000,p]
                 else:
                     time.sleep(1)
             except socket.timeout:
                 pass
-
-    # @threaded()
-    # def awaiting_player_data(self):
-    #     while 1:
-    #         try:
-    #             if self.online is Status.Host:
-    #                 d,addr = self.sock.recvfrom(4096)
-                    
-    #             else:
-
-    #                 time.sleep(1)
-    #         except socket.timeout:
-    #             pass
 
     def join_menu(self, text, add=[]):
         self.frame.fill('black', [0, 0, self.res[0], self.res[1] + 40])
@@ -264,6 +273,7 @@ class Game:
         # if f'levels.{level}' not in sys.modules:sleep(1)
         sleep(0.85)
         self.zoom(1)
+        
 
     def start_game(self, level='tutorial', new_game=True):
         self.screen.blit(load_screen,(0,0))
@@ -289,6 +299,7 @@ class Game:
             with open('savegame.json', 'r') as file: data = json.load(file)
             for k, v in data['player'].items():
                 self.player.__dict__[k] = v
+            self.ui.widgets.append(Button((700,20),'white',"Game saved!",30, autodel=3000))
         self.camera.center = pos
         self.world.actors += [self.player,s]
         pg.mouse.set_cursor(*pg.cursors.diamond)
@@ -307,7 +318,7 @@ class Game:
         data['player'] = {}
         data['players'] = {}
 
-        fields = ['guns','hp','ammo','grenades','gun']
+        fields = ['guns','hp','ammo','grenades','gun','score','score_k','score_t']
         for k,v in self.player.__dict__.items():
             if k in fields:
                 data['player'][k] = v
@@ -579,7 +590,7 @@ class Game:
         self.stats['time']+=self.delta/1000
         if self.playing and not self.pause:
             
-            if self.player._delete: self.start_game(self.level)
+            if self.player._delete: self.load_game()
             if self.v>self.w: self.w*=1.08
             else: self.w/=1.08
             self.world_tick = 0.3 if self.player.aiming else 1.0

@@ -87,6 +87,7 @@ class MeleeAI(BaseAI,core.Saving):
     module='enemies'
     def __init__(self, x=0, y=0):
         super().__init__(x, y, 30,80, friction=0)
+        convert()
         self.look_r = True
         self.jump = False
         self.hp = 100
@@ -169,15 +170,52 @@ class MeleeAI(BaseAI,core.Saving):
         return super().debug_draw(screen, camera)
 
     def draw(self, screen:pg.Surface, camera:pg.Rect):
-        if self.speed.x == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
+        # if self.speed.x == 0:img,off = AI_IMG_IDLE.copy(), (0,0)
+        # else:
+        #     if self.speed.x>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
+        #     else:img,off = AI_IMG_LEFT.copy(), (-30,0)
+        # # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
+        # pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+(30*self.hp/100),self.rect.y-camera.y),4)
+        # if self.dmg_timer > 0:
+        #     img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
+        # screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
+        self.rect.size = (40,40)
+        
+        # SELECT IMAGE
+        if self.on_ground:
+            if self.right or self.left: 
+                if self.right and self.left: self.img = IMGS2['DOWNBOTH'].copy()
+                elif self.right: self.img = IMGS2['DOWNRIGHT'].copy()
+                else: self.img = IMGS2['DOWNLEFT'].copy()
+            else: self.img = IMGS2['DOWN'].copy()
         else:
-            if self.speed.x>0: img,off = AI_IMG_RIGHT.copy(), (0,0)
-            else:img,off = AI_IMG_LEFT.copy(), (-30,0)
-        # screen.fill('red',(self.rect.x - camera.x, self.rect.y - camera.y, self.rect.w, self.rect.h))
-        pg.draw.line(screen,'green',(self.rect.x - camera.x,self.rect.y-camera.y),(self.rect.x - camera.x+(30*self.hp/100),self.rect.y-camera.y),4)
-        if self.dmg_timer > 0:
-            img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
-        screen.blit(img, (self.rect.x - camera.x + off[0], self.rect.y-camera.y+off[1]))
+            if self.right or self.left: self.img = (IMGS2['LEFT'].copy() if self.left else IMGS2['RIGHT'].copy())
+            else: self.img = IMGS2['CENTER'].copy()
+
+        shad = pg.mask.from_surface(self.img).to_surface(IMGS2['ALPHA'].copy(),setsurface=IMGS2['SHADOW'].copy(), unsetcolor=(0,0,0,0))
+        self.img.blit(shad, (0,0))
+
+        # DRAW FACE
+        # vec_sum(self.speed, (0,0) if not self.target else vec_to_speed(distanse(self.rect.center, self.target.rect.center)/20, angle(self.rect.center, self.target.rect.center)-90))
+        self.img.blit(IMGS2['FACE'],self.speed*1.5)
+
+
+        offx, offy = 15,15
+        # # SQISH*
+        # offx, offy = 15 + abs(self.speed.x/2*1.5), 15 + abs(self.speed.y/2*1.5)
+        # if self.anim_flag: offy+=3
+        # self.img = pg.transform.scale(self.img, (self.img.get_width()-abs(self.speed.x*1.5),self.img.get_height()-abs(self.speed.y*1.5)+ (3 if self.anim_flag else 0)))
+
+
+        if self.dmg_timer > 0: self.img.blit(player.RED_TINT,(0,0),special_flags=pg.BLEND_RGB_ADD)
+        mask = pg.mask.from_surface(self.img).to_surface(setcolor=(0,0,0),unsetcolor=(0,0,0,0))
+            # OUTLINE
+        screen.blit(mask, (self.rect.x - camera.x-2 - offx, self.rect.y - camera.y - offy))
+        screen.blit(mask, (self.rect.x - camera.x+2 - offx, self.rect.y - camera.y - offy))
+        screen.blit(mask, (self.rect.x - camera.x - offx, self.rect.y - camera.y-2 - offy))
+        screen.blit(mask, (self.rect.x - camera.x - offx, self.rect.y - camera.y+2 - offy))
+
+        screen.blit(self.img, (self.rect.x - camera.x - offx, self.rect.y - camera.y - offy))
 
 class ShoterAI(BaseAI, core.Saving):
     START_AGR = 350
@@ -345,7 +383,7 @@ class ShoterAI(BaseAI, core.Saving):
         self.img.blit(shad, (0,0))
 
         # DRAW FACE
-        self.img.blit(IMGS2['FACE'],self.speed)
+        self.img.blit(IMGS2['FACE'],self.speed*1.5)
 
 
         offx, offy = 15,15

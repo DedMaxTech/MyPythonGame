@@ -6,3 +6,4 @@ __pycache__/
 *.pyc
 *.prof
 savegame.json
+game/Dll1/x64

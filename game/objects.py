@@ -443,7 +443,8 @@ class LevelTravelTriger(BaseTriger, core.Saving):
             self.rect.w*=0.98
             self.rect.h*=0.98
             if self.timer>0: self.timer-=delta
-            else: self.game.start_game(self.level,False)
+            else: 
+                self.game.start_game(self.level,False)
         self.r+=1
         self.img = pg.transform.rotate(PORTAL_IMG.copy(),self.r)
         self.img = pg.transform.scale(self.img, (self.rect.w,self.rect.h))
@@ -545,7 +546,6 @@ class CameraTargetTriger(BaseTriger, core.Saving):
     
     def update(self, delta, blocks, actors):
         if self.onetime:
-            print(self.t)
             if self.t:
                 if self.timer>0: self.timer-=delta
                 else: 

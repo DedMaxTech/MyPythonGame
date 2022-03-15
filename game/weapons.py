@@ -51,6 +51,10 @@ class Bullet(Projectile):
         if isinstance(actor, enemies.BaseAI) and not isinstance(self.parent, enemies.BaseAI):
             actor.hp -= self.damage
             self.parent.game.stats['done damage']+=self.damage
+            self.parent.score += self.damage
+            if actor.hp<0: self.parent.score += 100
+            self.parent.score_t += self.damage
+            if actor.hp<0: self.parent.score_t += 100
             # write_stat('done damage', get_stat('done damage')+self.damage)
             if not cfg.potato:
                 fx.blood(self.rect.center,self.parent.world, int(self.damage*1.5/10))
@@ -96,7 +100,13 @@ class Rocket(Projectile):
                         a.on_fire = rd(5000,8000)
                         if isinstance(a, player.Player) or isinstance(a, enemies.BaseAI):
                             self.parent.game.stats['done damage']+=dmg
-                            if isinstance(a, player.Player): a.damage(dmg)
+                            if isinstance(a, player.Player): 
+                                a.damage(dmg)
+                                self.parent.game.stats['done damage']+=self.damage
+                                self.parent.score += self.damage
+                                if actor.hp<0: self.parent.score += 100
+                                self.parent.score_t += self.damage
+                                if actor.hp<0: self.parent.score_t += 100
                             else: a.hp-=dmg
                             if not cfg.potato: fx.damage(a.rect.center, dmg, self.parent.game.world)
                 if isinstance(a, level.Block) and a.type in dest:

@@ -157,11 +157,15 @@ class Player(core.Actor):
         self.anim_timer = 0
         self.anim_flag = False
 
+        self.score = 0
+        self.score_k = 1
+        self.score_t=0
+
 
         self.up = False
         self.gun = 0
         self.guns = ['pistol']
-        self.ammo = {'rifle': [30, 60], 'pistol': [10,50],'shootgun':[5,15], 'minigun':[100,100], 'sniper':[5,15]}
+        self.ammo = {'rifle': [30, 60], 'pistol': [10,50],'shootgun':[5,15], 'minigun':[100,100], 'sniper':[5,15],'rocket_gun':[1,5]}
         self.grenades = 40
         self.grenade=False
         self._reload = False
@@ -186,22 +190,28 @@ class Player(core.Actor):
 
         self.event_ui = VBox(0,(700,0), (154,400), anchor_h=RIGHT, anchor_v=DOWN)
         self.hp_bar= ProgressBar((40,380), pg.image.load('game/content/ui/hp_full.png').convert_alpha(), pg.image.load('game/content/ui/hp_empty.png').convert_alpha(), colorkey='black')
+        self.score_bar= ProgressBar((380,400), pg.image.load('game/content/ui/score_bar_full.png').convert_alpha(), pg.image.load('game/content/ui/score_bar_empty.png').convert_alpha(), colorkey='black')
         self.time_bar = ProgressBar((40,380), pg.image.load('game/content/ui/time_full.png').convert_alpha(), pg.image.load('game/content/ui/time_empty.png').convert_alpha(), colorkey='black')
         self.ammo_but = Button((790,428),'yellow','', 20)
         self.reload_but = Button((790,418),'red','', 15)
         self.gun_but = Button((790,445),'white','', 15)
         self.grenades_but = Button((760,460),'white','', 15)
+        self.score_l = Button((330,445),'white','123', 20)
+        self.score_k_l = Button((520,425),'red','x3', 40)
         self.ui.set_ui([
             self.hp_bar,
             self.time_bar,
             self.ammo_but,
             self.reload_but,
+            self.score_bar,
+            self.score_l,
+            self.score_k_l,
             self.gun_but,
             self.grenades_but,
             self.event_ui,
             Button((750,420),'white','',1,img='game/content/ui/ammo.png'),
-            Button((20,422),'white','',1,img='game/content/ui/heart.png'),
-            Button((30,410),'white','',1,img='game/content/ui/clock.png'),
+            Button((25,422),'white','',1,img='game/content/ui/heart.png'),
+            Button((35,410),'white','',1,img='game/content/ui/clock.png'),
             Button((750,463),'white','',1,img='game/content/ui/grenade.png'),
         ])
 
@@ -255,6 +265,8 @@ class Player(core.Actor):
 
 
     def to_death(self):
+        self.score_k=0
+        self.score_t=0
         self.dead=True
         self.autodel(3)
         self.game.death()
@@ -303,6 +315,21 @@ class Player(core.Actor):
             self.reload_but.text = ''
         self.gun_but.text = self.guns[self.gun].title()
 
+
+        
+        if self.score_t>300*self.score_k and self.score_k<16:
+            self.score_t=300*self.score_k
+            self.score_k*=2
+        if self.score_t<=0 and self.score_k>1:
+            self.score_k/=2
+            self.score_t=300*self.score_k
+        self.score_t = limit(self.score_t - (300*self.score_k / 40 * delta / 1000), -1)
+
+        self.score_bar.value = limit(remap(self.score_t, (0,300*self.score_k+1)),0,1)
+        self.score_k_l.text = f'x{int(self.score_k)}'
+        self.score_l.text = str(self.score)
+
+
         # TIMERS
         if self.anim_timer >0: self.anim_timer-=delta
         else:
@@ -340,7 +367,7 @@ class Player(core.Actor):
         # self.look_r = x>=0
         # self.angle = angle(self.rect.center, (self.game.camera.x+x,))
 
-        # RELOAD
+        # RELOADa
         if self._reload:
             if self.reload_kd>0: 
                 self.reload_kd -= delta
@@ -363,8 +390,8 @@ class Player(core.Actor):
 
         # SIDE MOVE
         ACCEL = PLAYER_ACCELERATION
-        if self.move_right and not self.right: self.speed.x += ACCEL -self.speed.x
-        if self.move_left and not self.left: self.speed.x -= ACCEL+self.speed.x
+        if self.move_right and not self.right and (self.up or not self._hook): self.speed.x += ACCEL -self.speed.x
+        if self.move_left and not self.left and (self.up or not self._hook): self.speed.x -= ACCEL+self.speed.x
 
         #AIM
         if self.aiming:
@@ -487,10 +514,10 @@ class Player(core.Actor):
     
     def land(self, speed):
         fx.slimes(self.rect.center, self.game.world)
-        # if self._hook: 
-        #     self.speed.y = -abs(speed.y)*3
-        #     self._hook = False
-        #     self.on_ground=False
+        if self._hook: 
+            self.speed.y = -limit(JUMP_FORCE+abs(speed.y)*2, max=16)
+            self._hook = False
+            self.on_ground=False
 
     def throw_genade(self):
         self.grenade=False
