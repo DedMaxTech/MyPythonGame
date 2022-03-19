@@ -5,7 +5,7 @@ potato = False
 allow_c = False
 
 font = 'game/content/pixel_font.ttf'
-GAMENAME = 'MyPythonGame'
+GAMENAME = 'Slime sandbox'
 # addr = ("192.168.1.117", 5001)
 addr = ('5.23.55.108', 5001)
 
