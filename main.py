@@ -79,6 +79,8 @@ class Game:
         self._zoom = 1
         self._curzoom = 1
 
+        self.stars = []
+
         self.stats = get_stat()
         self.w = 1
         self.v=1
@@ -557,6 +559,11 @@ class Game:
                         debug(f'players: {", ".join([f"{a}: {v[0]}" for a,v in self.addrs])}',self.frame,y=75)
             else:
                 self.frame.fill('black')
+                while len(self.stars)<200: self.stars.append(fx.Star())
+                for i in self.stars:
+                    i.update()
+                    i.draw(self.screen)
+                    if i._del: self.stars.remove(i)
             # if self.world.neo_mode:
             #     neg = pg.Surface(self.frame.get_size())
             #     neg.fill((255, 255, 255))

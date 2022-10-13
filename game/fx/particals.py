@@ -73,3 +73,21 @@ class ExploseParticle(core.Actor):
     
     def light_draw(self, screen: pg.Surface, camera: pg.Rect):
         screen.blit(self.img, real(self.rect.topleft, camera))
+
+class Star():
+    def __init__(self) -> None:
+        self.w = 2.0
+        angle = rd(0,3600)/10
+        self.pos = pg.Vector2((854/2,480/2)+pg.Vector2(30,0).rotate(angle)) # pg.Rect(rd(854/2-30,854/2+30),rd(480/2-30,480/2+30),w,w)
+        self.vec = pg.Vector2(1,0).rotate(angle)
+        self._del = False
+        self.frames = 0
+    def update(self):
+        self.frames+=1
+        self.w *= 1.04
+        self.vec *= 1.05
+        self.pos += self.vec
+        if not pg.Rect(-200,-200,1000,680).collidepoint(self.pos):self._del = True
+        # self.color = pg.Color(rd(0,))
+    def draw(self,frame):
+        pg.draw.rect(frame,(limit(int(self.frames*2.5),max=255),limit(int(self.frames*2.5),max=255),limit(int(self.frames*2.5),max=255),),(self.pos.x,self.pos.y,self.w,self.w))
